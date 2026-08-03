@@ -45,10 +45,8 @@
             max-width: 1150px;
             height: 88vh;
             height: 88dvh;
-            /* High transparency applied so rain/smoke passes behind cleanly, with extra opaque backing layers on content panels for readability */
-            background: rgba(4, 2, 10, 0.35);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            /* Completely solid background to block background rain/smoke */
+            background: #06040f;
             border-radius: 12px;
             display: flex;
             overflow: hidden;
@@ -63,8 +61,7 @@
         #auth-overlay, #invite-popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 2, 10, 0.85);
-            backdrop-filter: blur(12px);
+            background: #04020a;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -78,7 +75,7 @@
         }
 
         .auth-card, .popup-card {
-            background: rgba(10, 8, 22, 0.92);
+            background: #0a0816;
             padding: 28px;
             border-radius: 12px;
             display: flex;
@@ -111,11 +108,10 @@
             justify-content: center;
         }
 
-        /* Sidebar - Highly transparent */
+        /* Sidebar - Solid */
         #sidebar {
             width: 280px;
-            background: rgba(6, 4, 15, 0.55);
-            backdrop-filter: blur(12px);
+            background: #06040f;
             border-right: 2px solid #3b82f6;
             box-shadow: 4px 0 15px rgba(59, 130, 246, 0.2);
             display: flex;
@@ -227,7 +223,7 @@
         }
 
         .friend-card {
-            background: rgba(59, 130, 246, 0.08);
+            background: #090e1f;
             border: 1px solid rgba(59, 130, 246, 0.4);
             padding: 10px 12px;
             border-radius: 8px;
@@ -239,7 +235,7 @@
 
         .friend-card:hover {
             border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.15);
+            background: #11091f;
             box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
         }
 
@@ -292,7 +288,7 @@
         }
 
         .btn-invite-friend {
-            background: rgba(59, 130, 246, 0.15);
+            background: #0a142e;
             border: 1px solid #3b82f6;
             color: #60a5fa;
             padding: 4px 8px;
@@ -301,7 +297,7 @@
         }
 
         .btn-invite-friend:hover {
-            background: rgba(59, 130, 246, 0.4);
+            background: #102352;
             box-shadow: 0 0 8px #3b82f6;
         }
 
@@ -322,12 +318,11 @@
             flex-direction: column;
             overflow: hidden;
             width: 100%;
-            background: transparent;
+            background: #06040f;
         }
 
         #tabs-bar {
-            background: rgba(5, 3, 12, 0.45);
-            backdrop-filter: blur(8px);
+            background: #06040f;
             border-bottom: 2px solid #3b82f6;
             display: flex;
             align-items: center;
@@ -355,7 +350,7 @@
         }
 
         .chat-tab {
-            background: rgba(59, 130, 246, 0.1);
+            background: #0b1124;
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-bottom: none;
             padding: 6px 12px;
@@ -374,10 +369,10 @@
         }
 
         .chat-tab.active {
-            background: rgba(10, 8, 22, 0.75);
+            background: #06040f;
             color: #fff;
             border-color: #3b82f6;
-            border-bottom: 1px solid rgba(10, 8, 22, 0.75);
+            border-bottom: 1px solid #06040f;
             font-weight: 600;
             box-shadow: 0 -4px 15px rgba(59, 130, 246, 0.4);
         }
@@ -406,7 +401,7 @@
         .tab-close-btn:hover { opacity: 1; text-shadow: 0 0 6px #a855f7; }
 
         .add-tab-btn {
-            background: rgba(59, 130, 246, 0.2);
+            background: #0a142e;
             border: 1px solid #3b82f6;
             color: #60a5fa;
             border-radius: 50%;
@@ -423,14 +418,13 @@
         }
 
         .add-tab-btn:hover {
-            background: rgba(59, 130, 246, 0.4);
+            background: #102352;
             box-shadow: 0 0 10px #3b82f6;
         }
 
         #chat-header {
             padding: 12px 18px;
-            background: rgba(6, 4, 15, 0.45);
-            backdrop-filter: blur(8px);
+            background: #06040f;
             border-bottom: 2px solid #3b82f6;
             display: flex;
             justify-content: space-between;
@@ -459,7 +453,7 @@
 
         .inbox-btn, .menu-toggle-btn {
             position: relative;
-            background: rgba(59, 130, 246, 0.15);
+            background: #0a142e;
             border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
@@ -490,7 +484,7 @@
         .green-badge.active { display: block; }
 
         .header-btn {
-            background: rgba(59, 130, 246, 0.15);
+            background: #0a142e;
             border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
@@ -503,19 +497,19 @@
         }
 
         .header-btn:hover {
-            background: rgba(59, 130, 246, 0.35);
+            background: #102352;
             box-shadow: 0 0 12px #3b82f6;
         }
 
         .btn-leave-room {
-            background: rgba(168, 85, 247, 0.2);
+            background: #170a24;
             border: 1px solid #a855f7;
             color: #c084fc;
             box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
         }
 
         .btn-leave-room:hover {
-            background: rgba(168, 85, 247, 0.35);
+            background: #270f3f;
             box-shadow: 0 0 12px #a855f7;
         }
 
@@ -523,7 +517,7 @@
             font-size: 10px;
             padding: 4px 10px;
             border-radius: 20px;
-            background: rgba(168, 85, 247, 0.2);
+            background: #170a24;
             color: #c084fc;
             border: 1px solid #a855f7;
             font-weight: 600;
@@ -532,7 +526,7 @@
         }
 
         .status.online {
-            background: rgba(0, 255, 204, 0.15);
+            background: #03211b;
             color: #00ffcc;
             border-color: #00ffcc;
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
@@ -547,13 +541,12 @@
             gap: 12px;
             scrollbar-width: thin;
             scrollbar-color: #3b82f6 transparent;
-            background: transparent;
+            background: #06040f;
         }
 
-        /* Message bubbles with clean glass transparency so giant rain shines through clearly */
+        /* Solid message bubbles */
         .msg {
-            background: rgba(12, 10, 28, 0.65);
-            backdrop-filter: blur(6px);
+            background: #0e0a24;
             border: 1px solid #3b82f6;
             padding: 10px 14px;
             border-radius: 10px;
@@ -570,8 +563,7 @@
 
         .msg.self {
             align-self: flex-end;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.75), rgba(168, 85, 247, 0.75));
-            backdrop-filter: blur(6px);
+            background: linear-gradient(135deg, #1b3d85, #501d73);
             border: 1px solid #60a5fa;
             color: #ffffff;
             font-weight: 600;
@@ -604,7 +596,7 @@
         }
 
         .reaction-pill {
-            background: rgba(59, 130, 246, 0.2);
+            background: #0a142e;
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 12px;
             padding: 2px 6px;
@@ -617,7 +609,7 @@
         }
 
         .reaction-pill:hover {
-            background: rgba(168, 85, 247, 0.4);
+            background: #1e1136;
             border-color: #a855f7;
             color: #fff;
         }
@@ -640,7 +632,7 @@
         }
 
         .add-reaction-btn:hover {
-            background: rgba(59, 130, 246, 0.3);
+            background: #0a142e;
             color: #fff;
             box-shadow: 0 0 6px #3b82f6;
         }
@@ -649,7 +641,7 @@
             position: absolute;
             bottom: -32px;
             left: 0;
-            background: rgba(10, 8, 22, 0.95);
+            background: #0a0816;
             border: 1px solid #3b82f6;
             border-radius: 8px;
             padding: 4px 6px;
@@ -690,13 +682,12 @@
             height: 18px;
             font-family: 'Orbitron', sans-serif;
             text-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
-            background: transparent;
+            background: #06040f;
         }
 
         #input-area {
             padding: 12px 16px;
-            background: rgba(6, 4, 15, 0.45);
-            backdrop-filter: blur(8px);
+            background: #06040f;
             display: flex;
             gap: 8px;
             border-top: 2px solid #3b82f6;
@@ -707,7 +698,7 @@
             padding: 12px 14px;
             border-radius: 8px;
             border: 1px solid #3b82f6;
-            background: rgba(10, 8, 22, 0.6);
+            background: #0b091c;
             color: #fff;
             outline: none;
             font-size: 13px;
@@ -740,14 +731,14 @@
         }
 
         .btn-secondary {
-            background: rgba(59, 130, 246, 0.15);
+            background: #0a142e;
             border: 1px solid #3b82f6;
             color: #60a5fa;
             box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         .btn-secondary:hover {
-            background: rgba(59, 130, 246, 0.35);
+            background: #102352;
             box-shadow: 0 0 12px #3b82f6;
             color: #fff;
         }
@@ -759,8 +750,7 @@
             right: 12px;
             width: calc(100% - 24px);
             max-width: 320px;
-            background: rgba(10, 8, 22, 0.92);
-            backdrop-filter: blur(20px);
+            background: #0a0816;
             border: 2px solid #3b82f6;
             border-radius: 12px;
             box-shadow: 0 0 25px #3b82f6, inset 0 0 15px rgba(168, 85, 247, 0.3);
@@ -795,7 +785,7 @@
         }
 
         .req-card {
-            background: rgba(59, 130, 246, 0.08);
+            background: #090e1f;
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 8px;
             padding: 8px 10px;
@@ -808,7 +798,7 @@
         .req-actions button { padding: 4px 8px; font-size: 10px; border-radius: 6px; }
         .btn-accept { background: #00ffcc; color: #04020a; border: none; box-shadow: 0 0 8px rgba(0,255,204,0.5); font-weight: 700; }
         .btn-accept:hover { background: #33ffdb; box-shadow: 0 0 12px #00ffcc; }
-        .btn-decline { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
+        .btn-decline { background: #170a24; color: #c084fc; border: 1px solid #a855f7; }
 
         @media (max-width: 768px) {
             body { padding: 0; }
@@ -829,8 +819,7 @@
                 width: 100%;
                 height: 100%;
                 z-index: 90;
-                background: rgba(6, 4, 15, 0.88);
-                backdrop-filter: blur(25px);
+                background: #06040f;
                 transform: translateX(-100%);
                 padding-top: 50px;
             }
