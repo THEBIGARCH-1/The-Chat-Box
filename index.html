@@ -18,10 +18,6 @@
 
         body {
             background: #04020a;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(4, 2, 10, 0.95) 100%),
-                linear-gradient(rgba(18, 16, 30, 0.3) 1px, transparent 1px);
-            background-size: 100% 4px; /* Retro CRT Scanline Effect */
             color: #f3f4f6;
             height: 100vh;
             height: 100dvh;
@@ -29,6 +25,18 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Glowing Rain & Lightning Canvas Background */
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
 
         #app-container {
@@ -36,12 +44,13 @@
             max-width: 1150px;
             height: 88vh;
             height: 88dvh;
-            background: rgba(10, 8, 24, 0.92);
+            background: rgba(10, 8, 24, 0.88);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 12px;
             display: flex;
             overflow: hidden;
+            z-index: 10;
             /* Cyberpunk Blue and Purple Gradient Neon Borders */
             border: 2px solid #3b82f6;
             box-shadow: 0 0 25px #3b82f6, inset 0 0 25px rgba(168, 85, 247, 0.3), 0 0 50px rgba(168, 85, 247, 0.2);
@@ -547,6 +556,7 @@
             line-height: 1.4;
             color: #f3f4f6;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+            position: relative;
         }
 
         .msg.self {
@@ -575,6 +585,74 @@
             justify-content: flex-end;
         }
 
+        /* Reactions Styling */
+        .msg-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .reaction-pill {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 10px;
+            color: #60a5fa;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .reaction-pill:hover {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: #a855f7;
+            color: #fff;
+        }
+
+        .add-reaction-btn {
+            background: transparent;
+            border: 1px dashed rgba(59, 130, 246, 0.5);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            color: #60a5fa;
+            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 6px;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .add-reaction-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #fff;
+            box-shadow: 0 0 6px #3b82f6;
+        }
+
+        .reaction-picker {
+            position: absolute;
+            bottom: -32px;
+            left: 0;
+            background: rgba(12, 8, 25, 0.98);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 4px 6px;
+            display: none;
+            gap: 6px;
+            z-index: 50;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .reaction-picker.open { display: flex; }
+        .reaction-option { cursor: pointer; font-size: 14px; transition: transform 0.1s; }
+        .reaction-option:hover { transform: scale(1.25); }
+
         .user-eye {
             font-size: 12px;
             display: inline-flex;
@@ -592,6 +670,16 @@
             color: #6b7280;
             filter: grayscale(100%);
             opacity: 0.5;
+        }
+
+        #typing-indicator {
+            font-size: 11px;
+            color: #c084fc;
+            padding: 2px 16px;
+            font-style: italic;
+            height: 18px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
         }
 
         #input-area {
@@ -711,7 +799,7 @@
         .btn-decline { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
 
         @media (max-width: 768px) {
-            body { padding: 0; background-size: 100% 2px; }
+            body { padding: 0; }
             #app-container { 
                 width: 100vw; 
                 height: 100vh; 
@@ -741,6 +829,8 @@
     </style>
 </head>
 <body>
+
+    <canvas id="bg-canvas"></canvas>
 
     <div id="auth-overlay">
         <div class="auth-card">
@@ -814,9 +904,10 @@
             </div>
 
             <div id="messages"></div>
+            <div id="typing-indicator"></div>
 
             <div id="input-area">
-                <input type="text" id="message-input" placeholder="Transmit message..." autocomplete="off" onkeypress="if(event.key==='Enter') send()">
+                <input type="text" id="message-input" placeholder="Transmit message..." autocomplete="off" oninput="handleTypingInput()" onkeypress="if(event.key==='Enter') send()">
                 <button type="button" onclick="send()">Send</button>
             </div>
         </div>
@@ -854,8 +945,139 @@
         let activeUsers = new Set();
         let currentTab = 'requests';
         let isUserLooking = true;
+        let typingTimeout = null;
+        let isCurrentlyTyping = false;
+        let activeTypers = {};
+        
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
         const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
+
+        // Web Audio API Sound Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSciFiSound(type) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'send') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'receive') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'click') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            }
+        }
+
+        // Glowing Raindrops & Lightning Canvas Effect
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let drops = [];
+        let lightningAlpha = 0;
+        let lightningPath = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        for (let i = 0; i < 90; i++) {
+            drops.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                length: Math.random() * 25 + 10,
+                speed: Math.random() * 8 + 6,
+                opacity: Math.random() * 0.7 + 0.3
+            });
+        }
+
+        function triggerLightningBolt() {
+            lightningAlpha = 1.0;
+            lightningPath = [];
+            let currX = Math.random() * canvas.width;
+            let currY = 0;
+            lightningPath.push({x: currX, y: currY});
+
+            while (currY < canvas.height) {
+                currX += (Math.random() - 0.5) * 50;
+                currY += Math.random() * 40 + 20;
+                lightningPath.push({x: currX, y: currY});
+            }
+
+            // Random next lightning strike delay between 4 to 10 seconds
+            setTimeout(triggerLightningBolt, Math.random() * 6000 + 4000);
+        }
+        setTimeout(triggerLightningBolt, 3000);
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw glowing raindrops
+            ctx.lineWidth = 1.5;
+            drops.forEach(d => {
+                let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
+                grad.addColorStop(0, `rgba(59, 130, 246, ${d.opacity})`);
+                grad.addColorStop(1, `rgba(168, 85, 247, 0)`);
+                ctx.strokeStyle = grad;
+
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x, d.y + d.length);
+                ctx.stroke();
+
+                d.y += d.speed;
+                if (d.y > canvas.height) {
+                    d.y = -d.length;
+                    d.x = Math.random() * canvas.width;
+                }
+            });
+
+            // Draw glowing lightning strikes
+            if (lightningAlpha > 0) {
+                ctx.strokeStyle = `rgba(200, 220, 255, ${lightningAlpha})`;
+                ctx.fillStyle = `rgba(168, 85, 247, ${lightningAlpha * 0.08})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                if (lightningPath.length > 0) {
+                    ctx.moveTo(lightningPath[0].x, lightningPath[0].y);
+                    for (let i = 1; i < lightningPath.length; i++) {
+                        ctx.lineTo(lightningPath[i].x, lightningPath[i].y);
+                    }
+                }
+                ctx.stroke();
+                lightningAlpha -= 0.04;
+            }
+
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
 
         window.onload = function() {
             authPubNub = new PubNub({
@@ -907,30 +1129,21 @@
         }
 
         function toggleSidebar() {
+            playSciFiSound('click');
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('open');
         }
 
         function handleAuth() {
+            playSciFiSound('click');
             const dispInput = document.getElementById('auth-displayname').value.trim();
             const userInput = document.getElementById('auth-username').value.trim().toLowerCase().replace('@', '');
             const passInput = document.getElementById('auth-pass').value.trim();
             const btn = document.getElementById('auth-btn');
 
-            if (!dispInput) {
-                alert("Please enter a Display Name!");
-                return;
-            }
-
-            if (!userInput) {
-                alert("Please enter a @USER!");
-                return;
-            }
-
-            if (!passInput) {
-                alert("Please set a password to secure your terminal link!");
-                return;
-            }
+            if (!dispInput) { alert("Please enter a Display Name!"); return; }
+            if (!userInput) { alert("Please enter a @USER!"); return; }
+            if (!passInput) { alert("Please set a password to secure your terminal link!"); return; }
 
             btn.disabled = true;
             btn.innerText = "Verifying Credentials...";
@@ -943,7 +1156,6 @@
                 btn.innerText = "Initialize Connection";
 
                 let existingAccount = null;
-
                 if (!status.error && response && response.channels[GLOBAL_REGISTRY_CHANNEL]) {
                     response.channels[GLOBAL_REGISTRY_CHANNEL].forEach(msgObj => {
                         if (msgObj.message && msgObj.message.username === userInput) {
@@ -987,6 +1199,7 @@
         }
 
         function switchAccount() {
+            playSciFiSound('click');
             localStorage.removeItem("chat_current_active_handle");
             location.reload();
         }
@@ -1027,6 +1240,7 @@
                         pendingInviteRoomCode = data.roomCode;
                         document.getElementById('popup-invite-text').innerText = `${data.from} (@${data.fromUsername}) invited you to channel [${data.roomCode}]!`;
                         document.getElementById('invite-popup-overlay').style.display = 'flex';
+                        playSciFiSound('receive');
                         return;
                     }
 
@@ -1037,6 +1251,7 @@
                             document.getElementById('mail-badge').classList.add('active');
                             addSystemMsg(`⚡ Link request from ${data.from} (@${data.fromUsername})! Check Inbox.`);
                             renderInbox();
+                            playSciFiSound('receive');
                         }
                         return;
                     }
@@ -1052,10 +1267,26 @@
                         document.getElementById('mail-badge').classList.add('active');
                         addSystemMsg(`⚡ ${data.from} accepted your link request!`);
                         renderInbox();
+                        playSciFiSound('receive');
                         return;
                     }
 
                     const targetRoom = channel.replace("room_code_", "");
+
+                    if (data.type === 'typing') {
+                        if (data.username !== myUsername && targetRoom === activeRoomCode) {
+                            activeTypers[data.username] = data.isTyping;
+                            updateTypingDisplay();
+                        }
+                        return;
+                    }
+
+                    if (data.type === 'reaction') {
+                        if (targetRoom === activeRoomCode) {
+                            handleIncomingReaction(data.msgId, data.emoji, data.username);
+                        }
+                        return;
+                    }
 
                     if (data.type === 'presence') {
                         if (data.username !== myUsername) {
@@ -1096,7 +1327,8 @@
 
                     if (data.senderId !== myId) {
                         userFocusStates[data.username] = (typeof data.looking !== 'undefined') ? data.looking : true;
-                        addMsgToRoom(targetRoom, data.sender, data.username, data.text, false, userFocusStates[data.username]);
+                        addMsgToRoom(targetRoom, data.senderId, data.sender, data.username, data.text, false, userFocusStates[data.username]);
+                        playSciFiSound('receive');
                     }
                 }
             });
@@ -1112,6 +1344,7 @@
         }
 
         function connectToRoom(rawCode) {
+            playSciFiSound('click');
             const code = rawCode.toUpperCase();
             const channel = "room_code_" + code;
 
@@ -1131,7 +1364,10 @@
         }
 
         function switchRoomTab(code) {
+            playSciFiSound('click');
             activeRoomCode = code;
+            activeTypers = {};
+            updateTypingDisplay();
             const displayName = roomAliases[code] || code;
             document.getElementById('room-display').innerText = "Channel: " + displayName + (displayName !== code ? ` (${code})` : '');
             renderTabs();
@@ -1139,6 +1375,7 @@
         }
 
         function renameRoomTab(code) {
+            playSciFiSound('click');
             const currentName = roomAliases[code] || code;
             const newName = prompt(`Enter custom alias for channel [${code}]:`, currentName);
             if (newName && newName.trim()) {
@@ -1157,6 +1394,7 @@
         }
 
         function closeRoomTab(code) {
+            playSciFiSound('click');
             const channel = "room_code_" + code;
 
             pubnub.publish({
@@ -1176,6 +1414,8 @@
                 activeRoomCode = "";
                 document.getElementById('room-display').innerText = "Channel: Offline";
                 document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#60a5fa; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(59,130,246,0.4);">All channels disconnected. Join or create one to resume!</div>`;
+                activeTypers = {};
+                updateTypingDisplay();
                 renderTabs();
             }
         }
@@ -1228,15 +1468,111 @@
 
             const div = document.createElement('div');
             div.className = `msg ${msgObj.isSelf ? 'self' : ''}`;
+            div.setAttribute('data-id', msgObj.id);
             
+            let reactionsHtml = `<div class="msg-reactions" id="reactions-${msgObj.id}">`;
+            if (msgObj.reactions) {
+                for (let [emoji, users] of Object.entries(msgObj.reactions)) {
+                    if (users.length > 0) {
+                        reactionsHtml += `<span class="reaction-pill" onclick="toggleReaction('${msgObj.id}', '${emoji}')">${emoji} ${users.length}</span>`;
+                    }
+                }
+            }
+            reactionsHtml += `</div>`;
+
             div.innerHTML = `
                 <div class="sender-header">
                     <span>${msgObj.isSelf ? 'You' : escape(msgObj.sender)}</span>
                     <span class="user-eye ${eyeClass}" data-username="${escape(msgObj.username)}" title="${isLooking ? 'Terminal active' : 'Terminal away'}">${eyeIcon}</span>
                 </div>
                 ${escape(msgObj.text)}
+                ${reactionsHtml}
+                <button type="button" class="add-reaction-btn" onclick="toggleReactionPicker('${msgObj.id}')" title="Add reaction">+</button>
+                <div class="reaction-picker" id="picker-${msgObj.id}">
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '⚡')">⚡</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '🤖')">🤖</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '💻')">💻</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '🔥')">🔥</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '💧')">💧</span>
+                </div>
             `;
             return div;
+        }
+
+        function toggleReactionPicker(msgId) {
+            playSciFiSound('click');
+            const picker = document.getElementById(`picker-${msgId}`);
+            picker.classList.toggle('open');
+        }
+
+        function addReaction(msgId, emoji) {
+            playSciFiSound('click');
+            const picker = document.getElementById(`picker-${msgId}`);
+            picker.classList.remove('open');
+
+            let msgObj = null;
+            if (roomMessages[activeRoomCode]) {
+                msgObj = roomMessages[activeRoomCode].find(m => m.id === msgId);
+            }
+            if (!msgObj) return;
+
+            if (!msgObj.reactions) msgObj.reactions = {};
+            if (!msgObj.reactions[emoji]) msgObj.reactions[emoji] = [];
+
+            if (!msgObj.reactions[emoji].includes(myUsername)) {
+                msgObj.reactions[emoji].push(myUsername);
+            }
+
+            updateMessageReactionsDOM(msgId, msgObj.reactions);
+
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: {
+                    type: 'reaction',
+                    msgId: msgId,
+                    emoji: emoji,
+                    username: myUsername
+                }
+            });
+        }
+
+        function toggleReaction(msgId, emoji) {
+            addReaction(msgId, emoji);
+        }
+
+        function handleIncomingReaction(msgId, emoji, username) {
+            let msgObj = null;
+            if (roomMessages[activeRoomCode]) {
+                msgObj = roomMessages[activeRoomCode].find(m => m.id === msgId);
+            }
+            if (!msgObj) return;
+
+            if (!msgObj.reactions) msgObj.reactions = {};
+            if (!msgObj.reactions[emoji]) msgObj.reactions[emoji] = [];
+
+            const idx = msgObj.reactions[emoji].indexOf(username);
+            if (idx > -1) {
+                msgObj.reactions[emoji].splice(idx, 1);
+            } else {
+                msgObj.reactions[emoji].push(username);
+            }
+
+            updateMessageReactionsDOM(msgId, msgObj.reactions);
+        }
+
+        function updateMessageReactionsDOM(msgId, reactions) {
+            const container = document.getElementById(`reactions-${msgId}`);
+            if (!container) return;
+            container.innerHTML = "";
+            for (let [emoji, users] of Object.entries(reactions)) {
+                if (users.length > 0) {
+                    const pill = document.createElement('span');
+                    pill.className = "reaction-pill";
+                    pill.onclick = () => toggleReaction(msgId, emoji);
+                    pill.innerHTML = `${emoji} ${users.length}`;
+                    container.appendChild(pill);
+                }
+            }
         }
 
         function updateUserEyeElements(username, looking) {
@@ -1248,13 +1584,15 @@
             });
         }
 
-        function addMsgToRoom(roomCode, sender, username, text, isSelf, looking) {
+        function addMsgToRoom(roomCode, msgId, sender, username, text, isSelf, looking) {
             const msgObj = {
+                id: msgId || ("msg_" + Math.random().toString(36).substr(2, 9)),
                 sender: sender,
                 username: username,
                 text: text,
                 isSelf: isSelf,
-                isSystem: false
+                isSystem: false,
+                reactions: {}
             };
 
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
@@ -1280,7 +1618,42 @@
             }
         }
 
+        function handleTypingInput() {
+            if (!activeRoomCode || !pubnub) return;
+
+            if (!isCurrentlyTyping) {
+                isCurrentlyTyping = true;
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: { type: 'typing', username: myUsername, isTyping: true }
+                });
+            }
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isCurrentlyTyping = false;
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: { type: 'typing', username: myUsername, isTyping: false }
+                });
+            }, 1500);
+        }
+
+        function updateTypingDisplay() {
+            const indicator = document.getElementById('typing-indicator');
+            const typingUsers = Object.keys(activeTypers).filter(u => activeTypers[u]);
+
+            if (typingUsers.length === 0) {
+                indicator.innerText = "";
+            } else if (typingUsers.length === 1) {
+                indicator.innerText = `⚡ @${typingUsers[0]} is transmitting...`;
+            } else {
+                indicator.innerText = `⚡ Multiple terminals transmitting...`;
+            }
+        }
+
         function directInviteFriend(friendUsername) {
+            playSciFiSound('click');
             if (!activeRoomCode) {
                 alert("You need to join or create a channel first!");
                 return;
@@ -1300,6 +1673,7 @@
         }
 
         function acceptRoomInvite() {
+            playSciFiSound('click');
             document.getElementById('invite-popup-overlay').style.display = 'none';
             if (pendingInviteRoomCode) {
                 connectToRoom(pendingInviteRoomCode);
@@ -1307,11 +1681,13 @@
         }
 
         function declineRoomInvite() {
+            playSciFiSound('click');
             document.getElementById('invite-popup-overlay').style.display = 'none';
             pendingInviteRoomCode = "";
         }
 
         function toggleInbox() {
+            playSciFiSound('click');
             const modal = document.getElementById('inbox-modal');
             const isShowing = modal.style.display === 'flex';
             modal.style.display = isShowing ? 'none' : 'flex';
@@ -1322,6 +1698,7 @@
         }
 
         function switchInboxTab(tab) {
+            playSciFiSound('click');
             currentTab = tab;
             document.getElementById('tab-requests').classList.toggle('active', tab === 'requests');
             document.getElementById('tab-system').classList.toggle('active', tab === 'system');
@@ -1367,6 +1744,7 @@
         }
 
         function sendFriendRequest() {
+            playSciFiSound('click');
             const input = document.getElementById('friend-input');
             const friendHandle = input.value.trim().toLowerCase().replace('@', '');
             if (!friendHandle || !pubnub) return;
@@ -1390,6 +1768,7 @@
         }
 
         function acceptRequest(fromName, fromUsername) {
+            playSciFiSound('click');
             const isAlreadyFriend = friends.some(f => f.username === fromUsername);
             if (!isAlreadyFriend) {
                 friends.push({ displayName: fromName, username: fromUsername });
@@ -1413,11 +1792,13 @@
         }
 
         function declineRequest(fromUsername) {
+            playSciFiSound('click');
             incomingRequests = incomingRequests.filter(u => u.username !== fromUsername);
             renderInbox();
         }
 
         function removeFriend(index) {
+            playSciFiSound('click');
             const friend = friends[index];
             const confirmed = confirm(`Terminate connection with ${friend.displayName} (@${friend.username})?`);
             if (confirmed) {
@@ -1453,6 +1834,7 @@
         }
 
         function promptJoinRoom() {
+            playSciFiSound('click');
             const code = prompt("Enter Channel Code (e.g. CYBER99):");
             if (code && code.trim()) {
                 connectToRoom(code.trim());
@@ -1463,6 +1845,7 @@
         }
 
         function inviteFriend() {
+            playSciFiSound('click');
             if (!activeRoomCode) {
                 alert("Please join or create a channel first!");
                 return;
@@ -1488,12 +1871,21 @@
 
             if (!text) return;
 
-            addMsgToRoom(activeRoomCode, myName, myUsername, text, true, isUserLooking);
+            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
+            playSciFiSound('send');
+            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, text, true, isUserLooking);
             input.value = "";
+
+            isCurrentlyTyping = false;
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: { type: 'typing', username: myUsername, isTyping: false }
+            });
 
             pubnub.publish({
                 channel: "room_code_" + activeRoomCode,
                 message: {
+                    id: msgId,
                     senderId: myId,
                     sender: myName,
                     username: myUsername,
