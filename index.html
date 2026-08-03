@@ -6,21 +6,331 @@
     <title>Instant Live Room Chat</title>
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
-        #chat-container { width: 90vw; max-width: 800px; height: 85vh; background: #1a1d2e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #3b4252; }
-        #chat-header { padding: 16px 20px; background: #141625; border-bottom: 1px solid #2e3440; display: flex; justify-content: space-between; align-items: center; }
-        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #bf616a; color: #fff; font-weight: bold; }
-        .status.online { background: #a3be8c; color: #1a1d2e; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { background: #2e3440; padding: 10px 14px; border-radius: 8px; max-width: 75%; width: fit-content; word-break: break-word; }
-        .msg.self { align-self: flex-end; background: #5e81ac; }
-        .msg .sender { font-size: 11px; color: #d8dee9; margin-bottom: 3px; display: block; font-weight: bold; }
-        #input-area { padding: 15px; background: #141625; display: flex; gap: 10px; border-top: 1px solid #2e3440; }
-        input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #3b4252; background: #2e3440; color: #fff; outline: none; }
-        button { padding: 12px 20px; background: #88c0d0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #1a1d2e; }
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 10; }
-        .modal { background: #1a1d2e; padding: 30px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; text-align: center; width: 320px; border: 1px solid #3b4252; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #08090d;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            color: #f3f4f6;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #app-container {
+            width: 95vw;
+            max-width: 1100px;
+            height: 88vh;
+            background: rgba(18, 20, 29, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Sidebar for Friends */
+        #sidebar {
+            width: 260px;
+            background: rgba(12, 14, 22, 0.8);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-friend-box {
+            display: flex;
+            gap: 6px;
+        }
+
+        .add-friend-box input {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .add-friend-box button {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        #friends-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .friend-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .friend-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .friend-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .friend-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .friend-code {
+            font-size: 10px;
+            color: #a1a1aa;
+        }
+
+        .remove-friend {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .remove-friend:hover { opacity: 1; }
+
+        /* Main Chat Window */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chat-header {
+            padding: 18px 24px;
+            background: rgba(12, 14, 22, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #room-display {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .leave-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #a1a1aa;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        .leave-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: none;
+        }
+
+        .status {
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .status.online {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+        }
+
+        #messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #messages::-webkit-scrollbar { width: 6px; }
+        #messages::-webkit-scrollbar-track { background: transparent; }
+        #messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .msg {
+            background: rgba(30, 34, 48, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 16px;
+            border-top-left-radius: 4px;
+            max-width: 70%;
+            width: fit-content;
+            word-break: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #e5e7eb;
+            animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .msg.self {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border: none;
+            color: #ffffff;
+            border-radius: 16px;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .msg .sender {
+            font-size: 11px;
+            color: #a1a1aa;
+            margin-bottom: 4px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .msg.self .sender {
+            color: rgba(255, 255, 255, 0.85);
+            text-align: right;
+        }
+
+        #input-area {
+            padding: 18px 24px;
+            background: rgba(12, 14, 22, 0.6);
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(22, 25, 38, 0.8);
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(26, 30, 46, 0.9);
+        }
+
+        button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        button:active { transform: translateY(0); }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(8, 9, 13, 0.85);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal {
+            background: rgba(22, 25, 38, 0.9);
+            padding: 36px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+            width: 340px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -28,22 +338,38 @@
     <div id="overlay">
         <div class="modal">
             <h2>Enter Live Room</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to chat!</p>
+            <p style="font-size: 13px; color: #a1a1aa;">Enter a name & room code to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
             <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
         </div>
     </div>
 
-    <div id="chat-container">
-        <div id="chat-header">
-            <span id="room-display" style="font-weight: bold;">Room: ----</span>
-            <span id="status-badge" class="status">Connecting...</span>
+    <div id="app-container">
+        <div id="sidebar">
+            <div class="sidebar-title">
+                <span>Friends</span>
+            </div>
+            <div class="add-friend-box">
+                <input type="text" id="friend-input" placeholder="Friend's Name">
+                <button onclick="addFriend()">Add</button>
+            </div>
+            <div id="friends-list"></div>
         </div>
-        <div id="messages"></div>
-        <div id="input-area">
-            <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
-            <button onclick="send()">Send</button>
+
+        <div id="chat-container">
+            <div id="chat-header">
+                <span id="room-display" style="font-weight: bold;">Room: ----</span>
+                <div class="header-actions">
+                    <button class="leave-btn" onclick="leaveRoom()">Change Room</button>
+                    <span id="status-badge" class="status">Connecting...</span>
+                </div>
+            </div>
+            <div id="messages"></div>
+            <div id="input-area">
+                <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
+                <button onclick="send()">Send</button>
+            </div>
         </div>
     </div>
 
@@ -51,7 +377,64 @@
         let pubnub = null;
         let myName = "User";
         let channelName = "";
+        let friends = [];
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
+
+        // Auto-load saved info & friends list on startup
+        window.onload = function() {
+            const savedName = localStorage.getItem("chat_username");
+            const savedCode = localStorage.getItem("chat_roomcode");
+            const savedFriends = localStorage.getItem("chat_friends");
+
+            if (savedFriends) {
+                try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
+            }
+            renderFriends();
+
+            if (savedName) document.getElementById('username').value = savedName;
+            if (savedCode) document.getElementById('roomcode').value = savedCode;
+
+            if (savedName && savedCode) {
+                joinRoom();
+            }
+        };
+
+        function addFriend() {
+            const input = document.getElementById('friend-input');
+            const friendName = input.value.trim();
+            if (!friendName) return;
+
+            if (!friends.includes(friendName)) {
+                friends.push(friendName);
+                localStorage.setItem("chat_friends", JSON.stringify(friends));
+                renderFriends();
+            }
+            input.value = "";
+        }
+
+        function removeFriend(index) {
+            friends.splice(index, 1);
+            localStorage.setItem("chat_friends", JSON.stringify(friends));
+            renderFriends();
+        }
+
+        function renderFriends() {
+            const list = document.getElementById('friends-list');
+            list.innerHTML = "";
+
+            friends.forEach((friend, idx) => {
+                const card = document.createElement('div');
+                card.className = "friend-card";
+                card.innerHTML = `
+                    <div class="friend-info">
+                        <span class="friend-name">${escape(friend)}</span>
+                        <span class="friend-code">Saved Friend</span>
+                    </div>
+                    <span class="remove-friend" onclick="removeFriend(${idx})">&times;</span>
+                `;
+                list.appendChild(card);
+            });
+        }
 
         function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
@@ -62,20 +445,21 @@
                 return;
             }
 
+            localStorage.setItem("chat_username", myName);
+            localStorage.setItem("chat_roomcode", rawCode);
+
             channelName = "room_code_" + rawCode;
             document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
             addSystemMsg("Connecting to PubNub network...");
 
-            // Initialize PubNub client using public demo credentials
             pubnub = new PubNub({
                 publishKey: 'demo',
                 subscribeKey: 'demo',
                 userId: myId
             });
 
-            // Set up event listeners for network connection and incoming messages
             pubnub.addListener({
                 status: function(statusEvent) {
                     if (statusEvent.category === "PNConnectedCategory") {
@@ -91,10 +475,14 @@
                 }
             });
 
-            // Subscribe to the channel designated by the room code
             pubnub.subscribe({
                 channels: [channelName]
             });
+        }
+
+        function leaveRoom() {
+            localStorage.removeItem("chat_roomcode");
+            location.reload();
         }
 
         function send() {
@@ -135,7 +523,7 @@
             const div = document.createElement('div');
             div.style.textAlign = 'center';
             div.style.fontSize = '12px';
-            div.style.color = '#88c0d0';
+            div.style.color = '#a1a1aa';
             div.style.margin = '4px 0';
             div.innerText = text;
             box.appendChild(div);
