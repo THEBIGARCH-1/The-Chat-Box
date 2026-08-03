@@ -42,9 +42,9 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        /* Sidebar for Friends */
+        /* Sidebar */
         #sidebar {
-            width: 260px;
+            width: 280px;
             background: rgba(12, 14, 22, 0.8);
             border-right: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
@@ -53,8 +53,30 @@
             gap: 16px;
         }
 
+        .user-profile-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .user-profile-box label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #a1a1aa;
+        }
+
+        .room-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
         .sidebar-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #ffffff;
             display: flex;
@@ -67,7 +89,7 @@
             gap: 6px;
         }
 
-        .add-friend-box input {
+        .add-friend-box input, .user-profile-box input {
             padding: 8px 12px;
             font-size: 12px;
         }
@@ -75,6 +97,7 @@
         .add-friend-box button {
             padding: 8px 12px;
             font-size: 12px;
+            white-space: nowrap;
         }
 
         #friends-list {
@@ -89,7 +112,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -102,6 +125,26 @@
 
         .friend-info {
             display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+            box-shadow: 0 0 6px rgba(107, 114, 128, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+        }
+
+        .friend-details {
+            display: flex;
             flex-direction: column;
         }
 
@@ -111,7 +154,7 @@
             color: #f3f4f6;
         }
 
-        .friend-code {
+        .friend-status-text {
             font-size: 10px;
             color: #a1a1aa;
         }
@@ -125,7 +168,7 @@
 
         .remove-friend:hover { opacity: 1; }
 
-        /* Main Chat Window */
+        /* Main Chat Area */
         #chat-container {
             flex: 1;
             display: flex;
@@ -154,10 +197,10 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
-        .leave-btn {
+        .header-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 6px 12px;
@@ -168,10 +211,10 @@
             box-shadow: none;
         }
 
-        .leave-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border-color: rgba(239, 68, 68, 0.3);
+        .header-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.3);
             box-shadow: none;
         }
 
@@ -276,14 +319,14 @@
         }
 
         button {
-            padding: 14px 24px;
+            padding: 12px 20px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             border: none;
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
         }
@@ -295,36 +338,15 @@
 
         button:active { transform: translateY(0); }
 
-        #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(8, 9, 13, 0.85);
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .modal {
-            background: rgba(22, 25, 38, 0.9);
-            padding: 36px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
-            width: 340px;
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: none;
         }
 
-        .modal h2 {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #ffffff, #a1a1aa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
         }
 
         @keyframes popIn {
@@ -335,34 +357,33 @@
 </head>
 <body>
 
-    <div id="overlay">
-        <div class="modal">
-            <h2>Enter Live Room</h2>
-            <p style="font-size: 13px; color: #a1a1aa;">Enter a name & room code to chat!</p>
-            <input type="text" id="username" placeholder="Your Name" maxlength="15">
-            <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
-            <button onclick="joinRoom()">Join Room</button>
-        </div>
-    </div>
-
     <div id="app-container">
         <div id="sidebar">
+            <div class="user-profile-box">
+                <label for="username">Your Display Name</label>
+                <input type="text" id="username" placeholder="Your Name" maxlength="15" onchange="saveUsername()">
+            </div>
+
+            <div class="room-actions">
+                <button onclick="promptJoinRoom()">Create / Join Room</button>
+            </div>
+
             <div class="sidebar-title">
-                <span>Friends</span>
+                <span>Friends List</span>
             </div>
             <div class="add-friend-box">
                 <input type="text" id="friend-input" placeholder="Friend's Name">
-                <button onclick="addFriend()">Add</button>
+                <button class="btn-secondary" onclick="addFriend()">Add</button>
             </div>
             <div id="friends-list"></div>
         </div>
 
         <div id="chat-container">
             <div id="chat-header">
-                <span id="room-display" style="font-weight: bold;">Room: ----</span>
+                <span id="room-display" style="font-weight: bold;">Room: Not Connected</span>
                 <div class="header-actions">
-                    <button class="leave-btn" onclick="leaveRoom()">Change Room</button>
-                    <span id="status-badge" class="status">Connecting...</span>
+                    <button class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
+                    <span id="status-badge" class="status">Disconnected</span>
                 </div>
             </div>
             <div id="messages"></div>
@@ -377,27 +398,116 @@
         let pubnub = null;
         let myName = "User";
         let channelName = "";
+        let currentRoomCode = "";
         let friends = [];
+        let activeUsers = new Set();
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
-        // Auto-load saved info & friends list on startup
         window.onload = function() {
-            const savedName = localStorage.getItem("chat_username");
-            const savedCode = localStorage.getItem("chat_roomcode");
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteRoom = urlParams.get('room');
+
+            const savedName = localStorage.getItem("chat_username") || "User" + Math.floor(Math.random() * 899 + 100);
+            const savedCode = inviteRoom || localStorage.getItem("chat_roomcode");
             const savedFriends = localStorage.getItem("chat_friends");
+
+            document.getElementById('username').value = savedName;
+            myName = savedName;
 
             if (savedFriends) {
                 try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
             }
             renderFriends();
 
-            if (savedName) document.getElementById('username').value = savedName;
-            if (savedCode) document.getElementById('roomcode').value = savedCode;
-
-            if (savedName && savedCode) {
-                joinRoom();
+            if (savedCode) {
+                connectToRoom(savedCode);
+            } else {
+                addSystemMsg("Welcome! Click 'Create / Join Room' on the sidebar or enter a friend's room code to start chatting.");
             }
         };
+
+        function saveUsername() {
+            const val = document.getElementById('username').value.trim();
+            if (val) {
+                myName = val;
+                localStorage.setItem("chat_username", myName);
+            }
+        }
+
+        function promptJoinRoom() {
+            const code = prompt("Enter a Room Code (e.g. CHAT99 or create a new code):");
+            if (code && code.trim()) {
+                connectToRoom(code.trim().toUpperCase());
+            }
+        }
+
+        function connectToRoom(rawCode) {
+            saveUsername();
+            currentRoomCode = rawCode;
+            localStorage.setItem("chat_roomcode", currentRoomCode);
+
+            channelName = "room_code_" + currentRoomCode;
+            document.getElementById('room-display').innerText = "Room: " + currentRoomCode;
+
+            addSystemMsg("Connecting to room " + currentRoomCode + "...");
+
+            if (pubnub) {
+                pubnub.unsubscribeAll();
+            }
+
+            pubnub = new PubNub({
+                publishKey: 'demo',
+                subscribeKey: 'demo',
+                userId: myId
+            });
+
+            pubnub.addListener({
+                status: function(statusEvent) {
+                    if (statusEvent.category === "PNConnectedCategory") {
+                        setOnline();
+                        addSystemMsg(`Connected to room [${currentRoomCode}]! Share this code with friends.`);
+                        
+                        pubnub.publish({
+                            channel: channelName,
+                            message: { type: 'presence', sender: myName, status: 'join' }
+                        });
+                    }
+                },
+                message: function(event) {
+                    const data = event.message;
+
+                    if (data.type === 'presence') {
+                        if (data.sender !== myName) {
+                            activeUsers.add(data.sender.toLowerCase());
+                            renderFriends();
+                            if (data.status === 'join') {
+                                pubnub.publish({
+                                    channel: channelName,
+                                    message: { type: 'presence_ack', sender: myName }
+                                });
+                            }
+                        }
+                        return;
+                    }
+
+                    if (data.type === 'presence_ack') {
+                        if (data.sender !== myName) {
+                            activeUsers.add(data.sender.toLowerCase());
+                            renderFriends();
+                        }
+                        return;
+                    }
+
+                    if (data.senderId !== myId) {
+                        addMsg(data.sender, data.text, false);
+                    }
+                }
+            });
+
+            pubnub.subscribe({
+                channels: [channelName]
+            });
+        }
 
         function addFriend() {
             const input = document.getElementById('friend-input');
@@ -423,12 +533,16 @@
             list.innerHTML = "";
 
             friends.forEach((friend, idx) => {
+                const isOnline = activeUsers.has(friend.toLowerCase());
                 const card = document.createElement('div');
                 card.className = "friend-card";
                 card.innerHTML = `
                     <div class="friend-info">
-                        <span class="friend-name">${escape(friend)}</span>
-                        <span class="friend-code">Saved Friend</span>
+                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
+                        <div class="friend-details">
+                            <span class="friend-name">${escape(friend)}</span>
+                            <span class="friend-status-text">${isOnline ? 'Online in Room' : 'Offline'}</span>
+                        </div>
                     </div>
                     <span class="remove-friend" onclick="removeFriend(${idx})">&times;</span>
                 `;
@@ -436,59 +550,31 @@
             });
         }
 
-        function joinRoom() {
-            myName = document.getElementById('username').value.trim() || "User";
-            const rawCode = document.getElementById('roomcode').value.trim().toUpperCase();
-
-            if (!rawCode) {
-                alert("Please enter a room code!");
+        function inviteFriend() {
+            if (!currentRoomCode) {
+                alert("Please join or create a room first!");
                 return;
             }
 
-            localStorage.setItem("chat_username", myName);
-            localStorage.setItem("chat_roomcode", rawCode);
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
 
-            channelName = "room_code_" + rawCode;
-            document.getElementById('room-display').innerText = "Room: " + rawCode;
-            document.getElementById('overlay').style.display = 'none';
-
-            addSystemMsg("Connecting to PubNub network...");
-
-            pubnub = new PubNub({
-                publishKey: 'demo',
-                subscribeKey: 'demo',
-                userId: myId
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                addSystemMsg("🔗 Room invite link copied to clipboard! Share it with your friends.");
+            }).catch(() => {
+                addSystemMsg(`Share this code with friends: ${currentRoomCode}`);
             });
-
-            pubnub.addListener({
-                status: function(statusEvent) {
-                    if (statusEvent.category === "PNConnectedCategory") {
-                        setOnline();
-                        addSystemMsg(`Connected! Tell your friends to enter code [${rawCode}] to join.`);
-                    }
-                },
-                message: function(event) {
-                    const data = event.message;
-                    if (data.senderId !== myId) {
-                        addMsg(data.sender, data.text, false);
-                    }
-                }
-            });
-
-            pubnub.subscribe({
-                channels: [channelName]
-            });
-        }
-
-        function leaveRoom() {
-            localStorage.removeItem("chat_roomcode");
-            location.reload();
         }
 
         function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text || !pubnub) return;
+
+            if (!currentRoomCode || !pubnub) {
+                alert("Please click 'Create / Join Room' first!");
+                return;
+            }
+
+            if (!text) return;
 
             addMsg(myName, text, true);
             input.value = "";
