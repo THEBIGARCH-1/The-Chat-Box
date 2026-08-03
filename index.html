@@ -37,7 +37,7 @@
             height: 100%;
             z-index: 1;
             pointer-events: none;
-            filter: drop-shadow(0 0 8px #3b82f6);
+            filter: drop-shadow(0 0 10px #3b82f6);
         }
 
         #app-container {
@@ -45,16 +45,17 @@
             max-width: 1150px;
             height: 88vh;
             height: 88dvh;
-            background: rgba(10, 8, 24, 0.88);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            /* High transparency applied so rain/smoke passes behind cleanly, with extra opaque backing layers on content panels for readability */
+            background: rgba(4, 2, 10, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 12px;
             display: flex;
             overflow: hidden;
             z-index: 10;
             /* Cyberpunk Blue and Purple Gradient Neon Borders */
             border: 2px solid #3b82f6;
-            box-shadow: 0 0 25px #3b82f6, inset 0 0 25px rgba(168, 85, 247, 0.3), 0 0 50px rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 25px #3b82f6, inset 0 0 25px rgba(168, 85, 247, 0.15), 0 0 50px rgba(168, 85, 247, 0.1);
             position: relative;
         }
 
@@ -62,8 +63,8 @@
         #auth-overlay, #invite-popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 2, 10, 0.92);
-            backdrop-filter: blur(15px);
+            background: rgba(4, 2, 10, 0.85);
+            backdrop-filter: blur(12px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -77,7 +78,7 @@
         }
 
         .auth-card, .popup-card {
-            background: rgba(15, 12, 32, 0.98);
+            background: rgba(10, 8, 22, 0.92);
             padding: 28px;
             border-radius: 12px;
             display: flex;
@@ -110,10 +111,11 @@
             justify-content: center;
         }
 
-        /* Sidebar */
+        /* Sidebar - Highly transparent */
         #sidebar {
             width: 280px;
-            background: rgba(7, 5, 18, 0.95);
+            background: rgba(6, 4, 15, 0.55);
+            backdrop-filter: blur(12px);
             border-right: 2px solid #3b82f6;
             box-shadow: 4px 0 15px rgba(59, 130, 246, 0.2);
             display: flex;
@@ -225,7 +227,7 @@
         }
 
         .friend-card {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.08);
             border: 1px solid rgba(59, 130, 246, 0.4);
             padding: 10px 12px;
             border-radius: 8px;
@@ -237,7 +239,7 @@
 
         .friend-card:hover {
             border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.08);
+            background: rgba(168, 85, 247, 0.15);
             box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
         }
 
@@ -290,7 +292,7 @@
         }
 
         .btn-invite-friend {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.15);
             border: 1px solid #3b82f6;
             color: #60a5fa;
             padding: 4px 8px;
@@ -299,7 +301,7 @@
         }
 
         .btn-invite-friend:hover {
-            background: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.4);
             box-shadow: 0 0 8px #3b82f6;
         }
 
@@ -320,10 +322,12 @@
             flex-direction: column;
             overflow: hidden;
             width: 100%;
+            background: transparent;
         }
 
         #tabs-bar {
-            background: rgba(6, 4, 15, 0.95);
+            background: rgba(5, 3, 12, 0.45);
+            backdrop-filter: blur(8px);
             border-bottom: 2px solid #3b82f6;
             display: flex;
             align-items: center;
@@ -351,7 +355,7 @@
         }
 
         .chat-tab {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-bottom: none;
             padding: 6px 12px;
@@ -370,10 +374,10 @@
         }
 
         .chat-tab.active {
-            background: rgba(15, 12, 32, 0.98);
+            background: rgba(10, 8, 22, 0.75);
             color: #fff;
             border-color: #3b82f6;
-            border-bottom: 1px solid rgba(15, 12, 32, 0.98);
+            border-bottom: 1px solid rgba(10, 8, 22, 0.75);
             font-weight: 600;
             box-shadow: 0 -4px 15px rgba(59, 130, 246, 0.4);
         }
@@ -402,7 +406,7 @@
         .tab-close-btn:hover { opacity: 1; text-shadow: 0 0 6px #a855f7; }
 
         .add-tab-btn {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.2);
             border: 1px solid #3b82f6;
             color: #60a5fa;
             border-radius: 50%;
@@ -419,13 +423,14 @@
         }
 
         .add-tab-btn:hover {
-            background: rgba(59, 130, 246, 0.3);
+            background: rgba(59, 130, 246, 0.4);
             box-shadow: 0 0 10px #3b82f6;
         }
 
         #chat-header {
             padding: 12px 18px;
-            background: rgba(7, 5, 18, 0.9);
+            background: rgba(6, 4, 15, 0.45);
+            backdrop-filter: blur(8px);
             border-bottom: 2px solid #3b82f6;
             display: flex;
             justify-content: space-between;
@@ -454,7 +459,7 @@
 
         .inbox-btn, .menu-toggle-btn {
             position: relative;
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(59, 130, 246, 0.15);
             border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
@@ -485,7 +490,7 @@
         .green-badge.active { display: block; }
 
         .header-btn {
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(59, 130, 246, 0.15);
             border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
@@ -498,19 +503,19 @@
         }
 
         .header-btn:hover {
-            background: rgba(59, 130, 246, 0.25);
+            background: rgba(59, 130, 246, 0.35);
             box-shadow: 0 0 12px #3b82f6;
         }
 
         .btn-leave-room {
-            background: rgba(168, 85, 247, 0.12);
+            background: rgba(168, 85, 247, 0.2);
             border: 1px solid #a855f7;
             color: #c084fc;
             box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
         }
 
         .btn-leave-room:hover {
-            background: rgba(168, 85, 247, 0.25);
+            background: rgba(168, 85, 247, 0.35);
             box-shadow: 0 0 12px #a855f7;
         }
 
@@ -518,7 +523,7 @@
             font-size: 10px;
             padding: 4px 10px;
             border-radius: 20px;
-            background: rgba(168, 85, 247, 0.12);
+            background: rgba(168, 85, 247, 0.2);
             color: #c084fc;
             border: 1px solid #a855f7;
             font-weight: 600;
@@ -527,7 +532,7 @@
         }
 
         .status.online {
-            background: rgba(0, 255, 204, 0.1);
+            background: rgba(0, 255, 204, 0.15);
             color: #00ffcc;
             border-color: #00ffcc;
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
@@ -542,10 +547,13 @@
             gap: 12px;
             scrollbar-width: thin;
             scrollbar-color: #3b82f6 transparent;
+            background: transparent;
         }
 
+        /* Message bubbles with clean glass transparency so giant rain shines through clearly */
         .msg {
-            background: rgba(18, 14, 38, 0.85);
+            background: rgba(12, 10, 28, 0.65);
+            backdrop-filter: blur(6px);
             border: 1px solid #3b82f6;
             padding: 10px 14px;
             border-radius: 10px;
@@ -562,7 +570,8 @@
 
         .msg.self {
             align-self: flex-end;
-            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.75), rgba(168, 85, 247, 0.75));
+            backdrop-filter: blur(6px);
             border: 1px solid #60a5fa;
             color: #ffffff;
             font-weight: 600;
@@ -595,7 +604,7 @@
         }
 
         .reaction-pill {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(59, 130, 246, 0.2);
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 12px;
             padding: 2px 6px;
@@ -608,7 +617,7 @@
         }
 
         .reaction-pill:hover {
-            background: rgba(168, 85, 247, 0.3);
+            background: rgba(168, 85, 247, 0.4);
             border-color: #a855f7;
             color: #fff;
         }
@@ -631,7 +640,7 @@
         }
 
         .add-reaction-btn:hover {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.3);
             color: #fff;
             box-shadow: 0 0 6px #3b82f6;
         }
@@ -640,7 +649,7 @@
             position: absolute;
             bottom: -32px;
             left: 0;
-            background: rgba(12, 8, 25, 0.98);
+            background: rgba(10, 8, 22, 0.95);
             border: 1px solid #3b82f6;
             border-radius: 8px;
             padding: 4px 6px;
@@ -681,11 +690,13 @@
             height: 18px;
             font-family: 'Orbitron', sans-serif;
             text-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+            background: transparent;
         }
 
         #input-area {
             padding: 12px 16px;
-            background: rgba(7, 5, 18, 0.9);
+            background: rgba(6, 4, 15, 0.45);
+            backdrop-filter: blur(8px);
             display: flex;
             gap: 8px;
             border-top: 2px solid #3b82f6;
@@ -696,7 +707,7 @@
             padding: 12px 14px;
             border-radius: 8px;
             border: 1px solid #3b82f6;
-            background: rgba(12, 8, 25, 0.95);
+            background: rgba(10, 8, 22, 0.6);
             color: #fff;
             outline: none;
             font-size: 13px;
@@ -729,14 +740,14 @@
         }
 
         .btn-secondary {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, 0.15);
             border: 1px solid #3b82f6;
             color: #60a5fa;
             box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         .btn-secondary:hover {
-            background: rgba(59, 130, 246, 0.25);
+            background: rgba(59, 130, 246, 0.35);
             box-shadow: 0 0 12px #3b82f6;
             color: #fff;
         }
@@ -748,7 +759,7 @@
             right: 12px;
             width: calc(100% - 24px);
             max-width: 320px;
-            background: rgba(12, 8, 25, 0.98);
+            background: rgba(10, 8, 22, 0.92);
             backdrop-filter: blur(20px);
             border: 2px solid #3b82f6;
             border-radius: 12px;
@@ -784,7 +795,7 @@
         }
 
         .req-card {
-            background: rgba(59, 130, 246, 0.05);
+            background: rgba(59, 130, 246, 0.08);
             border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 8px;
             padding: 8px 10px;
@@ -818,7 +829,7 @@
                 width: 100%;
                 height: 100%;
                 z-index: 90;
-                background: rgba(7, 5, 18, 0.98);
+                background: rgba(6, 4, 15, 0.88);
                 backdrop-filter: blur(25px);
                 transform: translateX(-100%);
                 padding-top: 50px;
@@ -993,10 +1004,11 @@
             }
         }
 
-        // Enlarged & Electrified Glowing Raindrops & Lightning Canvas Effect
+        // Enlarged & Electrified Glowing Raindrops, Smoke & Lightning Canvas Effect
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let drops = [];
+        let smokeParticles = [];
         let lightningAlpha = 0;
         let lightningPath = [];
 
@@ -1007,14 +1019,26 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Fewer, much larger and heavily electrified rain particles
-        for (let i = 0; i < 50; i++) {
+        // Massive electrified rain particles
+        for (let i = 0; i < 55; i++) {
             drops.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                length: Math.random() * 60 + 40, // Larger length
-                speed: Math.random() * 12 + 10,   // Faster, heavier drop speed
-                opacity: Math.random() * 0.5 + 0.5
+                length: Math.random() * 70 + 45,
+                speed: Math.random() * 14 + 11,
+                opacity: Math.random() * 0.6 + 0.4
+            });
+        }
+
+        // Cyberpunk atmospheric glowing smoke particles drifting behind chat
+        for (let i = 0; i < 18; i++) {
+            smokeParticles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 120 + 80,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: -Math.random() * 0.8 - 0.2,
+                opacity: Math.random() * 0.15 + 0.05
             });
         }
 
@@ -1026,7 +1050,7 @@
             lightningPath.push({x: currX, y: currY});
 
             while (currY < canvas.height) {
-                currX += (Math.random() - 0.5) * 80;
+                currX += (Math.random() - 0.5) * 90;
                 currY += Math.random() * 50 + 25;
                 lightningPath.push({x: currX, y: currY});
             }
@@ -1038,13 +1062,36 @@
         function animateBg() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Draw glowing smoke / fog background wisps
+            smokeParticles.forEach(p => {
+                let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+                grad.addColorStop(0, `rgba(59, 130, 246, ${p.opacity})`);
+                grad.addColorStop(0.5, `rgba(168, 85, 247, ${p.opacity * 0.6})`);
+                grad.addColorStop(1, `rgba(4, 2, 10, 0)`);
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.y < -p.radius) {
+                    p.y = canvas.height + p.radius;
+                    p.x = Math.random() * canvas.width;
+                }
+                if (p.x < -p.radius) p.x = canvas.width + p.radius;
+                if (p.x > canvas.width + p.radius) p.x = -p.radius;
+            });
+
             // Draw massive electrified glowing raindrops
-            ctx.lineWidth = 3.5; // Thicker, more prominent water streaks
+            ctx.lineWidth = 4;
             drops.forEach(d => {
                 let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
-                grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`); // Electrified white-hot core tip
-                grad.addColorStop(0.3, `rgba(59, 130, 246, ${d.opacity})`); // Neon electric blue body
-                grad.addColorStop(1, `rgba(168, 85, 247, 0)`); // Purple plasma tail fadeout
+                grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`);
+                grad.addColorStop(0.3, `rgba(59, 130, 246, ${d.opacity})`);
+                grad.addColorStop(1, `rgba(168, 85, 247, 0)`);
                 ctx.strokeStyle = grad;
 
                 ctx.beginPath();
