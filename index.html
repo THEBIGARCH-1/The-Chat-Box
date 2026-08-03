@@ -17,10 +17,10 @@
         }
 
         body {
-            background: #020108;
+            background: #04020a;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(20, 10, 45, 0.8) 0%, rgba(2, 1, 8, 0.95) 100%),
-                linear-gradient(rgba(18, 16, 30, 0.2) 1px, transparent 1px);
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(4, 2, 10, 0.95) 100%),
+                linear-gradient(rgba(18, 16, 30, 0.3) 1px, transparent 1px);
             background-size: 100% 4px; /* Retro CRT Scanline Effect */
             color: #f3f4f6;
             height: 100vh;
@@ -36,15 +36,15 @@
             max-width: 1150px;
             height: 88vh;
             height: 88dvh;
-            background: rgba(12, 8, 24, 0.92);
+            background: rgba(10, 8, 24, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 12px;
             display: flex;
             overflow: hidden;
-            /* Cyberpunk retro neon borders (Pink/Magenta to Blue/Cyan gradient border glow) */
-            border: 2px solid #ff2a85;
-            box-shadow: 0 0 25px #ff2a85, inset 0 0 25px rgba(0, 243, 255, 0.3), 0 0 50px rgba(0, 243, 255, 0.2);
+            /* Cyberpunk Blue and Purple Gradient Neon Borders */
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 25px #3b82f6, inset 0 0 25px rgba(168, 85, 247, 0.3), 0 0 50px rgba(168, 85, 247, 0.2);
             position: relative;
         }
 
@@ -52,7 +52,7 @@
         #auth-overlay, #invite-popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 1, 8, 0.92);
+            background: rgba(4, 2, 10, 0.92);
             backdrop-filter: blur(15px);
             display: flex;
             justify-content: center;
@@ -67,7 +67,7 @@
         }
 
         .auth-card, .popup-card {
-            background: rgba(15, 10, 30, 0.98);
+            background: rgba(15, 12, 32, 0.98);
             padding: 28px;
             border-radius: 12px;
             display: flex;
@@ -75,8 +75,8 @@
             gap: 14px;
             width: 100%;
             max-width: 360px;
-            border: 2px solid #00f3ff;
-            box-shadow: 0 0 25px #00f3ff, inset 0 0 15px rgba(255, 42, 133, 0.3);
+            border: 2px solid #a855f7;
+            box-shadow: 0 0 25px #a855f7, inset 0 0 15px rgba(59, 130, 246, 0.3);
             text-align: center;
         }
 
@@ -86,12 +86,12 @@
             font-weight: 800;
             letter-spacing: 1px;
             color: #fff;
-            text-shadow: 0 0 10px #ff2a85, 0 0 20px #00f3ff;
+            text-shadow: 0 0 10px #3b82f6, 0 0 20px #a855f7;
         }
 
         .auth-card p, .popup-card p {
             font-size: 12px;
-            color: #00f3ff;
+            color: #c084fc;
         }
 
         .popup-actions {
@@ -103,9 +103,9 @@
         /* Sidebar */
         #sidebar {
             width: 280px;
-            background: rgba(8, 5, 18, 0.95);
-            border-right: 2px solid #ff2a85;
-            box-shadow: 4px 0 15px rgba(255, 42, 133, 0.2);
+            background: rgba(7, 5, 18, 0.95);
+            border-right: 2px solid #3b82f6;
+            box-shadow: 4px 0 15px rgba(59, 130, 246, 0.2);
             display: flex;
             flex-direction: column;
             padding: 20px;
@@ -121,19 +121,19 @@
             top: 14px;
             right: 16px;
             font-size: 22px;
-            color: #00f3ff;
+            color: #c084fc;
             cursor: pointer;
             line-height: 1;
             padding: 4px 8px;
             border-radius: 6px;
-            background: rgba(0, 243, 255, 0.1);
-            border: 1px solid #00f3ff;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid #a855f7;
         }
 
         .sidebar-close-btn:hover {
             color: #ffffff;
-            background: rgba(0, 243, 255, 0.25);
-            box-shadow: 0 0 8px #00f3ff;
+            background: rgba(168, 85, 247, 0.25);
+            box-shadow: 0 0 8px #a855f7;
         }
 
         .user-profile-box {
@@ -141,7 +141,7 @@
             justify-content: space-between;
             align-items: center;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.4);
         }
 
         .user-profile-info {
@@ -154,16 +154,16 @@
             font-size: 9px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            color: #ff2a85;
+            color: #3b82f6;
             text-transform: uppercase;
-            text-shadow: 0 0 6px #ff2a85;
+            text-shadow: 0 0 6px #3b82f6;
         }
 
         .user-profile-box span.disp-name {
             font-size: 14px;
             font-weight: 700;
             color: #fff;
-            text-shadow: 0 0 8px #00f3ff;
+            text-shadow: 0 0 8px #a855f7;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -171,7 +171,7 @@
 
         .user-profile-box span.usr-handle {
             font-size: 11px;
-            color: #00f3ff;
+            color: #60a5fa;
         }
 
         .room-actions {
@@ -179,7 +179,7 @@
             flex-direction: column;
             gap: 8px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.4);
         }
 
         .sidebar-title {
@@ -188,7 +188,7 @@
             font-weight: 700;
             letter-spacing: 0.5px;
             color: #fff;
-            text-shadow: 0 0 8px #ff2a85;
+            text-shadow: 0 0 8px #3b82f6;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -211,12 +211,12 @@
             flex-direction: column;
             gap: 8px;
             scrollbar-width: thin;
-            scrollbar-color: #ff2a85 transparent;
+            scrollbar-color: #3b82f6 transparent;
         }
 
         .friend-card {
-            background: rgba(255, 42, 133, 0.05);
-            border: 1px solid rgba(255, 42, 133, 0.4);
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             padding: 10px 12px;
             border-radius: 8px;
             display: flex;
@@ -226,9 +226,9 @@
         }
 
         .friend-card:hover {
-            border-color: #00f3ff;
-            background: rgba(0, 243, 255, 0.08);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.08);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
         }
 
         .friend-info {
@@ -269,7 +269,7 @@
 
         .friend-handle {
             font-size: 10px;
-            color: #00f3ff;
+            color: #60a5fa;
         }
 
         .friend-actions {
@@ -280,28 +280,28 @@
         }
 
         .btn-invite-friend {
-            background: rgba(0, 243, 255, 0.1);
-            border: 1px solid #00f3ff;
-            color: #00f3ff;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
             padding: 4px 8px;
             font-size: 10px;
             border-radius: 6px;
         }
 
         .btn-invite-friend:hover {
-            background: rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 8px #00f3ff;
+            background: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 8px #3b82f6;
         }
 
         .remove-friend {
-            color: #ff2a85;
+            color: #a855f7;
             cursor: pointer;
             font-size: 14px;
             opacity: 0.7;
             padding: 4px;
         }
 
-        .remove-friend:hover { opacity: 1; text-shadow: 0 0 6px #ff2a85; }
+        .remove-friend:hover { opacity: 1; text-shadow: 0 0 6px #a855f7; }
 
         /* Main Chat Area */
         #chat-container {
@@ -314,7 +314,7 @@
 
         #tabs-bar {
             background: rgba(6, 4, 15, 0.95);
-            border-bottom: 2px solid #ff2a85;
+            border-bottom: 2px solid #3b82f6;
             display: flex;
             align-items: center;
             padding: 6px 12px 0 12px;
@@ -329,7 +329,7 @@
         }
 
         #tabs-bar::-webkit-scrollbar-thumb {
-            background: #ff2a85;
+            background: #3b82f6;
             border-radius: 4px;
         }
 
@@ -341,14 +341,14 @@
         }
 
         .chat-tab {
-            background: rgba(255, 42, 133, 0.05);
-            border: 1px solid rgba(255, 42, 133, 0.4);
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             border-bottom: none;
             padding: 6px 12px;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
             font-size: 12px;
-            color: #a78bfa;
+            color: #c084fc;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -360,12 +360,12 @@
         }
 
         .chat-tab.active {
-            background: rgba(15, 10, 30, 0.98);
+            background: rgba(15, 12, 32, 0.98);
             color: #fff;
-            border-color: #00f3ff;
-            border-bottom: 1px solid rgba(15, 10, 30, 0.98);
+            border-color: #3b82f6;
+            border-bottom: 1px solid rgba(15, 12, 32, 0.98);
             font-weight: 600;
-            box-shadow: 0 -4px 15px rgba(0, 243, 255, 0.4);
+            box-shadow: 0 -4px 15px rgba(59, 130, 246, 0.4);
         }
 
         .tab-title {
@@ -380,21 +380,21 @@
             cursor: pointer;
         }
 
-        .edit-tab-btn:hover { opacity: 1; color: #00f3ff; }
+        .edit-tab-btn:hover { opacity: 1; color: #3b82f6; }
 
         .tab-close-btn {
             font-size: 12px;
-            color: #ff2a85;
+            color: #a855f7;
             opacity: 0.7;
             cursor: pointer;
         }
 
-        .tab-close-btn:hover { opacity: 1; text-shadow: 0 0 6px #ff2a85; }
+        .tab-close-btn:hover { opacity: 1; text-shadow: 0 0 6px #a855f7; }
 
         .add-tab-btn {
-            background: rgba(0, 243, 255, 0.1);
-            border: 1px solid #00f3ff;
-            color: #00f3ff;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -409,14 +409,14 @@
         }
 
         .add-tab-btn:hover {
-            background: rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 10px #00f3ff;
+            background: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 10px #3b82f6;
         }
 
         #chat-header {
             padding: 12px 18px;
-            background: rgba(8, 5, 18, 0.9);
-            border-bottom: 2px solid #ff2a85;
+            background: rgba(7, 5, 18, 0.9);
+            border-bottom: 2px solid #3b82f6;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -427,10 +427,10 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 14px;
             font-weight: 700;
-            background: linear-gradient(135deg, #00f3ff, #ff2a85);
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 12px rgba(0, 243, 255, 0.5);
+            text-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -444,17 +444,17 @@
 
         .inbox-btn, .menu-toggle-btn {
             position: relative;
-            background: rgba(0, 243, 255, 0.08);
-            border: 1px solid #00f3ff;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 13px;
-            color: #00f3ff;
+            color: #60a5fa;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         .menu-toggle-btn { display: none; }
@@ -467,7 +467,7 @@
             height: 9px;
             background-color: #00ffcc;
             border-radius: 50%;
-            border: 2px solid #080512;
+            border: 2px solid #070512;
             box-shadow: 0 0 8px #00ffcc;
             display: none;
         }
@@ -475,45 +475,45 @@
         .green-badge.active { display: block; }
 
         .header-btn {
-            background: rgba(0, 243, 255, 0.08);
-            border: 1px solid #00f3ff;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid #3b82f6;
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 11px;
-            color: #00f3ff;
+            color: #60a5fa;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
-            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         .header-btn:hover {
-            background: rgba(0, 243, 255, 0.25);
-            box-shadow: 0 0 12px #00f3ff;
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 12px #3b82f6;
         }
 
         .btn-leave-room {
-            background: rgba(255, 42, 133, 0.12);
-            border: 1px solid #ff2a85;
-            color: #ff2a85;
-            box-shadow: 0 0 8px rgba(255, 42, 133, 0.2);
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid #a855f7;
+            color: #c084fc;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
         }
 
         .btn-leave-room:hover {
-            background: rgba(255, 42, 133, 0.25);
-            box-shadow: 0 0 12px #ff2a85;
+            background: rgba(168, 85, 247, 0.25);
+            box-shadow: 0 0 12px #a855f7;
         }
 
         .status {
             font-size: 10px;
             padding: 4px 10px;
             border-radius: 20px;
-            background: rgba(255, 42, 133, 0.12);
-            color: #ff2a85;
-            border: 1px solid #ff2a85;
+            background: rgba(168, 85, 247, 0.12);
+            color: #c084fc;
+            border: 1px solid #a855f7;
             font-weight: 600;
             white-space: nowrap;
-            box-shadow: 0 0 8px rgba(255, 42, 133, 0.3);
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
         }
 
         .status.online {
@@ -531,12 +531,12 @@
             flex-direction: column;
             gap: 12px;
             scrollbar-width: thin;
-            scrollbar-color: #00f3ff transparent;
+            scrollbar-color: #3b82f6 transparent;
         }
 
         .msg {
-            background: rgba(20, 14, 40, 0.85);
-            border: 1px solid #ff2a85;
+            background: rgba(18, 14, 38, 0.85);
+            border: 1px solid #3b82f6;
             padding: 10px 14px;
             border-radius: 10px;
             border-top-left-radius: 2px;
@@ -546,23 +546,23 @@
             font-size: 13px;
             line-height: 1.4;
             color: #f3f4f6;
-            box-shadow: 0 0 12px rgba(255, 42, 133, 0.25);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
         }
 
         .msg.self {
             align-self: flex-end;
-            background: linear-gradient(135deg, #ff2a85, #00f3ff);
-            border: 1px solid #00f3ff;
-            color: #020108;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border: 1px solid #60a5fa;
+            color: #ffffff;
             font-weight: 600;
             border-radius: 10px;
             border-top-right-radius: 2px;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
         }
 
         .msg .sender-header {
             font-size: 11px;
-            color: #00f3ff;
+            color: #60a5fa;
             margin-bottom: 2px;
             display: flex;
             align-items: center;
@@ -571,7 +571,7 @@
         }
 
         .msg.self .sender-header {
-            color: #020108;
+            color: rgba(255, 255, 255, 0.9);
             justify-content: flex-end;
         }
 
@@ -596,59 +596,59 @@
 
         #input-area {
             padding: 12px 16px;
-            background: rgba(8, 5, 18, 0.9);
+            background: rgba(7, 5, 18, 0.9);
             display: flex;
             gap: 8px;
-            border-top: 2px solid #ff2a85;
+            border-top: 2px solid #3b82f6;
         }
 
         input[type="text"], input[type="password"] {
             flex: 1;
             padding: 12px 14px;
             border-radius: 8px;
-            border: 1px solid #00f3ff;
+            border: 1px solid #3b82f6;
             background: rgba(12, 8, 25, 0.95);
             color: #fff;
             outline: none;
             font-size: 13px;
             transition: all 0.2s ease;
-            box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.2);
+            box-shadow: inset 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         input[type="text"]:focus, input[type="password"]:focus {
-            border-color: #ff2a85;
-            box-shadow: 0 0 12px #ff2a85, inset 0 0 8px rgba(255, 42, 133, 0.4);
+            border-color: #a855f7;
+            box-shadow: 0 0 12px #a855f7, inset 0 0 8px rgba(168, 85, 247, 0.4);
         }
 
         button {
             padding: 10px 16px;
-            background: linear-gradient(135deg, #ff2a85, #00f3ff);
-            border: 1px solid #00f3ff;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            border: 1px solid #60a5fa;
             border-radius: 8px;
             font-weight: 700;
             cursor: pointer;
-            color: #020108;
+            color: #ffffff;
             font-size: 12px;
             white-space: nowrap;
             transition: all 0.2s ease;
-            box-shadow: 0 0 15px rgba(255, 42, 133, 0.5);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
         }
 
         button:hover {
-            background: linear-gradient(135deg, #ff529e, #33f6ff);
-            box-shadow: 0 0 20px #ff2a85, 0 0 25px #00f3ff;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            box-shadow: 0 0 20px #3b82f6, 0 0 25px #a855f7;
         }
 
         .btn-secondary {
-            background: rgba(0, 243, 255, 0.1);
-            border: 1px solid #00f3ff;
-            color: #00f3ff;
-            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
         }
 
         .btn-secondary:hover {
-            background: rgba(0, 243, 255, 0.25);
-            box-shadow: 0 0 12px #00f3ff;
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 12px #3b82f6;
             color: #fff;
         }
 
@@ -661,9 +661,9 @@
             max-width: 320px;
             background: rgba(12, 8, 25, 0.98);
             backdrop-filter: blur(20px);
-            border: 2px solid #ff2a85;
+            border: 2px solid #3b82f6;
             border-radius: 12px;
-            box-shadow: 0 0 25px #ff2a85, inset 0 0 15px rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 25px #3b82f6, inset 0 0 15px rgba(168, 85, 247, 0.3);
             padding: 14px;
             z-index: 100;
             flex-direction: column;
@@ -673,14 +673,14 @@
         .inbox-tabs {
             display: flex;
             gap: 6px;
-            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.4);
             padding-bottom: 6px;
         }
 
         .inbox-tab {
             font-size: 11px;
             font-weight: 600;
-            color: #00f3ff;
+            color: #60a5fa;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 6px;
@@ -688,15 +688,15 @@
         }
 
         .inbox-tab.active {
-            color: #020108;
-            background: #00f3ff;
-            box-shadow: 0 0 10px #00f3ff;
+            color: #ffffff;
+            background: #3b82f6;
+            box-shadow: 0 0 10px #3b82f6;
             font-weight: 700;
         }
 
         .req-card {
-            background: rgba(255, 42, 133, 0.05);
-            border: 1px solid rgba(255, 42, 133, 0.4);
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 8px;
             padding: 8px 10px;
             display: flex;
@@ -706,9 +706,9 @@
 
         .req-actions { display: flex; gap: 4px; }
         .req-actions button { padding: 4px 8px; font-size: 10px; border-radius: 6px; }
-        .btn-accept { background: #00ffcc; color: #020108; border: none; box-shadow: 0 0 8px rgba(0,255,204,0.5); font-weight: 700; }
+        .btn-accept { background: #00ffcc; color: #04020a; border: none; box-shadow: 0 0 8px rgba(0,255,204,0.5); font-weight: 700; }
         .btn-accept:hover { background: #33ffdb; box-shadow: 0 0 12px #00ffcc; }
-        .btn-decline { background: rgba(255, 42, 133, 0.2); color: #ff2a85; border: 1px solid #ff2a85; }
+        .btn-decline { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
 
         @media (max-width: 768px) {
             body { padding: 0; background-size: 100% 2px; }
@@ -729,7 +729,7 @@
                 width: 100%;
                 height: 100%;
                 z-index: 90;
-                background: rgba(8, 5, 18, 0.98);
+                background: rgba(7, 5, 18, 0.98);
                 backdrop-filter: blur(25px);
                 transform: translateX(-100%);
                 padding-top: 50px;
@@ -823,8 +823,8 @@
 
         <div id="inbox-modal">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:#00f3ff;">Incoming Signals</h3>
-                <span style="cursor:pointer; font-weight:bold; color:#ff2a85;" onclick="toggleInbox()">&times;</span>
+                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:#60a5fa;">Incoming Signals</h3>
+                <span style="cursor:pointer; font-weight:bold; color:#a855f7;" onclick="toggleInbox()">&times;</span>
             </div>
             
             <div class="inbox-tabs">
@@ -1107,7 +1107,7 @@
                 connectToRoom(inviteRoom);
             } else {
                 document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#00f3ff; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(0,243,255,0.4);">Enter a Channel Code or click + to start transmitting!</div>`;
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#60a5fa; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(59,130,246,0.4);">Enter a Channel Code or click + to start transmitting!</div>`;
             }
         }
 
@@ -1175,7 +1175,7 @@
             } else {
                 activeRoomCode = "";
                 document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#00f3ff; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(0,243,255,0.4);">All channels disconnected. Join or create one to resume!</div>`;
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#60a5fa; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(59,130,246,0.4);">All channels disconnected. Join or create one to resume!</div>`;
                 renderTabs();
             }
         }
@@ -1214,10 +1214,10 @@
                 const div = document.createElement('div');
                 div.style.textAlign = 'center';
                 div.style.fontSize = '11px';
-                div.style.color = '#00f3ff';
+                div.style.color = '#60a5fa';
                 div.style.margin = '4px 0';
                 div.style.fontFamily = "'Orbitron', sans-serif";
-                div.style.textShadow = "0 0 6px rgba(0,243,255,0.4)";
+                div.style.textShadow = "0 0 6px rgba(59,130,246,0.4)";
                 div.innerText = msgObj.text;
                 return div;
             }
@@ -1334,7 +1334,7 @@
 
             if (currentTab === 'requests') {
                 if (incomingRequests.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:#00f3ff;">No pending signals</span>`;
+                    container.innerHTML = `<span style="font-size:11px; color:#60a5fa;">No pending signals</span>`;
                     return;
                 }
                 incomingRequests.forEach(req => {
@@ -1343,7 +1343,7 @@
                     card.innerHTML = `
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:11px; font-weight:600; color:#fff;">${escape(req.displayName)}</span>
-                            <span style="font-size:9px; color:#00f3ff;">@${escape(req.username)}</span>
+                            <span style="font-size:9px; color:#60a5fa;">@${escape(req.username)}</span>
                         </div>
                         <div class="req-actions">
                             <button type="button" class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Link</button>
@@ -1354,7 +1354,7 @@
                 });
             } else {
                 if (systemMessages.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:#00f3ff;">No system logs</span>`;
+                    container.innerHTML = `<span style="font-size:11px; color:#60a5fa;">No system logs</span>`;
                     return;
                 }
                 systemMessages.forEach(msg => {
