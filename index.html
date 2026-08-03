@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberTerminal Chat</title>
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.29.9.min.js"></script>
+    <title>CyberTerminal Local Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -53,12 +52,7 @@
         #status-badge {
             font-size: 10px;
             padding: 3px 6px;
-            border: 1px solid var(--text-accent);
-            color: var(--text-accent);
-        }
-
-        #status-badge.online {
-            border-color: var(--primary);
+            border: 1px solid var(--primary);
             color: var(--primary);
             box-shadow: 0 0 5px var(--primary-glow);
         }
@@ -79,11 +73,6 @@
             justify-content: space-between;
             align-items: center;
             font-size: 13px;
-            transition: all 0.2s ease;
-        }
-
-        .chat-tab:hover {
-            background: rgba(0, 255, 204, 0.05);
         }
 
         .chat-tab.active {
@@ -93,24 +82,19 @@
             box-shadow: inset 0 0 10px var(--primary-glow);
         }
 
-        .tab-close-btn, .edit-tab-btn {
+        .tab-close-btn {
             font-size: 14px;
             color: var(--text-accent);
             cursor: pointer;
-            margin-left: 5px;
         }
+        .tab-close-btn:hover { color: var(--secondary); }
 
-        .tab-close-btn:hover, .edit-tab-btn:hover {
-            color: var(--secondary);
-        }
-
-        /* Main Chat Window Styling */
+        /* Main Window */
         #main-chat {
             flex: 1;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-dark);
-            position: relative;
         }
 
         #chat-header {
@@ -141,7 +125,6 @@
             padding: 10px 14px;
             max-width: 70%;
             border-radius: 4px;
-            position: relative;
         }
 
         .msg.self {
@@ -154,157 +137,9 @@
             font-size: 11px;
             color: var(--text-accent);
             margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
         }
 
-        .user-eye.looking { color: var(--primary); }
-        .user-eye.away { color: var(--text-accent); }
-
-        /* Reactions Styling */
-        .msg-reactions {
-            display: flex;
-            gap: 5px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-        }
-
-        .reaction-pill {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2px 6px;
-            font-size: 11px;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .reaction-pill:hover {
-            border-color: var(--primary);
-        }
-
-        .add-reaction-btn {
-            background: transparent;
-            border: 1px dashed var(--text-accent);
-            color: var(--text-accent);
-            font-size: 10px;
-            padding: 1px 5px;
-            cursor: pointer;
-            margin-top: 6px;
-        }
-
-        .add-reaction-btn:hover {
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .reaction-picker {
-            display: none;
-            position: absolute;
-            background: var(--bg-panel);
-            border: 1px solid var(--primary);
-            padding: 5px;
-            gap: 5px;
-            z-index: 10;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .reaction-picker.open {
-            display: flex;
-        }
-
-        .reaction-option {
-            cursor: pointer;
-            padding: 2px 4px;
-        }
-        .reaction-option:hover {
-            background: rgba(0, 255, 204, 0.2);
-        }
-
-        /* Spoiler Styles */
-        .spoiler-hidden {
-            background: rgba(255, 255, 255, 0.1);
-            color: transparent;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            user-select: none;
-            padding: 2px 6px;
-            border-radius: 2px;
-        }
-
-        .spoiler-revealed {
-            background: rgba(255, 0, 127, 0.1);
-            border: 1px dashed var(--secondary);
-            padding: 2px 6px;
-            color: #fff;
-        }
-
-        /* Friends & Inbox Panels */
-        #friends-section {
-            margin-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 10px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .friend-card {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 6px 8px;
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-        }
-
-        .friend-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--text-accent);
-            border-radius: 50%;
-        }
-
-        .status-dot.online {
-            background: var(--primary);
-            box-shadow: 0 0 5px var(--primary);
-        }
-
-        .friend-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .friend-name { color: #fff; font-weight: bold; }
-        .friend-handle { font-size: 10px; color: var(--text-accent); }
-
-        .friend-actions {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .btn-invite-friend {
-            font-size: 9px;
-            padding: 2px 4px;
-        }
-
-        .remove-friend {
-            color: var(--text-accent);
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .remove-friend:hover { color: var(--secondary); }
-
-        /* Input Area Styling */
+        /* Input Area */
         #input-area {
             padding: 15px;
             background-color: var(--bg-panel);
@@ -346,24 +181,13 @@
             box-shadow: 0 0 10px var(--primary-glow);
         }
 
-        /* Modals & Overlays */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 18, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--bg-panel);
-            border: 1px solid var(--primary);
-            padding: 25px;
-            width: 350px;
-            box-shadow: 0 0 20px var(--primary-glow);
-            text-align: center;
+        .instructions {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px dashed var(--primary);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: var(--text-accent);
         }
     </style>
 </head>
@@ -372,256 +196,89 @@
     <div id="sidebar">
         <div class="sidebar-header">
             <span>CHANNELS</span>
-            <div id="status-badge">Offline</div>
+            <div id="status-badge">ONLINE</div>
+        </div>
+        <div class="instructions">
+            <strong>No API keys needed!</strong> Open this exact file in two different browser tabs/windows to chat between them locally using BroadcastChannel.
         </div>
         <div id="tabs-list"></div>
-        <button type="button" onclick="promptJoinRoom()">+ NEW CHANNEL</button>
-
-        <div id="friends-section">
-            <div class="sidebar-header" style="font-size:11px; margin-bottom:8px;">
-                <span>LINKED OPERATORS</span>
-                <button type="button" style="font-size:9px; padding:2px 5px;" onclick="toggleInbox()">INBOX</button>
-            </div>
-            <div style="display:flex; gap:5px; margin-bottom:8px;">
-                <input type="text" id="friend-input" placeholder="Add operator @handle..." style="flex:1; background:var(--bg-dark); border:1px solid var(--text-accent); color:var(--text-main); font-size:11px; padding:4px;">
-                <button type="button" style="font-size:10px; padding:2px 6px;" onclick="sendFriendRequest()">LINK</button>
-            </div>
-            <div id="friends-list"></div>
-        </div>
+        <button type="button" onclick="promptJoinRoom()">+ JOIN / CREATE</button>
     </div>
 
     <div id="main-chat">
         <div id="chat-header">
-            <span id="room-display">Channel: Offline</span>
-            <div>
-                <button type="button" id="spoiler-btn" onclick="toggleSpoilerMode()" style="font-size:10px; padding:4px 8px;">CLASSIFIED</button>
-                <button type="button" onclick="inviteFriend()">SHARE</button>
-                <button type="button" onclick="leaveCurrentRoom()">LEAVE</button>
-            </div>
+            <span id="room-display">Channel: None</span>
+            <button type="button" onclick="leaveCurrentRoom()">LEAVE</button>
         </div>
 
         <div id="messages">
-            <div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px var(--primary-glow);">
-                Enter a Channel Code or click + to start transmitting!
+            <div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif;">
+                Join a channel to start messaging!
             </div>
         </div>
 
-        <div id="typing-indicator" style="padding: 0 20px; height: 20px; font-size: 11px; color: var(--text-accent);"></div>
-
         <div id="input-area">
-            <input type="text" id="message-input" placeholder="Type transmission or /help..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') send()">
+            <input type="text" id="message-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter') send()">
             <button type="button" onclick="send()">TRANSMIT</button>
         </div>
     </div>
 
-    <div id="inbox-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="font-family:'Orbitron',sans-serif; font-size:14px; color:var(--primary); margin-bottom:15px;">OPERATOR INBOX</div>
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <button type="button" id="tab-requests" class="active" style="flex:1; font-size:10px; padding:4px;" onclick="switchInboxTab('requests')">Signals</button>
-                <button type="button" id="tab-system" style="flex:1; font-size:10px; padding:4px;" onclick="switchInboxTab('system')">System Logs</button>
-            </div>
-            <div id="inbox-content" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:15px;"></div>
-            <button type="button" onclick="toggleInbox()">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="invite-popup-overlay" class="modal-overlay">
-        <div class="modal-content">
-            <div style="font-family:'Orbitron',sans-serif; font-size:14px; color:var(--primary); margin-bottom:10px;">INCOMING CHANNEL INVITE</div>
-            <div id="invite-popup-text" style="font-size:12px; margin-bottom:15px;"></div>
-            <div style="display:flex; gap:10px; justify-content:center;">
-                <button type="button" onclick="acceptRoomInvite()">ACCEPT</button>
-                <button type="button" style="border-color:var(--secondary); color:var(--secondary);" onclick="declineRoomInvite()">DECLINE</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let pubnub = null;
+        // Simple multi-tab chat using browser's BroadcastChannel API (Zero API Keys required)
         let myUsername = "operator_" + Math.floor(Math.random() * 1000);
-        let myName = "User " + myUsername;
-        let myId = "id_" + Math.random().toString(36).substr(2, 9);
         let activeRoomCode = "";
         let openRooms = [];
         let roomMessages = {};
-        let roomAliases = {};
-        let activeUsers = new Set();
-        let userMoods = {};
-        let userFocusStates = {};
-        let incomingRequests = [];
-        let systemMessages = [];
-        let friends = [];
-        
-        let isUserLooking = true;
-        let isGlitchModeActive = false;
-        let isSpoilerModeActive = false;
-        let isWhiteboardActive = false;
-        let isCurrentlyTyping = false;
-        let typingTimeout = null;
-        let pendingInviteRoomCode = "";
-        let currentTab = 'requests';
-        let activeTypers = {};
+        let activeChannel = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            pubnub = new PubNub({
-                publishKey: 'pub-c-your-publish-key',
-                subscribeKey: 'sub-c-your-subscribe-key',
-                uuid: myUsername
-            });
-
-            setOnline();
-            
-            const savedFriends = localStorage.getItem("chat_friends_" + myUsername);
-            if (savedFriends) {
-                try { friends = JSON.parse(savedFriends); } catch(e){}
-            }
-            renderFriends();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const inviteRoom = urlParams.get('room');
-            const userChannel = "user_direct_" + myUsername;
-
-            pubnub.subscribe({ channels: [userChannel] });
-
-            pubnub.addListener({
-                message: function(event) {
-                    const channel = event.channel;
-                    const msg = event.message;
-
-                    if (channel.startsWith("user_direct_")) {
-                        if (msg.type === 'friend_request') {
-                            incomingRequests.push({ displayName: msg.from, username: msg.fromUsername });
-                            addSystemMsg(`Link request received from @${msg.fromUsername}`);
-                            renderInbox();
-                        } else if (msg.type === 'friend_accept') {
-                            const exists = friends.some(f => f.username === msg.fromUsername);
-                            if (!exists) {
-                                friends.push({ displayName: msg.from, username: msg.fromUsername });
-                                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
-                                renderFriends();
-                            }
-                            addSystemMsg(`Link established with ${msg.from}!`);
-                        } else if (msg.type === 'direct_room_invite') {
-                            pendingInviteRoomCode = msg.roomCode;
-                            document.getElementById('invite-popup-text').innerText = `@${msg.fromUsername} invited you to channel #${msg.roomCode}`;
-                            document.getElementById('invite-popup-overlay').style.display = 'flex';
-                        }
-                        return;
-                    }
-
-                    if (channel.startsWith("room_code_")) {
-                        const roomCode = channel.replace("room_code_", "").toUpperCase();
-                        if (!openRooms.includes(roomCode)) return;
-
-                        if (msg.type === 'presence') {
-                            if (msg.status === 'join') {
-                                activeUsers.add(msg.username);
-                                addSystemMsgToRoom(roomCode, `⚡ @${msg.username} jacked into the channel.`);
-                            } else if (msg.status === 'leave') {
-                                activeUsers.delete(msg.username);
-                                addSystemMsgToRoom(roomCode, `⚡ @${msg.username} unlinked.`);
-                            }
-                            renderFriends();
-                        } else if (msg.type === 'typing') {
-                            if (roomCode === activeRoomCode) {
-                                activeTypers[msg.username] = msg.isTyping;
-                                updateTypingDisplay();
-                            }
-                        } else if (msg.type === 'reaction') {
-                            handleIncomingReaction(msg.msgId, msg.emoji, msg.username);
-                        } else {
-                            if (msg.username !== myUsername) {
-                                addMsgToRoom(roomCode, msg.id, msg.sender, msg.username, msg.text, false, msg.looking, false, msg.isSpoiler, msg.text);
-                            }
-                        }
-                    }
-                }
-            });
-
-            if (inviteRoom) {
-                connectToRoom(inviteRoom);
-            } else {
-                document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px var(--primary-glow);">Enter a Channel Code or click + to start transmitting!</div>`;
-            }
+            // Automatically join a default room on startup so you can see it work immediately
+            connectToRoom("GENERAL");
         });
 
-        function playSciFiSound(type) {}
-
         function connectToRoom(rawCode) {
-            playSciFiSound('click');
             const code = rawCode.toUpperCase();
-            const channel = "room_code_" + code;
-
             if (!openRooms.includes(code)) {
                 openRooms.push(code);
-                roomAliases[code] = roomAliases[code] || code;
                 roomMessages[code] = roomMessages[code] || [];
-                pubnub.subscribe({ channels: [channel] });
-                
-                pubnub.publish({
-                    channel: channel,
-                    message: { type: 'presence', sender: myName, username: myUsername, status: 'join', looking: isUserLooking }
-                });
             }
-
             switchRoomTab(code);
         }
 
         function switchRoomTab(code) {
-            playSciFiSound('click');
             activeRoomCode = code;
-            isWhiteboardActive = false;
-            document.getElementById('room-display').innerText = `Channel: #${roomAliases[code] || code}`;
+            document.getElementById('room-display').innerText = `Channel: #${code}`;
+
+            // Close previous broadcast listener if any
+            if (activeChannel) {
+                activeChannel.close();
+            }
+
+            // Listen to browser-local cross-tab messages for this specific room
+            activeChannel = new BroadcastChannel("cyber_chat_" + code);
+            activeChannel.onmessage = function (event) {
+                const data = event.data;
+                if (data.username !== myUsername) {
+                    addMsgToRoom(activeRoomCode, data.sender, data.username, data.text, false);
+                }
+            };
+
             renderTabs();
             renderActiveMessages();
-            activeTypers = {};
-            updateTypingDisplay();
-        }
-
-        function renameRoomTab(code) {
-            playSciFiSound('click');
-            const currentName = roomAliases[code] || code;
-            const newName = prompt(`Enter custom alias for channel [${code}]:`, currentName);
-            if (newName && newName.trim()) {
-                roomAliases[code] = newName.trim();
-                if (activeRoomCode === code) {
-                    switchRoomTab(code);
-                } else {
-                    renderTabs();
-                }
-            }
         }
 
         function leaveCurrentRoom() {
             if (!activeRoomCode) return;
-            closeRoomTab(activeRoomCode);
-        }
-
-        function closeRoomTab(code) {
-            playSciFiSound('click');
-            const channel = "room_code_" + code;
-
-            pubnub.publish({
-                channel: channel,
-                message: { type: 'presence', sender: myName, username: myUsername, status: 'leave' }
-            });
-
-            pubnub.unsubscribe({ channels: [channel] });
-
-            openRooms = openRooms.filter(r => r !== code);
-            delete roomMessages[code];
-            delete roomAliases[code];
+            openRooms = openRooms.filter(r => r !== activeRoomCode);
+            delete roomMessages[activeRoomCode];
+            if (activeChannel) activeChannel.close();
 
             if (openRooms.length > 0) {
-                switchRoomTab(openRooms[openRooms.length - 1]);
+                switchRoomTab(openRooms[0]);
             } else {
                 activeRoomCode = "";
-                document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px var(--primary-glow);">All channels disconnected. Join or create one to resume!</div>`;
-                activeTypers = {};
-                updateTypingDisplay();
+                document.getElementById('room-display').innerText = "Channel: None";
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif;">No active channels.</div>`;
                 renderTabs();
             }
         }
@@ -629,19 +286,26 @@
         function renderTabs() {
             const container = document.getElementById('tabs-list');
             container.innerHTML = "";
-
             openRooms.forEach(room => {
-                const displayName = roomAliases[room] || room;
                 const tab = document.createElement('div');
-                tab.className = `chat-tab ${room === activeRoomCode && !isWhiteboardActive ? 'active' : ''}`;
+                tab.className = `chat-tab ${room === activeRoomCode ? 'active' : ''}`;
                 tab.onclick = () => switchRoomTab(room);
                 tab.innerHTML = `
-                    <span class="tab-title"># ${escape(displayName)}</span>
-                    <span class="edit-tab-btn" onclick="event.stopPropagation(); renameRoomTab('${room}')" title="Rename Channel">&#9998;</span>
-                    <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')" title="Close Channel">&times;</span>
+                    <span># ${room}</span>
+                    <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')">&times;</span>
                 `;
                 container.appendChild(tab);
             });
+        }
+
+        function closeRoomTab(code) {
+            if (code === activeRoomCode) {
+                leaveCurrentRoom();
+            } else {
+                openRooms = openRooms.filter(r => r !== code);
+                delete roomMessages[code];
+                renderTabs();
+            }
         }
 
         function renderActiveMessages() {
@@ -650,535 +314,59 @@
             if (!activeRoomCode || !roomMessages[activeRoomCode]) return;
 
             roomMessages[activeRoomCode].forEach(msgObj => {
-                box.appendChild(createMessageDOMElement(msgObj));
+                box.appendChild(createMessageDOM(msgObj));
             });
             box.scrollTop = box.scrollHeight;
         }
 
-        function createMessageDOMElement(msgObj) {
-            if (msgObj.isSystem) {
-                const div = document.createElement('div');
-                div.style.textAlign = 'center';
-                div.style.fontSize = '11px';
-                div.style.color = 'var(--text-accent)';
-                div.style.margin = '4px 0';
-                div.style.fontFamily = "'Orbitron', sans-serif";
-                div.style.textShadow = "0 0 6px var(--primary-glow)";
-                div.innerText = msgObj.text;
-                return div;
-            }
-
-            const isLooking = userFocusStates[msgObj.username] !== false;
-            const eyeIcon = isLooking ? '&#128065;' : '&#128584;';
-            const eyeClass = isLooking ? 'looking' : 'away';
-
+        function createMessageDOM(msgObj) {
             const div = document.createElement('div');
             div.className = `msg ${msgObj.isSelf ? 'self' : ''}`;
-            div.setAttribute('data-id', msgObj.id);
-            
-            let reactionsHtml = `<div class="msg-reactions" id="reactions-${msgObj.id}">`;
-            if (msgObj.reactions) {
-                for (let [emoji, users] of Object.entries(msgObj.reactions)) {
-                    if (users.length > 0) {
-                        reactionsHtml += `<span class="reaction-pill" onclick="toggleReaction('${msgObj.id}', '${emoji}')">${emoji} ${users.length}</span>`;
-                    }
-                }
-            }
-            reactionsHtml += `</div>`;
-
-            let contentHtml = msgObj.text;
-            if (msgObj.isSpoiler && !msgObj.isSelf) {
-                contentHtml = `<span class="spoiler-hidden" onclick="revealSpoiler(this)">[CLASSIFIED CIPHER &bull; CLICK TO DECRYPT]</span><span style="display:none;">${escape(msgObj.rawText)}</span>`;
-            } else if (msgObj.isHtml) {
-                contentHtml = msgObj.text;
-            } else {
-                contentHtml = escape(msgObj.text);
-            }
-
             div.innerHTML = `
-                <div class="sender-header">
-                    <span>${msgObj.isSelf ? 'You' : escape(msgObj.sender)}</span>
-                    <span class="user-eye ${eyeClass}" data-username="${escape(msgObj.username)}" title="${isLooking ? 'Terminal active' : 'Terminal away'}">${eyeIcon}</span>
-                </div>
-                ${contentHtml}
-                ${reactionsHtml}
-                <button type="button" class="add-reaction-btn" onclick="toggleReactionPicker('${msgObj.id}')" title="Add reaction">+</button>
-                <div class="reaction-picker" id="picker-${msgObj.id}">
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#9889;')">&#9889;</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#129302;')">&#129302;</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128187;')">&#128187;</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128293;')">&#128293;</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128167;')">&#128167;</span>
-                </div>
+                <div class="sender-header">${msgObj.isSelf ? 'You (' + myUsername + ')' : escapeHtml(msgObj.sender)}</div>
+                ${escapeHtml(msgObj.text)}
             `;
             return div;
         }
 
-        function revealSpoiler(el) {
-            playSciFiSound('click');
-            const hiddenSpan = el.nextElementSibling;
-            el.outerHTML = `<span class="spoiler-revealed">${hiddenSpan.innerText}</span>`;
-        }
-
-        function toggleSpoilerMode() {
-            playSciFiSound('click');
-            isSpoilerModeActive = !isSpoilerModeActive;
-            document.getElementById('spoiler-btn').style.borderColor = isSpoilerModeActive ? 'var(--secondary)' : '';
-            document.getElementById('spoiler-btn').style.color = isSpoilerModeActive ? 'var(--secondary)' : '';
-        }
-
-        function toggleReactionPicker(msgId) {
-            playSciFiSound('click');
-            const picker = document.getElementById(`picker-${msgId}`);
-            picker.classList.toggle('open');
-        }
-
-        function addReaction(msgId, emoji) {
-            playSciFiSound('click');
-            const picker = document.getElementById(`picker-${msgId}`);
-            if(picker) picker.classList.remove('open');
-
-            let msgObj = null;
-            if (roomMessages[activeRoomCode]) {
-                msgObj = roomMessages[activeRoomCode].find(m => m.id === msgId);
-            }
-            if (!msgObj) return;
-
-            if (!msgObj.reactions) msgObj.reactions = {};
-            if (!msgObj.reactions[emoji]) msgObj.reactions[emoji] = [];
-
-            if (!msgObj.reactions[emoji].includes(myUsername)) {
-                msgObj.reactions[emoji].push(myUsername);
-            }
-
-            updateMessageReactionsDOM(msgId, msgObj.reactions);
-
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: {
-                    type: 'reaction',
-                    msgId: msgId,
-                    emoji: emoji,
-                    username: myUsername
-                }
-            });
-        }
-
-        function toggleReaction(msgId, emoji) {
-            addReaction(msgId, emoji);
-        }
-
-        function handleIncomingReaction(msgId, emoji, username) {
-            let msgObj = null;
-            if (roomMessages[activeRoomCode]) {
-                msgObj = roomMessages[activeRoomCode].find(m => m.id === msgId);
-            }
-            if (!msgObj) return;
-
-            if (!msgObj.reactions) msgObj.reactions = {};
-            if (!msgObj.reactions[emoji]) msgObj.reactions[emoji] = [];
-
-            const idx = msgObj.reactions[emoji].indexOf(username);
-            if (idx > -1) {
-                msgObj.reactions[emoji].splice(idx, 1);
-            } else {
-                msgObj.reactions[emoji].push(username);
-            }
-
-            updateMessageReactionsDOM(msgId, msgObj.reactions);
-        }
-
-        function updateMessageReactionsDOM(msgId, reactions) {
-            const container = document.getElementById(`reactions-${msgId}`);
-            if (!container) return;
-            container.innerHTML = "";
-            for (let [emoji, users] of Object.entries(reactions)) {
-                if (users.length > 0) {
-                    const pill = document.createElement('span');
-                    pill.className = "reaction-pill";
-                    pill.onclick = () => toggleReaction(msgId, emoji);
-                    pill.innerHTML = `${emoji} ${users.length}`;
-                    container.appendChild(pill);
-                }
-            }
-        }
-
-        function addMsgToRoom(roomCode, msgId, sender, username, text, isSelf, looking, isHtml, isSpoiler, rawText) {
-            const msgObj = {
-                id: msgId || ("msg_" + Math.random().toString(36).substr(2, 9)),
-                sender: sender,
-                username: username,
-                text: text,
-                isSelf: isSelf,
-                isSystem: false,
-                isHtml: isHtml || false,
-                isSpoiler: isSpoiler || false,
-                rawText: rawText || text,
-                reactions: {}
-            };
-
+        function addMsgToRoom(roomCode, sender, username, text, isSelf) {
+            const msgObj = { sender, username, text, isSelf };
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
             roomMessages[roomCode].push(msgObj);
 
-            if (roomCode === activeRoomCode && !isWhiteboardActive) {
+            if (roomCode === activeRoomCode) {
                 const box = document.getElementById('messages');
-                box.appendChild(createMessageDOMElement(msgObj));
+                box.appendChild(createMessageDOM(msgObj));
                 box.scrollTop = box.scrollHeight;
             }
-        }
-
-        function addSystemMsgToRoom(roomCode, text) {
-            const msgObj = { text: text, isSystem: true };
-
-            if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
-            roomMessages[roomCode].push(msgObj);
-
-            if (roomCode === activeRoomCode && !isWhiteboardActive) {
-                const box = document.getElementById('messages');
-                box.appendChild(createMessageDOMElement(msgObj));
-                box.scrollTop = box.scrollHeight;
-            }
-        }
-
-        function handleTypingInput() {
-            if (!activeRoomCode || !pubnub) return;
-
-            if (!isCurrentlyTyping) {
-                isCurrentlyTyping = true;
-                pubnub.publish({
-                    channel: "room_code_" + activeRoomCode,
-                    message: { type: 'typing', username: myUsername, isTyping: true }
-                });
-            }
-
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                isCurrentlyTyping = false;
-                pubnub.publish({
-                    channel: "room_code_" + activeRoomCode,
-                    message: { type: 'typing', username: myUsername, isTyping: false }
-                });
-            }, 1500);
-        }
-
-        function updateTypingDisplay() {
-            const indicator = document.getElementById('typing-indicator');
-            const typingUsers = Object.keys(activeTypers).filter(u => activeTypers[u]);
-
-            if (typingUsers.length === 0) {
-                indicator.innerText = "";
-            } else if (typingUsers.length === 1) {
-                indicator.innerText = `&#9889; @${typingUsers[0]} is transmitting...`;
-            } else {
-                indicator.innerText = `&#9889; Multiple terminals transmitting...`;
-            }
-        }
-
-        function directInviteFriend(friendUsername) {
-            playSciFiSound('click');
-            if (!activeRoomCode) {
-                alert("You need to join or create a channel first!");
-                return;
-            }
-
-            pubnub.publish({
-                channel: "user_direct_" + friendUsername,
-                message: {
-                    type: 'direct_room_invite',
-                    from: myName,
-                    fromUsername: myUsername,
-                    roomCode: activeRoomCode
-                }
-            });
-
-            addSystemMsg(`Room invite sent to @${friendUsername}!`);
-        }
-
-        function acceptRoomInvite() {
-            playSciFiSound('click');
-            document.getElementById('invite-popup-overlay').style.display = 'none';
-            if (pendingInviteRoomCode) {
-                connectToRoom(pendingInviteRoomCode);
-            }
-        }
-
-        function declineRoomInvite() {
-            playSciFiSound('click');
-            document.getElementById('invite-popup-overlay').style.display = 'none';
-            pendingInviteRoomCode = "";
-        }
-
-        function toggleInbox() {
-            playSciFiSound('click');
-            const modal = document.getElementById('inbox-modal');
-            const isShowing = modal.style.display === 'flex';
-            modal.style.display = isShowing ? 'none' : 'flex';
-            if (!isShowing) {
-                renderInbox();
-            }
-        }
-
-        function switchInboxTab(tab) {
-            playSciFiSound('click');
-            currentTab = tab;
-            document.getElementById('tab-requests').classList.toggle('active', tab === 'requests');
-            document.getElementById('tab-system').classList.toggle('active', tab === 'system');
-            renderInbox();
-        }
-
-        function renderInbox() {
-            const container = document.getElementById('inbox-content');
-            container.innerHTML = "";
-
-            if (currentTab === 'requests') {
-                if (incomingRequests.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:var(--text-accent);">No pending signals</span>`;
-                    return;
-                }
-                incomingRequests.forEach(req => {
-                    const card = document.createElement('div');
-                    card.className = "friend-card";
-                    card.innerHTML = `
-                        <div style="display:flex; flex-direction:column;">
-                            <span style="font-size:11px; font-weight:600; color:#fff;">${escape(req.displayName)}</span>
-                            <span style="font-size:9px; color:var(--text-accent);">@${escape(req.username)}</span>
-                        </div>
-                        <div class="friend-actions">
-                            <button type="button" style="font-size:9px; padding:2px 5px;" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Link</button>
-                            <button type="button" style="font-size:9px; padding:2px 5px; border-color:var(--secondary); color:var(--secondary);" onclick="declineRequest('${escape(req.username)}')">Drop</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            } else {
-                if (systemMessages.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:var(--text-accent);">No system logs</span>`;
-                    return;
-                }
-                systemMessages.forEach(msg => {
-                    const card = document.createElement('div');
-                    card.className = "friend-card";
-                    card.innerHTML = `<span style="font-size:11px; color:var(--text-main);">${escape(msg)}</span>`;
-                    container.appendChild(card);
-                });
-            }
-        }
-
-        function sendFriendRequest() {
-            playSciFiSound('click');
-            const input = document.getElementById('friend-input');
-            const friendHandle = input.value.trim().toLowerCase().replace('@', '');
-            if (!friendHandle || !pubnub) return;
-
-            if (friendHandle === myUsername) {
-                alert("You cannot link yourself!");
-                return;
-            }
-
-            pubnub.publish({
-                channel: "user_direct_" + friendHandle,
-                message: {
-                    type: 'friend_request',
-                    from: myName,
-                    fromUsername: myUsername
-                }
-            });
-
-            addSystemMsg(`Link request sent to @${friendHandle}!`);
-            input.value = "";
-        }
-
-        function acceptRequest(fromName, fromUsername) {
-            playSciFiSound('click');
-            const isAlreadyFriend = friends.some(f => f.username === fromUsername);
-            if (!isAlreadyFriend) {
-                friends.push({ displayName: fromName, username: fromUsername });
-                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
-                renderFriends();
-            }
-
-            incomingRequests = incomingRequests.filter(u => u.username !== fromUsername);
-            renderInbox();
-
-            pubnub.publish({
-                channel: "user_direct_" + fromUsername,
-                message: {
-                    type: 'friend_accept',
-                    from: myName,
-                    fromUsername: myUsername
-                }
-            });
-
-            addSystemMsg(`Link established with ${fromName}!`);
-        }
-
-        function declineRequest(fromUsername) {
-            playSciFiSound('click');
-            incomingRequests = incomingRequests.filter(u => u.username !== fromUsername);
-            renderInbox();
-        }
-
-        function removeFriend(index) {
-            playSciFiSound('click');
-            const friend = friends[index];
-            const confirmed = confirm(`Terminate connection with ${friend.displayName} (@${friend.username})?`);
-            if (confirmed) {
-                friends.splice(index, 1);
-                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
-                renderFriends();
-            }
-        }
-
-        function startDM(friendUsername) {
-            playSciFiSound('click');
-            const dmRoomCode = "DM_" + [myUsername, friendUsername].sort().join("_").toUpperCase();
-            connectToRoom(dmRoomCode);
-        }
-
-        function renderFriends() {
-            const list = document.getElementById('friends-list');
-            if(!list) return;
-            list.innerHTML = "";
-
-            friends.forEach((friend, idx) => {
-                const isOnline = activeUsers.has(friend.username);
-                const moodText = userMoods[friend.username] || "&#9889; Jacked In";
-                const card = document.createElement('div');
-                card.className = "friend-card";
-                card.innerHTML = `
-                    <div class="friend-info" onclick="startDM('${escape(friend.username)}')">
-                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
-                        <div class="friend-details">
-                            <span class="friend-name">${escape(friend.displayName)}</span>
-                            <span class="friend-handle">@${escape(friend.username)} &bull; <span style="color:var(--secondary);">${escape(moodText)}</span></span>
-                        </div>
-                    </div>
-                    <div class="friend-actions">
-                        <button type="button" class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Invite</button>
-                        <span class="remove-friend" onclick="removeFriend(${idx})" title="Terminate Link">&times;</span>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
         }
 
         function promptJoinRoom() {
-            playSciFiSound('click');
-            const code = prompt("Enter Channel Code (e.g. CYBER99):");
+            const code = prompt("Enter Channel Name (e.g. LOBBY, SQUAD):");
             if (code && code.trim()) {
                 connectToRoom(code.trim());
             }
         }
 
-        function inviteFriend() {
-            playSciFiSound('click');
-            if (!activeRoomCode) {
-                alert("Please join or create a channel first!");
-                return;
-            }
-
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${activeRoomCode}`;
-            navigator.clipboard.writeText(inviteUrl).then(() => {
-                addSystemMsg("&#9889; Channel link copied to clipboard!");
-            }).catch(() => {
-                addSystemMsg(`Channel code: ${activeRoomCode}`);
-            });
-        }
-
-        function processTerminalCommand(text) {
-            if (text.startsWith('/roll')) {
-                const parts = text.split(' ');
-                let count = 1, sides = 20;
-                if (parts[1]) {
-                    const diceParts = parts[1].toLowerCase().split('d');
-                    if (diceParts.length === 2) {
-                        count = parseInt(diceParts[0]) || 1;
-                        sides = parseInt(diceParts[1]) || 20;
-                    }
-                }
-                let total = 0;
-                let rolls = [];
-                for (let i = 0; i < count; i++) {
-                    const roll = Math.floor(Math.random() * sides) + 1;
-                    rolls.push(roll);
-                    total += roll;
-                }
-                return `&#127922; Dice Roll [${count}d${sides}]: ${rolls.join(', ')} (Total: ${total})`;
-            } else if (text === '/clear') {
-                if (roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
-                renderActiveMessages();
-                return null;
-            } else if (text === '/help') {
-                return `&#128187; Available Commands: /roll [NdM] (e.g. /roll 1d20), /clear (wipe console)`;
-            }
-            return text;
-        }
-
         function send() {
             const input = document.getElementById('message-input');
-            let text = input.value.trim();
+            const text = input.value.trim();
+            if (!text || !activeRoomCode) return;
 
-            if (!activeRoomCode || !pubnub) {
-                alert("Please join or create a channel first!");
-                return;
-            }
-
-            if (!text) return;
-
-            if (text.startsWith('/')) {
-                const res = processTerminalCommand(text);
-                input.value = "";
-                if (res) {
-                    addSystemMsgToRoom(activeRoomCode, res);
-                }
-                return;
-            }
-
-            const isSpoiler = isSpoilerModeActive;
-            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
-            playSciFiSound('send');
-            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, text, true, isUserLooking, false, isSpoiler, text);
+            addMsgToRoom(activeRoomCode, myUsername, myUsername, text, true);
             input.value = "";
-            
-            isSpoilerModeActive = false;
-            document.getElementById('spoiler-btn').style.borderColor = "";
-            document.getElementById('spoiler-btn').style.color = "";
 
-            isCurrentlyTyping = false;
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: { type: 'typing', username: myUsername, isTyping: false }
-            });
-
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: {
-                    id: msgId,
-                    senderId: myId,
-                    sender: myName,
+            // Broadcast message to any other open tabs/windows tuned to this room
+            if (activeChannel) {
+                activeChannel.postMessage({
+                    sender: myUsername,
                     username: myUsername,
-                    text: text,
-                    isSpoiler: isSpoiler,
-                    looking: isUserLooking
-                }
-            });
-        }
-
-        function setOnline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "System Online";
-            badge.classList.add('online');
-        }
-
-        function addSystemMsg(text) {
-            systemMessages.unshift(text);
-            if(systemMessages.length > 50) systemMessages.pop();
-            if (activeRoomCode) {
-                addSystemMsgToRoom(activeRoomCode, text);
+                    text: text
+                });
             }
         }
 
-        function escape(str) {
+        function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
