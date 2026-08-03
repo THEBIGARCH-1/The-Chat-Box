@@ -1168,13 +1168,16 @@
                     <canvas id="wb-canvas"></canvas>
                     <div class="wb-tools">
                         <div class="wb-colors">
+                            <div class="wb-color-dot" style="background:#ef4444;" onclick="setWbColor('#ef4444')" title="Fire Red"></div>
+                            <div class="wb-color-dot" style="background:#f97316;" onclick="setWbColor('#f97316')" title="Fire Orange"></div>
+                            <div class="wb-color-dot" style="background:#eab308;" onclick="setWbColor('#eab308')" title="Fire Yellow"></div>
                             <div class="wb-color-dot" style="background:#3b82f6;" onclick="setWbColor('#3b82f6')"></div>
-                            <div class="wb-color-dot" style="background:#00ffcc;" onclick="setWbColor('#00ffcc')"></div>
-                            <div class="wb-color-dot" style="background:#ec4899;" onclick="setWbColor('#ec4899')"></div>
-                            <div class="wb-color-dot" style="background:#eab308;" onclick="setWbColor('#eab308')"></div>
                             <div class="wb-color-dot" style="background:#ffffff;" onclick="setWbColor('#ffffff')"></div>
                         </div>
-                        <button type="button" class="btn-secondary" onclick="clearWhiteboard()">Wipe Grid</button>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="btn-secondary" onclick="sendDrawingToChat()">Send Drawing To Chat</button>
+                            <button type="button" class="btn-secondary" onclick="clearWhiteboard()">Wipe Grid</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1630,13 +1633,16 @@
         const wbCanvas = document.getElementById('wb-canvas');
         const wbCtx = wbCanvas.getContext('2d');
         let isDrawing = false;
-        let wbColor = '#3b82f6';
+        let wbColor = '#ef4444'; // Default to red (fire color)
         let lastX = 0, lastY = 0;
 
         function resizeWbCanvas() {
             const rect = wbCanvas.getBoundingClientRect();
             wbCanvas.width = rect.width;
             wbCanvas.height = rect.height;
+            // Draw default background
+            wbCtx.fillStyle = '#080e1c';
+            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
         }
 
         function openWhiteboardTab() {
@@ -1670,12 +1676,45 @@
 
         function clearWhiteboard() {
             playSciFiSound('click');
-            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+            wbCtx.fillStyle = '#080e1c';
+            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
             if (activeRoomCode && pubnub) {
                 pubnub.publish({
                     channel: "room_code_" + activeRoomCode,
                     message: { type: 'wb_clear', username: myUsername }
                 });
+            }
+        }
+
+        function sendDrawingToChat() {
+            playSciFiSound('click');
+            if (!activeRoomCode) {
+                alert("Join a channel first to send your drawing!");
+                return;
+            }
+            const dataUrl = wbCanvas.toDataURL('image/png');
+            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
+            const imgHtml = `<img src="${dataUrl}" style="max-width:100%; border-radius:6px; border:1px solid var(--primary); display:block;" alt="User Drawing">`;
+            
+            playSciFiSound('send');
+            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, imgHtml, true, isUserLooking, true);
+
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: {
+                    id: msgId,
+                    senderId: myId,
+                    sender: myName,
+                    username: myUsername,
+                    text: imgHtml,
+                    isHtml: true,
+                    looking: isUserLooking
+                }
+            });
+
+            // Switch back to chat tab
+            if (openRooms.length > 0) {
+                switchRoomTab(openRooms[openRooms.indexOf(activeRoomCode)] || openRooms[0]);
             }
         }
 
@@ -1714,7 +1753,7 @@
 
         function drawOnWhiteboard(x1, y1, x2, y2, color, broadcast) {
             wbCtx.strokeStyle = color;
-            wbCtx.lineWidth = 3;
+            wbCtx.lineWidth = 4;
             wbCtx.lineCap = 'round';
             wbCtx.beginPath();
             wbCtx.moveTo(x1, y1);
@@ -1954,7 +1993,8 @@
 
                     if (data.type === 'wb_clear') {
                         if (targetRoom === activeRoomCode) {
-                            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                            wbCtx.fillStyle = '#080e1c';
+                            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
                         }
                         return;
                     }
