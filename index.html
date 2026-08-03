@@ -264,9 +264,7 @@
             justify-content: center;
         }
 
-        .menu-toggle-btn {
-            display: none;
-        }
+        .menu-toggle-btn { display: none; }
 
         .green-badge {
             position: absolute;
@@ -467,10 +465,8 @@
         .btn-accept { background: #22c55e; }
         .btn-decline { background: #ef4444; }
 
-        /* Mobile Layout Adjustments */
         @media (max-width: 768px) {
             body { padding: 0; }
-            
             #app-container { 
                 width: 100vw; 
                 height: 100vh; 
@@ -479,11 +475,7 @@
                 border: none;
                 flex-direction: column; 
             }
-
-            .menu-toggle-btn {
-                display: flex;
-            }
-
+            .menu-toggle-btn { display: flex; }
             #sidebar { 
                 position: absolute;
                 top: 50px;
@@ -495,22 +487,9 @@
                 backdrop-filter: blur(25px);
                 transform: translateX(-100%);
             }
-
-            #sidebar.open {
-                transform: translateX(0);
-            }
-
-            .status {
-                display: none;
-            }
-
-            .device-icons {
-                display: flex;
-            }
-
-            #chat-header {
-                height: 50px;
-            }
+            #sidebar.open { transform: translateX(0); }
+            .status { display: none; }
+            #chat-header { height: 50px; }
         }
     </style>
 </head>
@@ -519,8 +498,8 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Account Portal</h2>
-            <p id="auth-subtext">Enter a unique username to login or create an account!</p>
-            <input type="text" id="auth-username" placeholder="Username" maxlength="15">
+            <p id="auth-subtext">Enter a unique username to create or join your account!</p>
+            <input type="text" id="auth-username" placeholder="Unique Username" maxlength="15">
             <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
             <button onclick="handleAuth()">Continue</button>
         </div>
@@ -533,7 +512,7 @@
                     <label>Logged in as</label>
                     <span id="display-user">--</span>
                 </div>
-                <button class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch</button>
+                <button class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch Account</button>
             </div>
 
             <div class="room-actions">
@@ -580,7 +559,7 @@
         </div>
 
         <div id="inbox-modal">
-            <div style="display:flex; justify-space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="font-size:13px;">Inbox</h3>
                 <span style="cursor:pointer; font-weight:bold;" onclick="toggleInbox()">&times;</span>
             </div>
@@ -610,7 +589,6 @@
             detectDeviceMode();
             window.addEventListener('resize', detectDeviceMode);
 
-            // Check if account exists
             const activeUser = localStorage.getItem("chat_current_active_user");
             if (activeUser) {
                 myName = activeUser;
@@ -633,16 +611,17 @@
                 return;
             }
 
-            let accounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
+            // Global Account Safety Check
+            let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
 
-            if (accounts[userInput.toLowerCase()]) {
-                if (accounts[userInput.toLowerCase()].pass && accounts[userInput.toLowerCase()].pass !== passInput) {
-                    alert("Name is taken! Incorrect password for " + userInput);
+            if (globalAccounts[userInput.toLowerCase()]) {
+                if (globalAccounts[userInput.toLowerCase()].pass && globalAccounts[userInput.toLowerCase()].pass !== passInput) {
+                    alert("This username is already taken! Please enter the correct password or pick a different name.");
                     return;
                 }
             } else {
-                accounts[userInput.toLowerCase()] = { name: userInput, pass: passInput };
-                localStorage.setItem("chat_registered_accounts", JSON.stringify(accounts));
+                globalAccounts[userInput.toLowerCase()] = { name: userInput, pass: passInput };
+                localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
             }
 
             myName = userInput;
@@ -672,7 +651,7 @@
             if (savedCode) {
                 connectToRoom(savedCode);
             } else {
-                addSystemMsg("Welcome, " + myName + "! Tap 👥 to open your Friends & Rooms menu.");
+                connectToRoom("GLOBAL1");
             }
         }
 
@@ -755,10 +734,6 @@
 
             addSystemMsg(`Sent a friend request to ${friendName}!`);
             input.value = "";
-            
-            if (window.innerWidth <= 768) {
-                toggleSidebar();
-            }
         }
 
         function acceptRequest(fromUser) {
