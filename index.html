@@ -10,33 +10,34 @@
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
         #chat-container { width: 90vw; max-width: 800px; height: 85vh; background: #1a1d2e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #3b4252; }
         #chat-header { padding: 16px 20px; background: #141625; border-bottom: 1px solid #2e3440; display: flex; justify-content: space-between; align-items: center; }
-        .status { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #bf616a; color: #fff; }
-        .status.online { background: #a3be8c; color: #1a1d2e; font-weight: bold; }
+        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #bf616a; color: #fff; font-weight: bold; }
+        .status.online { background: #a3be8c; color: #1a1d2e; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg { background: #2e3440; padding: 10px 14px; border-radius: 8px; max-width: 75%; width: fit-content; word-break: break-word; }
         .msg.self { align-self: flex-end; background: #5e81ac; }
-        .msg .sender { font-size: 10px; color: #d8dee9; margin-bottom: 3px; display: block; }
+        .msg .sender { font-size: 11px; color: #d8dee9; margin-bottom: 3px; display: block; font-weight: bold; }
         #input-area { padding: 15px; background: #141625; display: flex; gap: 10px; border-top: 1px solid #2e3440; }
-        input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #3b4252; background: #2e3440; color: #fff; outline: none; }
-        button { padding: 10px 20px; background: #88c0d0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #1a1d2e; }
+        input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #3b4252; background: #2e3440; color: #fff; outline: none; }
+        button { padding: 12px 20px; background: #88c0d0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: #1a1d2e; }
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 10; }
-        .modal { background: #1a1d2e; padding: 30px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; text-align: center; width: 300px; border: 1px solid #3b4252; }
+        .modal { background: #1a1d2e; padding: 30px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; text-align: center; width: 320px; border: 1px solid #3b4252; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
         <div class="modal">
-            <h2>Join Room</h2>
+            <h2>Enter Live Chat</h2>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to talk!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
-            <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT123)" maxlength="15">
-            <button onclick="startChat()">Enter Chat</button>
+            <input type="text" id="roomcode" placeholder="Room Code (e.g. ROOM99)" maxlength="15">
+            <button onclick="startChat()">Connect to Room</button>
         </div>
     </div>
 
     <div id="chat-container">
         <div id="chat-header">
-            <span id="room-display">Room: ----</span>
+            <span id="room-display" style="font-weight: bold;">Room: ----</span>
             <span id="status-badge" class="status">Disconnected</span>
         </div>
         <div id="messages"></div>
@@ -52,6 +53,17 @@
         let myName = "User";
         let roomID = "";
 
+        // PeerJS Configuration with Google STUN Servers to bypass network firewalls
+        const peerConfig = {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        };
+
         function startChat() {
             myName = document.getElementById('username').value.trim() || "User";
             const code = document.getElementById('roomcode').value.trim().toUpperCase();
@@ -61,49 +73,51 @@
             document.getElementById('room-display').innerText = "Room: " + code;
             document.getElementById('overlay').style.display = 'none';
 
-            // 1. Try to connect directly to the existing Room Code
-            peer = new Peer(); 
+            addSystemMsg("Connecting to Peer Server...");
+
+            // Try joining as Host using Room Code
+            peer = new Peer(roomID, peerConfig);
 
             peer.on('open', () => {
-                // Attempt to call the room code as a Client
-                conn = peer.connect(roomID);
-                setupClientHandlers();
+                addSystemMsg(`Created room [${code}]. Tell your friend to enter the exact same code!`);
+            });
 
-                // If connecting fails (nobody created it yet), become the Host
-                setTimeout(() => {
-                    if (!conn || !conn.open) {
-                        becomeHost(roomID);
-                    }
-                }, 1500);
+            // If the code is already hosted by Person 1, join them as a Client
+            peer.on('error', (err) => {
+                if (err.type === 'unavailable-id') {
+                    peer = new Peer(peerConfig); 
+                    peer.on('open', () => {
+                        conn = peer.connect(roomID, { reliable: true });
+                        setupClientHandlers();
+                    });
+                } else {
+                    addSystemMsg("Error connecting: " + err.type);
+                }
+            });
+
+            // Host receives connection from Friend
+            peer.on('connection', (c) => {
+                conn = c;
+                setupConnectionHandlers();
             });
         }
 
         function setupClientHandlers() {
             conn.on('open', () => {
                 setOnline();
-                addSystemMsg("Connected to room!");
+                addSystemMsg("Connected live to your friend!");
             });
             conn.on('data', data => addMsg(data.sender, data.text, false));
+            conn.on('close', () => setOffline());
         }
 
-        function becomeHost(targetID) {
-            if (peer) peer.destroy();
-            
-            // Create the room using the code
-            peer = new Peer(targetID);
-
-            peer.on('open', () => {
-                addSystemMsg("Waiting for your friend to enter code...");
+        function setupConnectionHandlers() {
+            conn.on('open', () => {
+                setOnline();
+                addSystemMsg("Your friend joined the room!");
             });
-
-            peer.on('connection', c => {
-                conn = c;
-                conn.on('open', () => {
-                    setOnline();
-                    addSystemMsg("Friend joined the room!");
-                });
-                conn.on('data', data => addMsg(data.sender, data.text, false));
-            });
+            conn.on('data', data => addMsg(data.sender, data.text, false));
+            conn.on('close', () => setOffline());
         }
 
         function send() {
@@ -116,7 +130,7 @@
             if (conn && conn.open) {
                 conn.send({ sender: myName, text: text });
             } else {
-                addSystemMsg("Waiting for partner to connect...");
+                addSystemMsg("Message not sent. Waiting for your friend to enter the code...");
             }
 
             input.value = "";
@@ -124,8 +138,15 @@
 
         function setOnline() {
             const badge = document.getElementById('status-badge');
-            badge.innerText = "Connected Live";
+            badge.innerText = "Connected Live!";
             badge.classList.add('online');
+        }
+
+        function setOffline() {
+            const badge = document.getElementById('status-badge');
+            badge.innerText = "Partner Disconnected";
+            badge.classList.remove('online');
+            addSystemMsg("Connection lost.");
         }
 
         function addMsg(sender, text, isSelf) {
@@ -142,7 +163,8 @@
             const div = document.createElement('div');
             div.style.textAlign = 'center';
             div.style.fontSize = '12px';
-            div.style.color = '#4c566a';
+            div.style.color = '#88c0d0';
+            div.style.margin = '4px 0';
             div.innerText = text;
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
