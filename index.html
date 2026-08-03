@@ -30,7 +30,7 @@
             <h2>Enter Live Room</h2>
             <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
-            <input type="text" id="roomcode" placeholder="Room Code (e.g. SECRET99)" maxlength="15">
+            <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
         </div>
     </div>
@@ -62,20 +62,24 @@
                 return;
             }
 
-            currentTopic = "public_chat_room_code_" + rawCode;
+            currentTopic = "thebigarch_room_" + rawCode;
             document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg(`Connecting to Room [${rawCode}]...`);
+            addSystemMsg("Connecting instantly...");
 
-            // Connect to free public cloud broker (Secure WebSockets)
-            client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt', { clientId: clientID });
+            // Secure WebSocket server on port 8084 (Works perfectly with GitHub Pages HTTPS)
+            client = mqtt.connect('wss://broker.emqx.io:8084/mqtt', { 
+                clientId: clientID,
+                clean: true,
+                connectTimeout: 4000
+            });
 
             client.on('connect', () => {
                 setOnline();
-                client.subscribe(currentTopic, (err) => {
+                client.subscribe(currentTopic, { qos: 0 }, (err) => {
                     if (!err) {
-                        addSystemMsg(`Connected! Share room code [${rawCode}] with friends.`);
+                        addSystemMsg(`Connected! Have your friends enter code [${rawCode}] to chat.`);
                     }
                 });
             });
@@ -87,12 +91,12 @@
                         addMsg(data.sender, data.text, false);
                     }
                 } catch (e) {
-                    console.error("Error reading message");
+                    console.error("Failed to parse message");
                 }
             });
 
             client.on('error', () => {
-                addSystemMsg("Server connection error. Retrying...");
+                addSystemMsg("Connection error. Retrying...");
             });
         }
 
@@ -107,9 +111,7 @@
                 text: text
             };
 
-            // Broadcast message to everyone in the room
             client.publish(currentTopic, JSON.stringify(messageObj));
-
             addMsg(myName, text, true);
             input.value = "";
         }
