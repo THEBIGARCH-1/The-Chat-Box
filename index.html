@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Live Room Chat</title>
+    <title>Live Room Chat</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -27,7 +28,7 @@
     <div id="overlay">
         <div class="modal">
             <h2>Enter Live Room</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to chat!</p>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
             <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
@@ -47,10 +48,21 @@
     </div>
 
     <script>
-        let ws = null;
+        let peer = null;
+        let conn = null;
         let myName = "User";
-        let roomTopic = "";
-        const clientID = 'usr_' + Math.random().toString(36).substr(2, 9);
+
+        const peerConfig = {
+            debug: 1,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' }
+                ]
+            }
+        };
 
         function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
@@ -61,78 +73,86 @@
                 return;
             }
 
-            // Create a unique channel name based on your code
-            roomTopic = "thebigarch_chat_v1_" + rawCode;
-
+            const targetID = "thebigarch_room_" + rawCode;
             document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg("Connecting to network...");
+            addSystemMsg("Searching for room...");
 
-            // Connect over standard, encrypted WebSocket
-            ws = new WebSocket(`wss://ntfy.sh/${roomTopic}/ws`);
+            // First: attempt to connect as Host with the Room ID
+            peer = new Peer(targetID, peerConfig);
 
-            ws.onopen = () => {
-                setOnline();
-                addSystemMsg(`Connected! Tell your friends to enter code [${rawCode}] to join.`);
-            };
+            peer.on('open', () => {
+                addSystemMsg(`Created Room [${rawCode}]. Waiting for your friend to enter code...`);
+            });
 
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    // Handle incoming message events
-                    if (data.event === 'message' && data.message) {
-                        const payload = JSON.parse(data.message);
-                        if (payload.id !== clientID) {
-                            addMsg(payload.sender, payload.text, false);
-                        }
-                    }
-                } catch (e) {
-                    // Ignore non-JSON system signals
+            // Second: If ID exists, connect as a Client to the Host
+            peer.on('error', (err) => {
+                if (err.type === 'unavailable-id') {
+                    peer.destroy();
+                    // Connect as client with a unique ID
+                    peer = new Peer(peerConfig);
+                    peer.on('open', () => {
+                        conn = peer.connect(targetID, { reliable: true });
+                        setupClientEvents();
+                    });
+                } else {
+                    addSystemMsg("Connection notice: " + err.type);
                 }
-            };
+            });
 
-            ws.onerror = () => {
-                addSystemMsg("Connection issue. Try clicking Join again.");
-            };
-
-            ws.onclose = () => {
-                const badge = document.getElementById('status-badge');
-                badge.innerText = "Disconnected";
-                badge.classList.remove('online');
-            };
+            // Handle incoming client connection if hosting
+            peer.on('connection', (c) => {
+                conn = c;
+                setupHostEvents();
+            });
         }
 
-        async function send() {
+        function setupClientEvents() {
+            conn.on('open', () => {
+                setOnline();
+                addSystemMsg("Connected to room!");
+            });
+            conn.on('data', data => addMsg(data.sender, data.text, false));
+            conn.on('close', () => setOffline());
+        }
+
+        function setupHostEvents() {
+            conn.on('open', () => {
+                setOnline();
+                addSystemMsg("Partner joined the room!");
+            });
+            conn.on('data', data => addMsg(data.sender, data.text, false));
+            conn.on('close', () => setOffline());
+        }
+
+        function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text || !roomTopic) return;
+            if (!text) return;
 
-            const payload = {
-                id: clientID,
-                sender: myName,
-                text: text
-            };
-
-            // Display locally immediately
             addMsg(myName, text, true);
-            input.value = "";
 
-            // Broadcast message across the cloud network
-            try {
-                await fetch(`https://ntfy.sh/${roomTopic}`, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-            } catch (err) {
-                addSystemMsg("Failed to deliver message.");
+            if (conn && conn.open) {
+                conn.send({ sender: myName, text: text });
+            } else {
+                addSystemMsg("Waiting for partner to connect...");
             }
+
+            input.value = "";
         }
 
         function setOnline() {
             const badge = document.getElementById('status-badge');
             badge.innerText = "Connected Live!";
             badge.classList.add('online');
+        }
+
+        function setOffline() {
+            const badge = document.getElementById('status-badge');
+            badge.innerText = "Disconnected";
+            badge.classList.remove('online');
+            addSystemMsg("Connection closed.");
         }
 
         function addMsg(sender, text, isSelf) {
