@@ -28,7 +28,7 @@
             position: relative;
         }
 
-        /* Dynamic Glowing Rain & Lightning Canvas Background */
+        /* Dynamic Electrified Glowing Rain & Lightning Canvas Background */
         #bg-canvas {
             position: absolute;
             top: 0;
@@ -37,6 +37,7 @@
             height: 100%;
             z-index: 1;
             pointer-events: none;
+            filter: drop-shadow(0 0 8px #3b82f6);
         }
 
         #app-container {
@@ -992,7 +993,7 @@
             }
         }
 
-        // Glowing Raindrops & Lightning Canvas Effect
+        // Enlarged & Electrified Glowing Raindrops & Lightning Canvas Effect
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let drops = [];
@@ -1006,13 +1007,14 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        for (let i = 0; i < 90; i++) {
+        // Fewer, much larger and heavily electrified rain particles
+        for (let i = 0; i < 50; i++) {
             drops.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                length: Math.random() * 25 + 10,
-                speed: Math.random() * 8 + 6,
-                opacity: Math.random() * 0.7 + 0.3
+                length: Math.random() * 60 + 40, // Larger length
+                speed: Math.random() * 12 + 10,   // Faster, heavier drop speed
+                opacity: Math.random() * 0.5 + 0.5
             });
         }
 
@@ -1024,25 +1026,25 @@
             lightningPath.push({x: currX, y: currY});
 
             while (currY < canvas.height) {
-                currX += (Math.random() - 0.5) * 50;
-                currY += Math.random() * 40 + 20;
+                currX += (Math.random() - 0.5) * 80;
+                currY += Math.random() * 50 + 25;
                 lightningPath.push({x: currX, y: currY});
             }
 
-            // Random next lightning strike delay between 4 to 10 seconds
-            setTimeout(triggerLightningBolt, Math.random() * 6000 + 4000);
+            setTimeout(triggerLightningBolt, Math.random() * 5000 + 3000);
         }
-        setTimeout(triggerLightningBolt, 3000);
+        setTimeout(triggerLightningBolt, 2000);
 
         function animateBg() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw glowing raindrops
-            ctx.lineWidth = 1.5;
+            // Draw massive electrified glowing raindrops
+            ctx.lineWidth = 3.5; // Thicker, more prominent water streaks
             drops.forEach(d => {
                 let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
-                grad.addColorStop(0, `rgba(59, 130, 246, ${d.opacity})`);
-                grad.addColorStop(1, `rgba(168, 85, 247, 0)`);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`); // Electrified white-hot core tip
+                grad.addColorStop(0.3, `rgba(59, 130, 246, ${d.opacity})`); // Neon electric blue body
+                grad.addColorStop(1, `rgba(168, 85, 247, 0)`); // Purple plasma tail fadeout
                 ctx.strokeStyle = grad;
 
                 ctx.beginPath();
@@ -1057,13 +1059,13 @@
                 }
             });
 
-            // Draw glowing lightning strikes
+            // Draw intense glowing lightning strikes
             if (lightningAlpha > 0) {
-                ctx.strokeStyle = `rgba(200, 220, 255, ${lightningAlpha})`;
-                ctx.fillStyle = `rgba(168, 85, 247, ${lightningAlpha * 0.08})`;
+                ctx.strokeStyle = `rgba(220, 240, 255, ${lightningAlpha})`;
+                ctx.fillStyle = `rgba(59, 130, 246, ${lightningAlpha * 0.12})`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 5;
                 ctx.beginPath();
                 if (lightningPath.length > 0) {
                     ctx.moveTo(lightningPath[0].x, lightningPath[0].y);
@@ -1072,7 +1074,7 @@
                     }
                 }
                 ctx.stroke();
-                lightningAlpha -= 0.04;
+                lightningAlpha -= 0.05;
             }
 
             requestAnimationFrame(animateBg);
