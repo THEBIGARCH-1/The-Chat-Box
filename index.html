@@ -734,7 +734,7 @@
             <h2>CYBERNET LOGIN</h2>
             <p id="auth-subtext">Enter your link credentials. Use exact password for multi-device sync!</p>
             <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Neo)" maxlength="15" autocomplete="off">
-            <input type="text" id="auth-username" placeholder="@Handle (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
+            <input type="text" id="auth-username" placeholder="@USER (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
             <input type="password" id="auth-pass" placeholder="Secure Password" maxlength="20">
             <button type="button" id="auth-btn" onclick="handleAuth()">Initialize Connection</button>
         </div>
@@ -742,7 +742,7 @@
 
     <div id="invite-popup-overlay">
         <div class="popup-card">
-            <h2>SIGNAL INCOMING</h2>
+            <h2>ROOM INVITE</h2>
             <p id="popup-invite-text">Your connection invited you to join a secure channel.</p>
             <div class="popup-actions">
                 <button type="button" onclick="acceptRoomInvite()">Accept Link</button>
@@ -772,7 +772,7 @@
                 <span>Linked Contacts</span>
             </div>
             <div class="add-friend-box">
-                <input type="text" id="friend-input" placeholder="@Handle" autocapitalize="none" autocomplete="off">
+                <input type="text" id="friend-input" placeholder="@USER" autocapitalize="none" autocomplete="off">
                 <button type="button" class="btn-secondary" onclick="sendFriendRequest()">Link</button>
             </div>
             <div id="friends-list"></div>
@@ -910,7 +910,7 @@
             }
 
             if (!userInput) {
-                alert("Please enter a Handle!");
+                alert("Please enter a @USER!");
                 return;
             }
 
@@ -1282,7 +1282,7 @@
                 }
             });
 
-            addSystemMsg(`Signal broadcasted to @${friendUsername}!`);
+            addSystemMsg(`Room invite sent to @${friendUsername}!`);
         }
 
         function acceptRoomInvite() {
@@ -1371,7 +1371,7 @@
                 }
             });
 
-            addSystemMsg(`Signal sent to @${friendHandle}!`);
+            addSystemMsg(`Link request sent to @${friendHandle}!`);
             input.value = "";
         }
 
@@ -1430,7 +1430,7 @@
                         </div>
                     </div>
                     <div class="friend-actions">
-                        <button type="button" class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Signal</button>
+                        <button type="button" class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Invite</button>
                         <span class="remove-friend" onclick="removeFriend(${idx})" title="Terminate Link">&times;</span>
                     </div>
                 `;
