@@ -111,7 +111,6 @@
             position: relative;
         }
 
-        /* Mobile Close Button */
         .sidebar-close-btn {
             display: none;
             position: absolute;
@@ -291,7 +290,6 @@
             width: 100%;
         }
 
-        /* Fixed Scrollable Top Room Tabs Bar */
         #tabs-bar {
             background: rgba(8, 9, 13, 0.8);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -671,11 +669,11 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Account Portal</h2>
-            <p id="auth-subtext">Enter your details to create an account or sign in.</p>
+            <p id="auth-subtext">Enter your details. Enter exact password to access on another device!</p>
             <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Alex)" maxlength="15" autocomplete="off">
             <input type="text" id="auth-username" placeholder="@Username (e.g. alex_99)" maxlength="15" autocapitalize="none" autocomplete="off">
-            <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
-            <button type="button" onclick="handleAuth()">Continue</button>
+            <input type="password" id="auth-pass" placeholder="Password (Required for multi-device)" maxlength="20">
+            <button type="button" id="auth-btn" onclick="handleAuth()">Continue</button>
         </div>
     </div>
 
@@ -764,6 +762,7 @@
 
     <script>
         let pubnub = null;
+        let authPubNub = null;
         let myName = "";        
         let myUsername = "";    
         let userChannel = "";
@@ -780,8 +779,15 @@
         let currentTab = 'requests';
         let isUserLooking = true;
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
+        const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
 
         window.onload = function() {
+            authPubNub = new PubNub({
+                publishKey: 'demo',
+                subscribeKey: 'demo',
+                userId: myId
+            });
+
             const activeUserHandle = localStorage.getItem("chat_current_active_handle");
             if (activeUserHandle) {
                 let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
@@ -833,6 +839,7 @@
             const dispInput = document.getElementById('auth-displayname').value.trim();
             const userInput = document.getElementById('auth-username').value.trim().toLowerCase().replace('@', '');
             const passInput = document.getElementById('auth-pass').value.trim();
+            const btn = document.getElementById('auth-btn');
 
             if (!dispInput) {
                 alert("Please enter a Display Name!");
@@ -844,43 +851,67 @@
                 return;
             }
 
-            let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
-
-            // CHECK: Block registration if the @username is already taken by ANY account
-            if (globalAccounts[userInput]) {
-                const existing = globalAccounts[userInput];
-                // Check if password matches (for existing user login)
-                if (existing.pass && existing.pass !== passInput) {
-                    alert("Incorrect password for this username!");
-                    return;
-                }
-                
-                // If it's a completely new person trying to claim this username:
-                if (!existing.pass || (passInput && existing.pass === passInput)) {
-                    // Update current login session
-                    myUsername = existing.username;
-                    myName = dispInput; // Allows updating display name
-                    globalAccounts[userInput].displayName = myName;
-                    localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
-                    localStorage.setItem("chat_current_active_handle", myUsername);
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    initApp();
-                    return;
-                }
-
-                alert("This username has already been taken!");
+            if (!passInput) {
+                alert("Please set a password to secure your account!");
                 return;
             }
 
-            // Save brand new account
-            globalAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
-            localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
+            btn.disabled = true;
+            btn.innerText = "Verifying Credentials...";
 
-            myUsername = userInput;
-            myName = dispInput;
-            localStorage.setItem("chat_current_active_handle", myUsername);
-            document.getElementById('auth-overlay').style.display = 'none';
-            initApp();
+            // Fetch global registry records from PubNub channel
+            authPubNub.fetchMessages({
+                channels: [GLOBAL_REGISTRY_CHANNEL],
+                count: 100
+            }, function(status, response) {
+                btn.disabled = false;
+                btn.innerText = "Continue";
+
+                let existingAccount = null;
+
+                if (!status.error && response && response.channels[GLOBAL_REGISTRY_CHANNEL]) {
+                    response.channels[GLOBAL_REGISTRY_CHANNEL].forEach(msgObj => {
+                        if (msgObj.message && msgObj.message.username === userInput) {
+                            existingAccount = msgObj.message;
+                        }
+                    });
+                }
+
+                let localAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
+
+                // Account exists globally
+                if (existingAccount) {
+                    if (existingAccount.pass === passInput) {
+                        // Password matches cross-device! Grant entry.
+                        myUsername = userInput;
+                        myName = dispInput;
+                        localAccounts[userInput] = { displayName: myName, username: myUsername, pass: passInput };
+                        localStorage.setItem("chat_registered_accounts", JSON.stringify(localAccounts));
+                        localStorage.setItem("chat_current_active_handle", myUsername);
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        initApp();
+                        return;
+                    } else {
+                        alert("Incorrect password for @ " + userInput + "! Account is locked on other devices.");
+                        return;
+                    }
+                }
+
+                // New account creation
+                authPubNub.publish({
+                    channel: GLOBAL_REGISTRY_CHANNEL,
+                    message: { username: userInput, displayName: dispInput, pass: passInput }
+                });
+
+                localAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
+                localStorage.setItem("chat_registered_accounts", JSON.stringify(localAccounts));
+
+                myUsername = userInput;
+                myName = dispInput;
+                localStorage.setItem("chat_current_active_handle", myUsername);
+                document.getElementById('auth-overlay').style.display = 'none';
+                initApp();
+            });
         }
 
         function switchAccount() {
