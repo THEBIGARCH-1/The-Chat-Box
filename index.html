@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Cloud Room Chat</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <title>Instant Live Room Chat</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
         #chat-container { width: 90vw; max-width: 800px; height: 85vh; background: #1a1d2e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #3b4252; }
         #chat-header { padding: 16px 20px; background: #141625; border-bottom: 1px solid #2e3440; display: flex; justify-content: space-between; align-items: center; }
-        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #a3be8c; color: #1a1d2e; font-weight: bold; }
+        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #bf616a; color: #fff; font-weight: bold; }
+        .status.online { background: #a3be8c; color: #1a1d2e; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg { background: #2e3440; padding: 10px 14px; border-radius: 8px; max-width: 75%; width: fit-content; word-break: break-word; }
         .msg.self { align-self: flex-end; background: #5e81ac; }
@@ -28,9 +28,9 @@
     <div id="overlay">
         <div class="modal">
             <h2>Enter Live Room</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to talk anywhere!</p>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
-            <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
+            <input type="text" id="roomcode" placeholder="Room Code (e.g. SECRET99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
         </div>
     </div>
@@ -38,7 +38,7 @@
     <div id="chat-container">
         <div id="chat-header">
             <span id="room-display" style="font-weight: bold;">Room: ----</span>
-            <span id="status-badge" class="status">Connected to Cloud</span>
+            <span id="status-badge" class="status">Connecting...</span>
         </div>
         <div id="messages"></div>
         <div id="input-area">
@@ -48,56 +48,76 @@
     </div>
 
     <script>
-        // PASTE YOUR FIREBASE REALTIME DATABASE URL HERE:
-        const FIREBASE_DB_URL = "YOUR_FIREBASE_DATABASE_URL_HERE";
-
-        let db = null;
+        let client = null;
         let myName = "User";
-        let roomCode = "";
+        let currentTopic = "";
+        const clientID = 'user_' + Math.random().toString(16).substr(2, 8);
 
         function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
-            roomCode = document.getElementById('roomcode').value.trim().toUpperCase();
+            const rawCode = document.getElementById('roomcode').value.trim().toUpperCase();
 
-            if (!roomCode) {
+            if (!rawCode) {
                 alert("Please enter a room code!");
                 return;
             }
 
-            if (FIREBASE_DB_URL === "YOUR_FIREBASE_DATABASE_URL_HERE") {
-                alert("Please add your Firebase Database URL inside the code!");
-                return;
-            }
-
-            // Initialize Firebase
-            firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
-            db = firebase.database();
-
-            document.getElementById('room-display').innerText = "Room: " + roomCode;
+            currentTopic = "public_chat_room_code_" + rawCode;
+            document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg(`Joined room [${roomCode}]. Tell your friends to enter code: ${roomCode}`);
+            addSystemMsg(`Connecting to Room [${rawCode}]...`);
 
-            // Listen for new incoming messages in this specific Room Code
-            db.ref('rooms/' + roomCode).on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                addMsg(msg.sender, msg.text, msg.sender === myName);
+            // Connect to free public cloud broker (Secure WebSockets)
+            client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt', { clientId: clientID });
+
+            client.on('connect', () => {
+                setOnline();
+                client.subscribe(currentTopic, (err) => {
+                    if (!err) {
+                        addSystemMsg(`Connected! Share room code [${rawCode}] with friends.`);
+                    }
+                });
+            });
+
+            client.on('message', (topic, payload) => {
+                try {
+                    const data = JSON.parse(payload.toString());
+                    if (data.id !== clientID) {
+                        addMsg(data.sender, data.text, false);
+                    }
+                } catch (e) {
+                    console.error("Error reading message");
+                }
+            });
+
+            client.on('error', () => {
+                addSystemMsg("Server connection error. Retrying...");
             });
         }
 
         function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text || !db) return;
+            if (!text || !client) return;
 
-            // Push message directly to cloud database
-            db.ref('rooms/' + roomCode).push({
+            const messageObj = {
+                id: clientID,
                 sender: myName,
-                text: text,
-                timestamp: Date.now()
-            });
+                text: text
+            };
 
+            // Broadcast message to everyone in the room
+            client.publish(currentTopic, JSON.stringify(messageObj));
+
+            addMsg(myName, text, true);
             input.value = "";
+        }
+
+        function setOnline() {
+            const badge = document.getElementById('status-badge');
+            badge.innerText = "Connected Live!";
+            badge.classList.add('online');
         }
 
         function addMsg(sender, text, isSelf) {
