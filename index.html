@@ -892,7 +892,7 @@
                         initApp();
                         return;
                     } else {
-                        alert("Incorrect password for @ " + userInput + "! Account is locked on other devices.");
+                        alert("Incorrect password for @" + userInput + "! Account is locked on other devices.");
                         return;
                     }
                 }
@@ -1031,8 +1031,13 @@
 
             pubnub.subscribe({ channels: [userChannel] });
 
-            const initialRoom = inviteRoom || "GLOBAL1";
-            connectToRoom(initialRoom);
+            // Only connect to a room if invited directly via URL parameter
+            if (inviteRoom) {
+                connectToRoom(inviteRoom);
+            } else {
+                document.getElementById('room-display').innerText = "Not Connected";
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#a1a1aa; font-size:12px; margin-top:20px;">Enter a Room Code or click + to join/create a room!</div>`;
+            }
         }
 
         function connectToRoom(rawCode) {
