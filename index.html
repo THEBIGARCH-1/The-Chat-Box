@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Instant Live Room Chat</title>
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
     <style>
@@ -13,6 +13,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -22,6 +23,7 @@
                 radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
             color: #f3f4f6;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -32,6 +34,7 @@
             width: 95vw;
             max-width: 1100px;
             height: 88vh;
+            height: 88dvh;
             background: rgba(18, 20, 29, 0.75);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -43,6 +46,46 @@
             position: relative;
         }
 
+        /* Account Auth Overlay */
+        #auth-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(8, 9, 13, 0.95);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 16px;
+        }
+
+        .auth-card {
+            background: rgba(22, 25, 38, 0.95);
+            padding: 24px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .auth-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-card p {
+            font-size: 12px;
+            color: #a1a1aa;
+        }
+
         /* Sidebar */
         #sidebar {
             width: 280px;
@@ -52,21 +95,33 @@
             flex-direction: column;
             padding: 20px;
             gap: 16px;
-            transition: all 0.3s ease;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
         }
 
         .user-profile-box {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            justify-content: space-between;
+            align-items: center;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
+        .user-profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
         .user-profile-box label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #a1a1aa;
+        }
+
+        .user-profile-box span {
+            font-size: 14px;
+            font-weight: 700;
+            color: #a5b4fc;
         }
 
         .room-actions {
@@ -91,15 +146,9 @@
             gap: 6px;
         }
 
-        .add-friend-box input, .user-profile-box input {
-            padding: 8px 12px;
+        .add-friend-box input, .auth-card input {
+            padding: 10px 14px;
             font-size: 12px;
-        }
-
-        .add-friend-box button {
-            padding: 8px 12px;
-            font-size: 12px;
-            white-space: nowrap;
         }
 
         #friends-list {
@@ -118,11 +167,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .friend-card:hover {
-            background: rgba(255, 255, 255, 0.08);
         }
 
         .friend-info {
@@ -137,7 +181,6 @@
             border-radius: 50%;
             background: #6b7280;
             box-shadow: 0 0 6px rgba(107, 114, 128, 0.5);
-            transition: all 0.3s ease;
         }
 
         .status-dot.online {
@@ -166,6 +209,7 @@
             cursor: pointer;
             font-size: 14px;
             opacity: 0.6;
+            padding: 4px;
         }
 
         .remove-friend:hover { opacity: 1; }
@@ -176,40 +220,43 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            width: 100%;
         }
 
         #chat-header {
-            padding: 18px 24px;
+            padding: 14px 18px;
             background: rgba(12, 14, 22, 0.6);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
         }
 
         #room-display {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
-            letter-spacing: 0.5px;
             background: linear-gradient(135deg, #a855f7, #6366f1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
         }
 
-        /* Inbox Mail Button with Green Badge */
-        .inbox-btn {
+        .inbox-btn, .menu-toggle-btn {
             position: relative;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             color: #a1a1aa;
             cursor: pointer;
             display: flex;
@@ -217,9 +264,8 @@
             justify-content: center;
         }
 
-        .inbox-btn:hover {
-            background: rgba(99, 102, 241, 0.2);
-            color: #a5b4fc;
+        .menu-toggle-btn {
+            display: none;
         }
 
         .green-badge {
@@ -235,96 +281,77 @@
             display: none;
         }
 
-        .green-badge.active {
-            display: block;
-        }
+        .green-badge.active { display: block; }
 
-        /* Device Mode Icons */
         .device-icons {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             background: rgba(255, 255, 255, 0.04);
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .device-icon {
-            font-size: 13px;
+            font-size: 12px;
             opacity: 0.4;
-            transition: all 0.2s ease;
         }
 
         .device-icon.active {
             opacity: 1;
             color: #8b5cf6;
-            filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.6));
         }
 
         .header-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
             font-size: 11px;
             color: #a1a1aa;
             cursor: pointer;
-        }
-
-        .header-btn:hover {
-            background: rgba(99, 102, 241, 0.2);
-            color: #a5b4fc;
-            border-color: rgba(99, 102, 241, 0.3);
+            white-space: nowrap;
         }
 
         .status {
-            font-size: 11px;
-            padding: 6px 14px;
+            font-size: 10px;
+            padding: 4px 10px;
             border-radius: 20px;
             background: rgba(239, 68, 68, 0.15);
             color: #fca5a5;
             border: 1px solid rgba(239, 68, 68, 0.3);
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .status.online {
             background: rgba(34, 197, 94, 0.15);
             color: #86efac;
             border-color: rgba(34, 197, 94, 0.3);
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
         }
 
         #messages {
             flex: 1;
-            padding: 24px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-        }
-
-        #messages::-webkit-scrollbar { width: 6px; }
-        #messages::-webkit-scrollbar-track { background: transparent; }
-        #messages::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            gap: 10px;
         }
 
         .msg {
             background: rgba(30, 34, 48, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 12px 16px;
-            border-radius: 16px;
+            padding: 10px 14px;
+            border-radius: 14px;
             border-top-left-radius: 4px;
-            max-width: 70%;
+            max-width: 80%;
             width: fit-content;
             word-break: break-word;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.4;
             color: #e5e7eb;
-            animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .msg.self {
@@ -332,15 +359,14 @@
             background: linear-gradient(135deg, #6366f1, #4f46e5);
             border: none;
             color: #ffffff;
-            border-radius: 16px;
+            border-radius: 14px;
             border-top-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
 
         .msg .sender {
-            font-size: 11px;
+            font-size: 10px;
             color: #a1a1aa;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             display: block;
             font-weight: 600;
         }
@@ -351,149 +377,163 @@
         }
 
         #input-area {
-            padding: 18px 24px;
+            padding: 12px 16px;
             background: rgba(12, 14, 22, 0.6);
             display: flex;
-            gap: 12px;
+            gap: 8px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="password"] {
             flex: 1;
-            padding: 14px 18px;
-            border-radius: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(22, 25, 38, 0.8);
             color: #fff;
             outline: none;
-            font-size: 14px;
-        }
-
-        input[type="text"]:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-            background: rgba(26, 30, 46, 0.9);
+            font-size: 13px;
         }
 
         button {
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             color: #ffffff;
-            font-size: 13px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-        }
-
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+            font-size: 12px;
+            white-space: nowrap;
         }
 
         .btn-secondary {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: none;
         }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: none;
-        }
-
-        /* Inbox Popup Modal */
+        /* 2-Section Inbox Modal */
         #inbox-modal {
             display: none;
             position: absolute;
-            top: 60px;
-            right: 20px;
-            width: 320px;
-            background: rgba(22, 25, 38, 0.95);
+            top: 55px;
+            right: 12px;
+            width: calc(100% - 24px);
+            max-width: 320px;
+            background: rgba(22, 25, 38, 0.98);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            padding: 16px;
+            padding: 14px;
             z-index: 100;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
-        #inbox-modal h3 {
-            font-size: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 8px;
+        .inbox-tabs {
             display: flex;
-            justify-content: space-between;
+            gap: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+        }
+
+        .inbox-tab {
+            font-size: 11px;
+            font-weight: 600;
+            color: #a1a1aa;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+
+        .inbox-tab.active {
+            color: #ffffff;
+            background: rgba(99, 102, 241, 0.3);
         }
 
         .req-card {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
-            padding: 10px;
+            padding: 8px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .req-actions {
-            display: flex;
-            gap: 6px;
-        }
+        .req-actions { display: flex; gap: 4px; }
+        .req-actions button { padding: 4px 6px; font-size: 10px; border-radius: 6px; }
+        .btn-accept { background: #22c55e; }
+        .btn-decline { background: #ef4444; }
 
-        .req-actions button {
-            padding: 4px 8px;
-            font-size: 11px;
-            border-radius: 6px;
-        }
-
-        .btn-accept {
-            background: #22c55e;
-        }
-
-        .btn-decline {
-            background: #ef4444;
-        }
-
+        /* Mobile Layout Adjustments */
         @media (max-width: 768px) {
-            #app-container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                flex-direction: column;
+            body { padding: 0; }
+            
+            #app-container { 
+                width: 100vw; 
+                height: 100vh; 
+                height: 100dvh; 
+                border-radius: 0; 
+                border: none;
+                flex-direction: column; 
             }
 
-            #sidebar {
+            .menu-toggle-btn {
+                display: flex;
+            }
+
+            #sidebar { 
+                position: absolute;
+                top: 50px;
+                left: 0;
                 width: 100%;
-                max-height: 180px;
-                padding: 12px;
-                border-right: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                height: calc(100% - 50px);
+                z-index: 90;
+                background: rgba(12, 14, 22, 0.98);
+                backdrop-filter: blur(25px);
+                transform: translateX(-100%);
             }
 
-            #messages { padding: 12px; }
-            .msg { max-width: 85%; font-size: 13px; }
-            #input-area { padding: 12px; }
-            #chat-header { padding: 12px 16px; }
-        }
+            #sidebar.open {
+                transform: translateX(0);
+            }
 
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.95) translateY(8px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            .status {
+                display: none;
+            }
+
+            .device-icons {
+                display: flex;
+            }
+
+            #chat-header {
+                height: 50px;
+            }
         }
     </style>
 </head>
 <body>
 
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Account Portal</h2>
+            <p id="auth-subtext">Enter a unique username to login or create an account!</p>
+            <input type="text" id="auth-username" placeholder="Username" maxlength="15">
+            <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
+            <button onclick="handleAuth()">Continue</button>
+        </div>
+    </div>
+
     <div id="app-container">
         <div id="sidebar">
             <div class="user-profile-box">
-                <label for="username">Your Display Name</label>
-                <input type="text" id="username" placeholder="Your Name" maxlength="15" onchange="saveUsername()">
+                <div class="user-profile-info">
+                    <label>Logged in as</label>
+                    <span id="display-user">--</span>
+                </div>
+                <button class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch</button>
             </div>
 
             <div class="room-actions">
@@ -512,23 +552,27 @@
 
         <div id="chat-container">
             <div id="chat-header">
-                <span id="room-display" style="font-weight: bold;">Room: Not Connected</span>
+                <button class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">👥</button>
+                <span id="room-display">Room: Not Connected</span>
+                
                 <div class="header-actions">
                     <button class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
                         ✉️
                         <span id="mail-badge" class="green-badge"></span>
                     </button>
 
-                    <div class="device-icons" title="Device Mode Indicator">
+                    <div class="device-icons">
                         <span id="icon-desktop" class="device-icon" title="Computer View">💻</span>
-                        <span id="icon-mobile" class="device-icon" title="Mobile Phone View">📱</span>
+                        <span id="icon-mobile" class="device-icon" title="Mobile View">📱</span>
                     </div>
 
                     <button class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
                     <span id="status-badge" class="status">Disconnected</span>
                 </div>
             </div>
+
             <div id="messages"></div>
+
             <div id="input-area">
                 <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
                 <button onclick="send()">Send</button>
@@ -536,36 +580,89 @@
         </div>
 
         <div id="inbox-modal">
-            <h3>Inbox Requests <span style="cursor:pointer;" onclick="toggleInbox()">&times;</span></h3>
-            <div id="inbox-items" style="display:flex; flex-direction:column; gap:8px;">
-                <span style="font-size:12px; color:#a1a1aa;">No new notifications</span>
+            <div style="display:flex; justify-space-between; align-items:center;">
+                <h3 style="font-size:13px;">Inbox</h3>
+                <span style="cursor:pointer; font-weight:bold;" onclick="toggleInbox()">&times;</span>
             </div>
+            
+            <div class="inbox-tabs">
+                <div id="tab-requests" class="inbox-tab active" onclick="switchInboxTab('requests')">Friend Requests</div>
+                <div id="tab-system" class="inbox-tab" onclick="switchInboxTab('system')">System Messages</div>
+            </div>
+
+            <div id="inbox-content" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
     </div>
 
     <script>
         let pubnub = null;
-        let myName = "User";
+        let myName = "";
         let channelName = "";
         let currentRoomCode = "";
         let friends = [];
         let incomingRequests = [];
+        let systemMessages = [];
         let activeUsers = new Set();
+        let currentTab = 'requests';
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         window.onload = function() {
             detectDeviceMode();
             window.addEventListener('resize', detectDeviceMode);
 
+            // Check if account exists
+            const activeUser = localStorage.getItem("chat_current_active_user");
+            if (activeUser) {
+                myName = activeUser;
+                document.getElementById('auth-overlay').style.display = 'none';
+                initApp();
+            }
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function handleAuth() {
+            const userInput = document.getElementById('auth-username').value.trim();
+            const passInput = document.getElementById('auth-pass').value.trim();
+
+            if (!userInput) {
+                alert("Please enter a username!");
+                return;
+            }
+
+            let accounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
+
+            if (accounts[userInput.toLowerCase()]) {
+                if (accounts[userInput.toLowerCase()].pass && accounts[userInput.toLowerCase()].pass !== passInput) {
+                    alert("Name is taken! Incorrect password for " + userInput);
+                    return;
+                }
+            } else {
+                accounts[userInput.toLowerCase()] = { name: userInput, pass: passInput };
+                localStorage.setItem("chat_registered_accounts", JSON.stringify(accounts));
+            }
+
+            myName = userInput;
+            localStorage.setItem("chat_current_active_user", myName);
+            document.getElementById('auth-overlay').style.display = 'none';
+            initApp();
+        }
+
+        function switchAccount() {
+            localStorage.removeItem("chat_current_active_user");
+            location.reload();
+        }
+
+        function initApp() {
+            document.getElementById('display-user').innerText = myName;
+
             const urlParams = new URLSearchParams(window.location.search);
             const inviteRoom = urlParams.get('room');
-
-            const savedName = localStorage.getItem("chat_username") || "User" + Math.floor(Math.random() * 899 + 100);
             const savedCode = inviteRoom || localStorage.getItem("chat_roomcode");
-            const savedFriends = localStorage.getItem("chat_friends");
-
-            document.getElementById('username').value = savedName;
-            myName = savedName;
+            const savedFriends = localStorage.getItem("chat_friends_" + myName.toLowerCase());
 
             if (savedFriends) {
                 try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
@@ -575,22 +672,14 @@
             if (savedCode) {
                 connectToRoom(savedCode);
             } else {
-                addSystemMsg("Welcome! Click 'Create / Join Room' on the sidebar or enter a friend's room code to start chatting.");
+                addSystemMsg("Welcome, " + myName + "! Tap 👥 to open your Friends & Rooms menu.");
             }
-        };
+        }
 
         function detectDeviceMode() {
             const isMobile = window.innerWidth <= 768;
             document.getElementById('icon-mobile').classList.toggle('active', isMobile);
             document.getElementById('icon-desktop').classList.toggle('active', !isMobile);
-        }
-
-        function saveUsername() {
-            const val = document.getElementById('username').value.trim();
-            if (val) {
-                myName = val;
-                localStorage.setItem("chat_username", myName);
-            }
         }
 
         function toggleInbox() {
@@ -599,6 +688,49 @@
             modal.style.display = isShowing ? 'none' : 'flex';
             if (!isShowing) {
                 document.getElementById('mail-badge').classList.remove('active');
+                renderInbox();
+            }
+        }
+
+        function switchInboxTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-requests').classList.toggle('active', tab === 'requests');
+            document.getElementById('tab-system').classList.toggle('active', tab === 'system');
+            renderInbox();
+        }
+
+        function renderInbox() {
+            const container = document.getElementById('inbox-content');
+            container.innerHTML = "";
+
+            if (currentTab === 'requests') {
+                if (incomingRequests.length === 0) {
+                    container.innerHTML = `<span style="font-size:11px; color:#a1a1aa;">No pending friend requests</span>`;
+                    return;
+                }
+                incomingRequests.forEach(reqName => {
+                    const card = document.createElement('div');
+                    card.className = "req-card";
+                    card.innerHTML = `
+                        <span style="font-size:11px; font-weight:600;">${escape(reqName)}</span>
+                        <div class="req-actions">
+                            <button class="btn-accept" onclick="acceptRequest('${escape(reqName)}')">Accept</button>
+                            <button class="btn-decline" onclick="declineRequest('${escape(reqName)}')">Decline</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                if (systemMessages.length === 0) {
+                    container.innerHTML = `<span style="font-size:11px; color:#a1a1aa;">No system messages</span>`;
+                    return;
+                }
+                systemMessages.forEach(msg => {
+                    const card = document.createElement('div');
+                    card.className = "req-card";
+                    card.innerHTML = `<span style="font-size:11px;">${escape(msg)}</span>`;
+                    container.appendChild(card);
+                });
             }
         }
 
@@ -612,7 +744,6 @@
                 return;
             }
 
-            // Send Real Friend Request over current channel
             pubnub.publish({
                 channel: channelName,
                 message: {
@@ -624,20 +755,22 @@
 
             addSystemMsg(`Sent a friend request to ${friendName}!`);
             input.value = "";
+            
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
         }
 
         function acceptRequest(fromUser) {
             if (!friends.includes(fromUser)) {
                 friends.push(fromUser);
-                localStorage.setItem("chat_friends", JSON.stringify(friends));
+                localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
                 renderFriends();
             }
 
-            // Remove from inbox
             incomingRequests = incomingRequests.filter(u => u !== fromUser);
             renderInbox();
 
-            // Broadcast acceptance
             pubnub.publish({
                 channel: channelName,
                 message: {
@@ -655,26 +788,35 @@
             renderInbox();
         }
 
-        function renderInbox() {
-            const container = document.getElementById('inbox-items');
-            container.innerHTML = "";
-
-            if (incomingRequests.length === 0) {
-                container.innerHTML = `<span style="font-size:12px; color:#a1a1aa;">No new notifications</span>`;
-                return;
+        function removeFriend(index) {
+            const friendName = friends[index];
+            const confirmed = confirm(`Are you sure you want to delete ${friendName} from your friends list?`);
+            if (confirmed) {
+                friends.splice(index, 1);
+                localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
+                renderFriends();
             }
+        }
 
-            incomingRequests.forEach(reqName => {
+        function renderFriends() {
+            const list = document.getElementById('friends-list');
+            list.innerHTML = "";
+
+            friends.forEach((friend, idx) => {
+                const isOnline = activeUsers.has(friend.toLowerCase());
                 const card = document.createElement('div');
-                card.className = "req-card";
+                card.className = "friend-card";
                 card.innerHTML = `
-                    <span style="font-size:12px; font-weight:600;">${escape(reqName)}</span>
-                    <div class="req-actions">
-                        <button class="btn-accept" onclick="acceptRequest('${escape(reqName)}')">Accept</button>
-                        <button class="btn-decline" onclick="declineRequest('${escape(reqName)}')">Decline</button>
+                    <div class="friend-info">
+                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
+                        <div class="friend-details">
+                            <span class="friend-name">${escape(friend)}</span>
+                            <span class="friend-status-text">${isOnline ? 'Online in Room' : 'Offline'}</span>
+                        </div>
                     </div>
+                    <span class="remove-friend" onclick="removeFriend(${idx})" title="Delete Friend">&times;</span>
                 `;
-                container.appendChild(card);
+                list.appendChild(card);
             });
         }
 
@@ -682,11 +824,13 @@
             const code = prompt("Enter a Room Code (e.g. CHAT99 or create a new code):");
             if (code && code.trim()) {
                 connectToRoom(code.trim().toUpperCase());
+                if (window.innerWidth <= 768) {
+                    toggleSidebar();
+                }
             }
         }
 
         function connectToRoom(rawCode) {
-            saveUsername();
             currentRoomCode = rawCode;
             localStorage.setItem("chat_roomcode", currentRoomCode);
 
@@ -720,24 +864,23 @@
                 message: function(event) {
                     const data = event.message;
 
-                    // Handle Friend Request Message
                     if (data.type === 'friend_request' && data.to.toLowerCase() === myName.toLowerCase()) {
                         if (!incomingRequests.includes(data.from)) {
                             incomingRequests.push(data.from);
                             document.getElementById('mail-badge').classList.add('active');
-                            renderInbox();
-                            addSystemMsg(`🔔 You received a friend request from ${data.from}! Check your Mail Inbox.`);
+                            addSystemMsg(`🔔 Friend request from ${data.from}! Check Inbox.`);
                         }
                         return;
                     }
 
-                    // Handle Acceptance Notification
                     if (data.type === 'friend_accept' && data.to.toLowerCase() === myName.toLowerCase()) {
                         if (!friends.includes(data.from)) {
                             friends.push(data.from);
-                            localStorage.setItem("chat_friends", JSON.stringify(friends));
+                            localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
                             renderFriends();
                         }
+                        systemMessages.push(`🎉 ${data.from} accepted your friend request!`);
+                        document.getElementById('mail-badge').classList.add('active');
                         addSystemMsg(`🎉 ${data.from} accepted your friend request!`);
                         return;
                     }
@@ -775,34 +918,6 @@
             });
         }
 
-        function removeFriend(index) {
-            friends.splice(index, 1);
-            localStorage.setItem("chat_friends", JSON.stringify(friends));
-            renderFriends();
-        }
-
-        function renderFriends() {
-            const list = document.getElementById('friends-list');
-            list.innerHTML = "";
-
-            friends.forEach((friend, idx) => {
-                const isOnline = activeUsers.has(friend.toLowerCase());
-                const card = document.createElement('div');
-                card.className = "friend-card";
-                card.innerHTML = `
-                    <div class="friend-info">
-                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
-                        <div class="friend-details">
-                            <span class="friend-name">${escape(friend)}</span>
-                            <span class="friend-status-text">${isOnline ? 'Online in Room' : 'Offline'}</span>
-                        </div>
-                    </div>
-                    <span class="remove-friend" onclick="removeFriend(${idx})">&times;</span>
-                `;
-                list.appendChild(card);
-            });
-        }
-
         function inviteFriend() {
             if (!currentRoomCode) {
                 alert("Please join or create a room first!");
@@ -812,7 +927,7 @@
             const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
 
             navigator.clipboard.writeText(inviteUrl).then(() => {
-                addSystemMsg("🔗 Room invite link copied to clipboard! Share it with your friends.");
+                addSystemMsg("🔗 Room invite link copied to clipboard!");
             }).catch(() => {
                 addSystemMsg(`Share this code with friends: ${currentRoomCode}`);
             });
@@ -861,7 +976,7 @@
             const box = document.getElementById('messages');
             const div = document.createElement('div');
             div.style.textAlign = 'center';
-            div.style.fontSize = '12px';
+            div.style.fontSize = '11px';
             div.style.color = '#a1a1aa';
             div.style.margin = '4px 0';
             div.innerText = text;
