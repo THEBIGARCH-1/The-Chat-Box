@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Room Chat</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Instant Live Room Chat</title>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -28,7 +28,7 @@
     <div id="overlay">
         <div class="modal">
             <h2>Enter Live Room</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to chat!</p>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
             <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
@@ -38,7 +38,7 @@
     <div id="chat-container">
         <div id="chat-header">
             <span id="room-display" style="font-weight: bold;">Room: ----</span>
-            <span id="status-badge" class="status">Disconnected</span>
+            <span id="status-badge" class="status">Connecting...</span>
         </div>
         <div id="messages"></div>
         <div id="input-area">
@@ -48,21 +48,10 @@
     </div>
 
     <script>
-        let peer = null;
-        let conn = null;
+        let pubnub = null;
         let myName = "User";
-
-        const peerConfig = {
-            debug: 1,
-            config: {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' }
-                ]
-            }
-        };
+        let channelName = "";
+        const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
@@ -73,86 +62,63 @@
                 return;
             }
 
-            const targetID = "thebigarch_room_" + rawCode;
+            channelName = "room_code_" + rawCode;
             document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg("Searching for room...");
+            addSystemMsg("Connecting to PubNub network...");
 
-            // First: attempt to connect as Host with the Room ID
-            peer = new Peer(targetID, peerConfig);
-
-            peer.on('open', () => {
-                addSystemMsg(`Created Room [${rawCode}]. Waiting for your friend to enter code...`);
+            // Initialize PubNub client using public demo credentials
+            pubnub = new PubNub({
+                publishKey: 'demo',
+                subscribeKey: 'demo',
+                userId: myId
             });
 
-            // Second: If ID exists, connect as a Client to the Host
-            peer.on('error', (err) => {
-                if (err.type === 'unavailable-id') {
-                    peer.destroy();
-                    // Connect as client with a unique ID
-                    peer = new Peer(peerConfig);
-                    peer.on('open', () => {
-                        conn = peer.connect(targetID, { reliable: true });
-                        setupClientEvents();
-                    });
-                } else {
-                    addSystemMsg("Connection notice: " + err.type);
+            // Set up event listeners for network connection and incoming messages
+            pubnub.addListener({
+                status: function(statusEvent) {
+                    if (statusEvent.category === "PNConnectedCategory") {
+                        setOnline();
+                        addSystemMsg(`Connected! Tell your friends to enter code [${rawCode}] to join.`);
+                    }
+                },
+                message: function(event) {
+                    const data = event.message;
+                    if (data.senderId !== myId) {
+                        addMsg(data.sender, data.text, false);
+                    }
                 }
             });
 
-            // Handle incoming client connection if hosting
-            peer.on('connection', (c) => {
-                conn = c;
-                setupHostEvents();
+            // Subscribe to the channel designated by the room code
+            pubnub.subscribe({
+                channels: [channelName]
             });
-        }
-
-        function setupClientEvents() {
-            conn.on('open', () => {
-                setOnline();
-                addSystemMsg("Connected to room!");
-            });
-            conn.on('data', data => addMsg(data.sender, data.text, false));
-            conn.on('close', () => setOffline());
-        }
-
-        function setupHostEvents() {
-            conn.on('open', () => {
-                setOnline();
-                addSystemMsg("Partner joined the room!");
-            });
-            conn.on('data', data => addMsg(data.sender, data.text, false));
-            conn.on('close', () => setOffline());
         }
 
         function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || !pubnub) return;
 
             addMsg(myName, text, true);
-
-            if (conn && conn.open) {
-                conn.send({ sender: myName, text: text });
-            } else {
-                addSystemMsg("Waiting for partner to connect...");
-            }
-
             input.value = "";
+
+            pubnub.publish({
+                channel: channelName,
+                message: {
+                    senderId: myId,
+                    sender: myName,
+                    text: text
+                }
+            });
         }
 
         function setOnline() {
             const badge = document.getElementById('status-badge');
             badge.innerText = "Connected Live!";
             badge.classList.add('online');
-        }
-
-        function setOffline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "Disconnected";
-            badge.classList.remove('online');
-            addSystemMsg("Connection closed.");
         }
 
         function addMsg(sender, text, isSelf) {
