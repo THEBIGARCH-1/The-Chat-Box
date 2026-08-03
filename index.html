@@ -17,11 +17,10 @@
         }
 
         body {
-            background: #04020a;
+            background: #020108;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.22) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.22) 0%, transparent 40%),
-                linear-gradient(rgba(18, 16, 30, 0.4) 1px, transparent 1px);
+                radial-gradient(circle at 50% 50%, rgba(20, 10, 45, 0.8) 0%, rgba(2, 1, 8, 0.95) 100%),
+                linear-gradient(rgba(18, 16, 30, 0.2) 1px, transparent 1px);
             background-size: 100% 4px; /* Retro CRT Scanline Effect */
             color: #f3f4f6;
             height: 100vh;
@@ -37,14 +36,15 @@
             max-width: 1150px;
             height: 88vh;
             height: 88dvh;
-            background: rgba(10, 8, 20, 0.85);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 16px;
+            background: rgba(12, 8, 24, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
             display: flex;
             overflow: hidden;
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            box-shadow: 0 0 40px rgba(168, 85, 247, 0.15), inset 0 0 20px rgba(59, 130, 246, 0.1);
+            /* Cyberpunk retro neon borders (Pink/Magenta to Blue/Cyan gradient border glow) */
+            border: 2px solid #ff2a85;
+            box-shadow: 0 0 25px #ff2a85, inset 0 0 25px rgba(0, 243, 255, 0.3), 0 0 50px rgba(0, 243, 255, 0.2);
             position: relative;
         }
 
@@ -52,8 +52,8 @@
         #auth-overlay, #invite-popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 2, 10, 0.9);
-            backdrop-filter: blur(20px);
+            background: rgba(2, 1, 8, 0.92);
+            backdrop-filter: blur(15px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -67,16 +67,16 @@
         }
 
         .auth-card, .popup-card {
-            background: rgba(15, 12, 28, 0.95);
+            background: rgba(15, 10, 30, 0.98);
             padding: 28px;
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             gap: 14px;
             width: 100%;
             max-width: 360px;
-            border: 1px solid rgba(168, 85, 247, 0.5);
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.25);
+            border: 2px solid #00f3ff;
+            box-shadow: 0 0 25px #00f3ff, inset 0 0 15px rgba(255, 42, 133, 0.3);
             text-align: center;
         }
 
@@ -86,12 +86,12 @@
             font-weight: 800;
             letter-spacing: 1px;
             color: #fff;
-            text-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+            text-shadow: 0 0 10px #ff2a85, 0 0 20px #00f3ff;
         }
 
         .auth-card p, .popup-card p {
             font-size: 12px;
-            color: #a78bfa;
+            color: #00f3ff;
         }
 
         .popup-actions {
@@ -103,8 +103,9 @@
         /* Sidebar */
         #sidebar {
             width: 280px;
-            background: rgba(7, 5, 15, 0.9);
-            border-right: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(8, 5, 18, 0.95);
+            border-right: 2px solid #ff2a85;
+            box-shadow: 4px 0 15px rgba(255, 42, 133, 0.2);
             display: flex;
             flex-direction: column;
             padding: 20px;
@@ -120,18 +121,19 @@
             top: 14px;
             right: 16px;
             font-size: 22px;
-            color: #a78bfa;
+            color: #00f3ff;
             cursor: pointer;
             line-height: 1;
             padding: 4px 8px;
-            border-radius: 8px;
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid #00f3ff;
         }
 
         .sidebar-close-btn:hover {
             color: #ffffff;
-            background: rgba(168, 85, 247, 0.25);
+            background: rgba(0, 243, 255, 0.25);
+            box-shadow: 0 0 8px #00f3ff;
         }
 
         .user-profile-box {
@@ -139,7 +141,7 @@
             justify-content: space-between;
             align-items: center;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
         }
 
         .user-profile-info {
@@ -152,15 +154,16 @@
             font-size: 9px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            color: #9333ea;
+            color: #ff2a85;
             text-transform: uppercase;
+            text-shadow: 0 0 6px #ff2a85;
         }
 
         .user-profile-box span.disp-name {
             font-size: 14px;
             font-weight: 700;
-            color: #c084fc;
-            text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+            color: #fff;
+            text-shadow: 0 0 8px #00f3ff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -168,7 +171,7 @@
 
         .user-profile-box span.usr-handle {
             font-size: 11px;
-            color: #60a5fa;
+            color: #00f3ff;
         }
 
         .room-actions {
@@ -176,7 +179,7 @@
             flex-direction: column;
             gap: 8px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
         }
 
         .sidebar-title {
@@ -184,7 +187,8 @@
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            color: #e9d5ff;
+            color: #fff;
+            text-shadow: 0 0 8px #ff2a85;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -207,14 +211,14 @@
             flex-direction: column;
             gap: 8px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+            scrollbar-color: #ff2a85 transparent;
         }
 
         .friend-card {
-            background: rgba(168, 85, 247, 0.04);
-            border: 1px solid rgba(168, 85, 247, 0.15);
+            background: rgba(255, 42, 133, 0.05);
+            border: 1px solid rgba(255, 42, 133, 0.4);
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -222,8 +226,9 @@
         }
 
         .friend-card:hover {
-            border-color: rgba(168, 85, 247, 0.4);
-            background: rgba(168, 85, 247, 0.08);
+            border-color: #00f3ff;
+            background: rgba(0, 243, 255, 0.08);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
 
         .friend-info {
@@ -264,7 +269,7 @@
 
         .friend-handle {
             font-size: 10px;
-            color: #60a5fa;
+            color: #00f3ff;
         }
 
         .friend-actions {
@@ -275,28 +280,28 @@
         }
 
         .btn-invite-friend {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.4);
-            color: #93c5fd;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
             padding: 4px 8px;
             font-size: 10px;
             border-radius: 6px;
         }
 
         .btn-invite-friend:hover {
-            background: rgba(59, 130, 246, 0.35);
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+            background: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 8px #00f3ff;
         }
 
         .remove-friend {
-            color: #f43f5e;
+            color: #ff2a85;
             cursor: pointer;
             font-size: 14px;
-            opacity: 0.6;
+            opacity: 0.7;
             padding: 4px;
         }
 
-        .remove-friend:hover { opacity: 1; text-shadow: 0 0 6px rgba(244, 63, 94, 0.8); }
+        .remove-friend:hover { opacity: 1; text-shadow: 0 0 6px #ff2a85; }
 
         /* Main Chat Area */
         #chat-container {
@@ -308,8 +313,8 @@
         }
 
         #tabs-bar {
-            background: rgba(5, 3, 10, 0.9);
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(6, 4, 15, 0.95);
+            border-bottom: 2px solid #ff2a85;
             display: flex;
             align-items: center;
             padding: 6px 12px 0 12px;
@@ -324,7 +329,7 @@
         }
 
         #tabs-bar::-webkit-scrollbar-thumb {
-            background: rgba(168, 85, 247, 0.4);
+            background: #ff2a85;
             border-radius: 4px;
         }
 
@@ -336,8 +341,8 @@
         }
 
         .chat-tab {
-            background: rgba(168, 85, 247, 0.04);
-            border: 1px solid rgba(168, 85, 247, 0.15);
+            background: rgba(255, 42, 133, 0.05);
+            border: 1px solid rgba(255, 42, 133, 0.4);
             border-bottom: none;
             padding: 6px 12px;
             border-top-left-radius: 8px;
@@ -355,12 +360,12 @@
         }
 
         .chat-tab.active {
-            background: rgba(15, 12, 28, 0.95);
-            color: #ffffff;
-            border-color: rgba(168, 85, 247, 0.6);
-            border-bottom: 1px solid rgba(15, 12, 28, 0.95);
+            background: rgba(15, 10, 30, 0.98);
+            color: #fff;
+            border-color: #00f3ff;
+            border-bottom: 1px solid rgba(15, 10, 30, 0.98);
             font-weight: 600;
-            box-shadow: 0 -4px 12px rgba(168, 85, 247, 0.15);
+            box-shadow: 0 -4px 15px rgba(0, 243, 255, 0.4);
         }
 
         .tab-title {
@@ -371,25 +376,25 @@
 
         .edit-tab-btn {
             font-size: 10px;
-            opacity: 0.5;
-            cursor: pointer;
-        }
-
-        .edit-tab-btn:hover { opacity: 1; }
-
-        .tab-close-btn {
-            font-size: 12px;
-            color: #f43f5e;
             opacity: 0.6;
             cursor: pointer;
         }
 
-        .tab-close-btn:hover { opacity: 1; }
+        .edit-tab-btn:hover { opacity: 1; color: #00f3ff; }
+
+        .tab-close-btn {
+            font-size: 12px;
+            color: #ff2a85;
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        .tab-close-btn:hover { opacity: 1; text-shadow: 0 0 6px #ff2a85; }
 
         .add-tab-btn {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            color: #d8b4fe;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -404,14 +409,14 @@
         }
 
         .add-tab-btn:hover {
-            background: rgba(168, 85, 247, 0.25);
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+            background: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 10px #00f3ff;
         }
 
         #chat-header {
             padding: 12px 18px;
-            background: rgba(7, 5, 15, 0.8);
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(8, 5, 18, 0.9);
+            border-bottom: 2px solid #ff2a85;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -422,10 +427,10 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 14px;
             font-weight: 700;
-            background: linear-gradient(135deg, #c084fc, #60a5fa);
+            background: linear-gradient(135deg, #00f3ff, #ff2a85);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 12px rgba(192, 132, 252, 0.3);
+            text-shadow: 0 0 12px rgba(0, 243, 255, 0.5);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -439,16 +444,17 @@
 
         .inbox-btn, .menu-toggle-btn {
             position: relative;
-            background: rgba(168, 85, 247, 0.08);
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid #00f3ff;
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 13px;
-            color: #d8b4fe;
+            color: #00f3ff;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
         }
 
         .menu-toggle-btn { display: none; }
@@ -461,7 +467,7 @@
             height: 9px;
             background-color: #00ffcc;
             border-radius: 50%;
-            border: 2px solid #07050f;
+            border: 2px solid #080512;
             box-shadow: 0 0 8px #00ffcc;
             display: none;
         }
@@ -469,49 +475,52 @@
         .green-badge.active { display: block; }
 
         .header-btn {
-            background: rgba(168, 85, 247, 0.08);
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid #00f3ff;
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 11px;
-            color: #d8b4fe;
+            color: #00f3ff;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
         }
 
         .header-btn:hover {
-            background: rgba(168, 85, 247, 0.2);
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+            background: rgba(0, 243, 255, 0.25);
+            box-shadow: 0 0 12px #00f3ff;
         }
 
         .btn-leave-room {
-            background: rgba(244, 63, 94, 0.12);
-            border: 1px solid rgba(244, 63, 94, 0.35);
-            color: #fda4af;
+            background: rgba(255, 42, 133, 0.12);
+            border: 1px solid #ff2a85;
+            color: #ff2a85;
+            box-shadow: 0 0 8px rgba(255, 42, 133, 0.2);
         }
 
         .btn-leave-room:hover {
-            background: rgba(244, 63, 94, 0.25);
-            box-shadow: 0 0 8px rgba(244, 63, 94, 0.4);
+            background: rgba(255, 42, 133, 0.25);
+            box-shadow: 0 0 12px #ff2a85;
         }
 
         .status {
             font-size: 10px;
             padding: 4px 10px;
             border-radius: 20px;
-            background: rgba(244, 63, 94, 0.12);
-            color: #fda4af;
-            border: 1px solid rgba(244, 63, 94, 0.35);
+            background: rgba(255, 42, 133, 0.12);
+            color: #ff2a85;
+            border: 1px solid #ff2a85;
             font-weight: 600;
             white-space: nowrap;
+            box-shadow: 0 0 8px rgba(255, 42, 133, 0.3);
         }
 
         .status.online {
             background: rgba(0, 255, 204, 0.1);
             color: #00ffcc;
-            border-color: rgba(0, 255, 204, 0.4);
-            box-shadow: 0 0 8px rgba(0, 255, 204, 0.25);
+            border-color: #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
         }
 
         #messages {
@@ -522,37 +531,38 @@
             flex-direction: column;
             gap: 12px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+            scrollbar-color: #00f3ff transparent;
         }
 
         .msg {
-            background: rgba(20, 16, 35, 0.75);
-            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(20, 14, 40, 0.85);
+            border: 1px solid #ff2a85;
             padding: 10px 14px;
-            border-radius: 12px;
-            border-top-left-radius: 3px;
+            border-radius: 10px;
+            border-top-left-radius: 2px;
             max-width: 80%;
             width: fit-content;
             word-break: break-word;
             font-size: 13px;
             line-height: 1.4;
             color: #f3f4f6;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 12px rgba(255, 42, 133, 0.25);
         }
 
         .msg.self {
             align-self: flex-end;
-            background: linear-gradient(135deg, #7c3aed, #2563eb);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            color: #ffffff;
-            border-radius: 12px;
-            border-top-right-radius: 3px;
-            box-shadow: 0 0 15px rgba(124, 58, 237, 0.35);
+            background: linear-gradient(135deg, #ff2a85, #00f3ff);
+            border: 1px solid #00f3ff;
+            color: #020108;
+            font-weight: 600;
+            border-radius: 10px;
+            border-top-right-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
         }
 
         .msg .sender-header {
             font-size: 11px;
-            color: #a78bfa;
+            color: #00f3ff;
             margin-bottom: 2px;
             display: flex;
             align-items: center;
@@ -561,7 +571,7 @@
         }
 
         .msg.self .sender-header {
-            color: rgba(255, 255, 255, 0.9);
+            color: #020108;
             justify-content: flex-end;
         }
 
@@ -586,58 +596,60 @@
 
         #input-area {
             padding: 12px 16px;
-            background: rgba(7, 5, 15, 0.8);
+            background: rgba(8, 5, 18, 0.9);
             display: flex;
             gap: 8px;
-            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            border-top: 2px solid #ff2a85;
         }
 
         input[type="text"], input[type="password"] {
             flex: 1;
             padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            background: rgba(12, 10, 22, 0.9);
+            border-radius: 8px;
+            border: 1px solid #00f3ff;
+            background: rgba(12, 8, 25, 0.95);
             color: #fff;
             outline: none;
             font-size: 13px;
             transition: all 0.2s ease;
+            box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.2);
         }
 
         input[type="text"]:focus, input[type="password"]:focus {
-            border-color: #a855f7;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
+            border-color: #ff2a85;
+            box-shadow: 0 0 12px #ff2a85, inset 0 0 8px rgba(255, 42, 133, 0.4);
         }
 
         button {
             padding: 10px 16px;
-            background: linear-gradient(135deg, #9333ea, #3b82f6);
-            border: 1px solid rgba(192, 132, 252, 0.4);
-            border-radius: 10px;
-            font-weight: 600;
+            background: linear-gradient(135deg, #ff2a85, #00f3ff);
+            border: 1px solid #00f3ff;
+            border-radius: 8px;
+            font-weight: 700;
             cursor: pointer;
-            color: #ffffff;
+            color: #020108;
             font-size: 12px;
             white-space: nowrap;
             transition: all 0.2s ease;
-            box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+            box-shadow: 0 0 15px rgba(255, 42, 133, 0.5);
         }
 
         button:hover {
-            background: linear-gradient(135deg, #a855f7, #60a5fa);
-            box-shadow: 0 0 18px rgba(168, 85, 247, 0.6);
+            background: linear-gradient(135deg, #ff529e, #33f6ff);
+            box-shadow: 0 0 20px #ff2a85, 0 0 25px #00f3ff;
         }
 
         .btn-secondary {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            color: #d8b4fe;
-            box-shadow: none;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
+            box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
         }
 
         .btn-secondary:hover {
-            background: rgba(168, 85, 247, 0.25);
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+            background: rgba(0, 243, 255, 0.25);
+            box-shadow: 0 0 12px #00f3ff;
+            color: #fff;
         }
 
         #inbox-modal {
@@ -647,11 +659,11 @@
             right: 12px;
             width: calc(100% - 24px);
             max-width: 320px;
-            background: rgba(12, 10, 22, 0.98);
+            background: rgba(12, 8, 25, 0.98);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            border-radius: 14px;
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.25);
+            border: 2px solid #ff2a85;
+            border-radius: 12px;
+            box-shadow: 0 0 25px #ff2a85, inset 0 0 15px rgba(0, 243, 255, 0.3);
             padding: 14px;
             z-index: 100;
             flex-direction: column;
@@ -661,14 +673,14 @@
         .inbox-tabs {
             display: flex;
             gap: 6px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            border-bottom: 1px solid rgba(255, 42, 133, 0.4);
             padding-bottom: 6px;
         }
 
         .inbox-tab {
             font-size: 11px;
             font-weight: 600;
-            color: #a78bfa;
+            color: #00f3ff;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 6px;
@@ -676,15 +688,16 @@
         }
 
         .inbox-tab.active {
-            color: #ffffff;
-            background: rgba(168, 85, 247, 0.3);
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+            color: #020108;
+            background: #00f3ff;
+            box-shadow: 0 0 10px #00f3ff;
+            font-weight: 700;
         }
 
         .req-card {
-            background: rgba(168, 85, 247, 0.05);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 10px;
+            background: rgba(255, 42, 133, 0.05);
+            border: 1px solid rgba(255, 42, 133, 0.4);
+            border-radius: 8px;
             padding: 8px 10px;
             display: flex;
             justify-content: space-between;
@@ -693,9 +706,9 @@
 
         .req-actions { display: flex; gap: 4px; }
         .req-actions button { padding: 4px 8px; font-size: 10px; border-radius: 6px; }
-        .btn-accept { background: #00ffcc; color: #04020a; border: none; box-shadow: 0 0 8px rgba(0,255,204,0.4); font-weight: 700; }
+        .btn-accept { background: #00ffcc; color: #020108; border: none; box-shadow: 0 0 8px rgba(0,255,204,0.5); font-weight: 700; }
         .btn-accept:hover { background: #33ffdb; box-shadow: 0 0 12px #00ffcc; }
-        .btn-decline { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .btn-decline { background: rgba(255, 42, 133, 0.2); color: #ff2a85; border: 1px solid #ff2a85; }
 
         @media (max-width: 768px) {
             body { padding: 0; background-size: 100% 2px; }
@@ -716,7 +729,7 @@
                 width: 100%;
                 height: 100%;
                 z-index: 90;
-                background: rgba(7, 5, 15, 0.98);
+                background: rgba(8, 5, 18, 0.98);
                 backdrop-filter: blur(25px);
                 transform: translateX(-100%);
                 padding-top: 50px;
@@ -810,8 +823,8 @@
 
         <div id="inbox-modal">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:#c084fc;">Incoming Signals</h3>
-                <span style="cursor:pointer; font-weight:bold; color:#a78bfa;" onclick="toggleInbox()">&times;</span>
+                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:#00f3ff;">Incoming Signals</h3>
+                <span style="cursor:pointer; font-weight:bold; color:#ff2a85;" onclick="toggleInbox()">&times;</span>
             </div>
             
             <div class="inbox-tabs">
@@ -1094,7 +1107,7 @@
                 connectToRoom(inviteRoom);
             } else {
                 document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#a78bfa; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif;">Enter a Channel Code or click + to start transmitting!</div>`;
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#00f3ff; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(0,243,255,0.4);">Enter a Channel Code or click + to start transmitting!</div>`;
             }
         }
 
@@ -1162,7 +1175,7 @@
             } else {
                 activeRoomCode = "";
                 document.getElementById('room-display').innerText = "Channel: Offline";
-                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#a78bfa; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif;">All channels disconnected. Join or create one to resume!</div>`;
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#00f3ff; font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px rgba(0,243,255,0.4);">All channels disconnected. Join or create one to resume!</div>`;
                 renderTabs();
             }
         }
@@ -1201,9 +1214,10 @@
                 const div = document.createElement('div');
                 div.style.textAlign = 'center';
                 div.style.fontSize = '11px';
-                div.style.color = '#a78bfa';
+                div.style.color = '#00f3ff';
                 div.style.margin = '4px 0';
                 div.style.fontFamily = "'Orbitron', sans-serif";
+                div.style.textShadow = "0 0 6px rgba(0,243,255,0.4)";
                 div.innerText = msgObj.text;
                 return div;
             }
@@ -1320,7 +1334,7 @@
 
             if (currentTab === 'requests') {
                 if (incomingRequests.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:#a78bfa;">No pending signals</span>`;
+                    container.innerHTML = `<span style="font-size:11px; color:#00f3ff;">No pending signals</span>`;
                     return;
                 }
                 incomingRequests.forEach(req => {
@@ -1329,7 +1343,7 @@
                     card.innerHTML = `
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:11px; font-weight:600; color:#fff;">${escape(req.displayName)}</span>
-                            <span style="font-size:9px; color:#60a5fa;">@${escape(req.username)}</span>
+                            <span style="font-size:9px; color:#00f3ff;">@${escape(req.username)}</span>
                         </div>
                         <div class="req-actions">
                             <button type="button" class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Link</button>
@@ -1340,7 +1354,7 @@
                 });
             } else {
                 if (systemMessages.length === 0) {
-                    container.innerHTML = `<span style="font-size:11px; color:#a78bfa;">No system logs</span>`;
+                    container.innerHTML = `<span style="font-size:11px; color:#00f3ff;">No system logs</span>`;
                     return;
                 }
                 systemMessages.forEach(msg => {
