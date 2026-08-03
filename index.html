@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instant Live Room Chat</title>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
@@ -28,7 +27,7 @@
     <div id="overlay">
         <div class="modal">
             <h2>Enter Live Room</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to chat!</p>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to chat!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
             <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
             <button onclick="joinRoom()">Join Room</button>
@@ -38,7 +37,7 @@
     <div id="chat-container">
         <div id="chat-header">
             <span id="room-display" style="font-weight: bold;">Room: ----</span>
-            <span id="status-badge" class="status">Connecting...</span>
+            <span id="status-badge" class="status">Disconnected</span>
         </div>
         <div id="messages"></div>
         <div id="input-area">
@@ -48,10 +47,10 @@
     </div>
 
     <script>
-        let client = null;
+        let ws = null;
         let myName = "User";
-        let currentTopic = "";
-        const clientID = 'user_' + Math.random().toString(16).substr(2, 8);
+        let roomTopic = "";
+        const clientID = 'usr_' + Math.random().toString(36).substr(2, 9);
 
         function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
@@ -62,58 +61,72 @@
                 return;
             }
 
-            currentTopic = "thebigarch_room_" + rawCode;
+            // Create a unique channel name based on your code
+            roomTopic = "thebigarch_chat_v1_" + rawCode;
+
             document.getElementById('room-display').innerText = "Room: " + rawCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg("Connecting instantly...");
+            addSystemMsg("Connecting to network...");
 
-            // Secure WebSocket server on port 8084 (Works perfectly with GitHub Pages HTTPS)
-            client = mqtt.connect('wss://broker.emqx.io:8084/mqtt', { 
-                clientId: clientID,
-                clean: true,
-                connectTimeout: 4000
-            });
+            // Connect over standard, encrypted WebSocket
+            ws = new WebSocket(`wss://ntfy.sh/${roomTopic}/ws`);
 
-            client.on('connect', () => {
+            ws.onopen = () => {
                 setOnline();
-                client.subscribe(currentTopic, { qos: 0 }, (err) => {
-                    if (!err) {
-                        addSystemMsg(`Connected! Have your friends enter code [${rawCode}] to chat.`);
-                    }
-                });
-            });
+                addSystemMsg(`Connected! Tell your friends to enter code [${rawCode}] to join.`);
+            };
 
-            client.on('message', (topic, payload) => {
+            ws.onmessage = (event) => {
                 try {
-                    const data = JSON.parse(payload.toString());
-                    if (data.id !== clientID) {
-                        addMsg(data.sender, data.text, false);
+                    const data = JSON.parse(event.data);
+                    // Handle incoming message events
+                    if (data.event === 'message' && data.message) {
+                        const payload = JSON.parse(data.message);
+                        if (payload.id !== clientID) {
+                            addMsg(payload.sender, payload.text, false);
+                        }
                     }
                 } catch (e) {
-                    console.error("Failed to parse message");
+                    // Ignore non-JSON system signals
                 }
-            });
+            };
 
-            client.on('error', () => {
-                addSystemMsg("Connection error. Retrying...");
-            });
+            ws.onerror = () => {
+                addSystemMsg("Connection issue. Try clicking Join again.");
+            };
+
+            ws.onclose = () => {
+                const badge = document.getElementById('status-badge');
+                badge.innerText = "Disconnected";
+                badge.classList.remove('online');
+            };
         }
 
-        function send() {
+        async function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text || !client) return;
+            if (!text || !roomTopic) return;
 
-            const messageObj = {
+            const payload = {
                 id: clientID,
                 sender: myName,
                 text: text
             };
 
-            client.publish(currentTopic, JSON.stringify(messageObj));
+            // Display locally immediately
             addMsg(myName, text, true);
             input.value = "";
+
+            // Broadcast message across the cloud network
+            try {
+                await fetch(`https://ntfy.sh/${roomTopic}`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                addSystemMsg("Failed to deliver message.");
+            }
         }
 
         function setOnline() {
