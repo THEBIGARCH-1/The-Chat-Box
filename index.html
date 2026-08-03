@@ -527,7 +527,6 @@
             justify-content: flex-end;
         }
 
-        /* Live User Eye Status inside Chat Messages */
         .user-eye {
             font-size: 12px;
             display: inline-flex;
@@ -583,7 +582,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* 2-Section Inbox Modal */
         #inbox-modal {
             display: none;
             position: absolute;
@@ -673,11 +671,11 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Account Portal</h2>
-            <p id="auth-subtext">Both your Display Name and Username cannot match an existing user!</p>
-            <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Alex)" maxlength="15">
-            <input type="text" id="auth-username" placeholder="@Username (e.g. alex_99)" maxlength="15">
+            <p id="auth-subtext">Enter your details to create an account or sign in.</p>
+            <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Alex)" maxlength="15" autocomplete="off">
+            <input type="text" id="auth-username" placeholder="@Username (e.g. alex_99)" maxlength="15" autocapitalize="none" autocomplete="off">
             <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
-            <button onclick="handleAuth()">Continue</button>
+            <button type="button" onclick="handleAuth()">Continue</button>
         </div>
     </div>
 
@@ -686,8 +684,8 @@
             <h2>Room Invite!</h2>
             <p id="popup-invite-text">Your friend invited you to join their room.</p>
             <div class="popup-actions">
-                <button onclick="acceptRoomInvite()">Join Room</button>
-                <button class="btn-secondary" onclick="declineRoomInvite()">Decline</button>
+                <button type="button" onclick="acceptRoomInvite()">Join Room</button>
+                <button type="button" class="btn-secondary" onclick="declineRoomInvite()">Decline</button>
             </div>
         </div>
     </div>
@@ -702,19 +700,19 @@
                     <span id="display-user" class="disp-name">--</span>
                     <span id="display-handle" class="usr-handle">--</span>
                 </div>
-                <button class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch Account</button>
+                <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch Account</button>
             </div>
 
             <div class="room-actions">
-                <button onclick="promptJoinRoom()">Create / Join Room</button>
+                <button type="button" onclick="promptJoinRoom()">Create / Join Room</button>
             </div>
 
             <div class="sidebar-title">
                 <span>Friends List</span>
             </div>
             <div class="add-friend-box">
-                <input type="text" id="friend-input" placeholder="@Username">
-                <button class="btn-secondary" onclick="sendFriendRequest()">Add</button>
+                <input type="text" id="friend-input" placeholder="@Username" autocapitalize="none" autocomplete="off">
+                <button type="button" class="btn-secondary" onclick="sendFriendRequest()">Add</button>
             </div>
             <div id="friends-list"></div>
         </div>
@@ -726,17 +724,17 @@
             </div>
 
             <div id="chat-header">
-                <button class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">👥</button>
+                <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">👥</button>
                 <span id="room-display">Room: Not Connected</span>
                 
                 <div class="header-actions">
-                    <button class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
+                    <button type="button" class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
                         ✉️
                         <span id="mail-badge" class="green-badge"></span>
                     </button>
 
-                    <button class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">🚪 Leave Chat</button>
-                    <button class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
+                    <button type="button" class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">🚪 Leave Chat</button>
+                    <button type="button" class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
                     <span id="status-badge" class="status">Disconnected</span>
                 </div>
             </div>
@@ -744,8 +742,8 @@
             <div id="messages"></div>
 
             <div id="input-area">
-                <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
-                <button onclick="send()">Send</button>
+                <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" onkeypress="if(event.key==='Enter') send()">
+                <button type="button" onclick="send()">Send</button>
             </div>
         </div>
 
@@ -766,8 +764,8 @@
 
     <script>
         let pubnub = null;
-        let myName = "";        // Display Name (e.g. Alex)
-        let myUsername = "";    // Unique @username (e.g. alex_99)
+        let myName = "";        
+        let myUsername = "";    
         let userChannel = "";
         let activeRoomCode = "";
         let pendingInviteRoomCode = "";
@@ -848,21 +846,33 @@
 
             let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
 
-            // Check if BOTH Display Name AND Username match an existing user
-            let matchFound = false;
-            for (let key in globalAccounts) {
-                let acc = globalAccounts[key];
-                if (acc.username.toLowerCase() === userInput && acc.displayName.toLowerCase() === dispInput.toLowerCase()) {
-                    matchFound = true;
-                    break;
+            // CHECK: Block registration if the @username is already taken by ANY account
+            if (globalAccounts[userInput]) {
+                const existing = globalAccounts[userInput];
+                // Check if password matches (for existing user login)
+                if (existing.pass && existing.pass !== passInput) {
+                    alert("Incorrect password for this username!");
+                    return;
                 }
-            }
+                
+                // If it's a completely new person trying to claim this username:
+                if (!existing.pass || (passInput && existing.pass === passInput)) {
+                    // Update current login session
+                    myUsername = existing.username;
+                    myName = dispInput; // Allows updating display name
+                    globalAccounts[userInput].displayName = myName;
+                    localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
+                    localStorage.setItem("chat_current_active_handle", myUsername);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    initApp();
+                    return;
+                }
 
-            if (matchFound) {
-                alert("This name and user has already been taken!");
+                alert("This username has already been taken!");
                 return;
             }
 
+            // Save brand new account
             globalAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
             localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
 
@@ -910,7 +920,6 @@
                     const data = event.message;
                     const channel = event.channel;
 
-                    // Direct Room Pop-up Invite
                     if (data.type === 'direct_room_invite') {
                         pendingInviteRoomCode = data.roomCode;
                         document.getElementById('popup-invite-text').innerText = `${data.from} (@${data.fromUsername}) invited you to join Room [${data.roomCode}]!`;
@@ -918,7 +927,6 @@
                         return;
                     }
 
-                    // Direct Friend Request
                     if (data.type === 'friend_request') {
                         const exists = incomingRequests.some(r => r.username === data.fromUsername);
                         if (!exists) {
@@ -930,7 +938,6 @@
                         return;
                     }
 
-                    // Direct Friend Request Accepted
                     if (data.type === 'friend_accept') {
                         const isAlreadyFriend = friends.some(f => f.username === data.fromUsername);
                         if (!isAlreadyFriend) {
@@ -945,7 +952,6 @@
                         return;
                     }
 
-                    // Room Specific Messages & Presence
                     const targetRoom = channel.replace("room_code_", "");
 
                     if (data.type === 'presence') {
@@ -1231,8 +1237,8 @@
                             <span style="font-size:9px; color:#6b7280;">@${escape(req.username)}</span>
                         </div>
                         <div class="req-actions">
-                            <button class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Accept</button>
-                            <button class="btn-decline" onclick="declineRequest('${escape(req.username)}')">Decline</button>
+                            <button type="button" class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Accept</button>
+                            <button type="button" class="btn-decline" onclick="declineRequest('${escape(req.username)}')">Decline</button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -1329,7 +1335,7 @@
                         </div>
                     </div>
                     <div class="friend-actions">
-                        <button class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Invite</button>
+                        <button type="button" class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Invite</button>
                         <span class="remove-friend" onclick="removeFriend(${idx})" title="Delete Friend">&times;</span>
                     </div>
                 `;
