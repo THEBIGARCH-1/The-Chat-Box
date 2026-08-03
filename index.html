@@ -70,9 +70,9 @@
             border-radius: 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
             text-align: center;
@@ -87,7 +87,7 @@
         }
 
         .auth-card p, .popup-card p {
-            font-size: 13px;
+            font-size: 12px;
             color: #a1a1aa;
         }
 
@@ -108,6 +108,28 @@
             gap: 16px;
             flex-shrink: 0;
             transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        /* Mobile Close Button */
+        .sidebar-close-btn {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 22px;
+            color: #a1a1aa;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-close-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .user-profile-box {
@@ -121,6 +143,7 @@
         .user-profile-info {
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .user-profile-box label {
@@ -129,10 +152,18 @@
             color: #a1a1aa;
         }
 
-        .user-profile-box span {
+        .user-profile-box span.disp-name {
             font-size: 14px;
             font-weight: 700;
             color: #a5b4fc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-profile-box span.usr-handle {
+            font-size: 11px;
+            color: #6b7280;
         }
 
         .room-actions {
@@ -184,6 +215,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            overflow: hidden;
         }
 
         .status-dot {
@@ -192,6 +224,7 @@
             border-radius: 50%;
             background: #6b7280;
             box-shadow: 0 0 6px rgba(107, 114, 128, 0.5);
+            flex-shrink: 0;
         }
 
         .status-dot.online {
@@ -202,23 +235,28 @@
         .friend-details {
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .friend-name {
             font-size: 13px;
             font-weight: 600;
             color: #f3f4f6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .friend-status-text {
+        .friend-handle {
             font-size: 10px;
-            color: #a1a1aa;
+            color: #6b7280;
         }
 
         .friend-actions {
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
         }
 
         .btn-invite-friend {
@@ -373,41 +411,6 @@
             gap: 8px;
         }
 
-        /* Eye Icon & Animations */
-        .eye-indicator {
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 8px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .eye-indicator.looking {
-            color: #22c55e;
-            border-color: rgba(34, 197, 94, 0.4);
-            background: rgba(34, 197, 94, 0.15);
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-            animation: eye-pulse 2s infinite ease-in-out;
-        }
-
-        .eye-indicator.away {
-            color: #6b7280;
-            border-color: rgba(107, 114, 128, 0.3);
-            background: rgba(107, 114, 128, 0.1);
-            filter: grayscale(100%);
-            opacity: 0.7;
-        }
-
-        @keyframes eye-pulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4)); }
-            50% { transform: scale(1.1); filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.8)); }
-            100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4)); }
-        }
-
         .inbox-btn, .menu-toggle-btn {
             position: relative;
             background: rgba(255, 255, 255, 0.05);
@@ -509,17 +512,39 @@
             border-top-right-radius: 4px;
         }
 
-        .msg .sender {
-            font-size: 10px;
+        .msg .sender-header {
+            font-size: 11px;
             color: #a1a1aa;
             margin-bottom: 2px;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             font-weight: 600;
         }
 
-        .msg.self .sender {
+        .msg.self .sender-header {
             color: rgba(255, 255, 255, 0.85);
-            text-align: right;
+            justify-content: flex-end;
+        }
+
+        /* Live User Eye Status inside Chat Messages */
+        .user-eye {
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .user-eye.looking {
+            color: #22c55e;
+            filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.8));
+        }
+
+        .user-eye.away {
+            color: #6b7280;
+            filter: grayscale(100%);
+            opacity: 0.5;
         }
 
         #input-area {
@@ -624,16 +649,18 @@
                 flex-direction: column; 
             }
             .menu-toggle-btn { display: flex; }
+            .sidebar-close-btn { display: block; }
             #sidebar { 
                 position: absolute;
-                top: 50px;
+                top: 0;
                 left: 0;
                 width: 100%;
-                height: calc(100% - 50px);
+                height: 100%;
                 z-index: 90;
                 background: rgba(12, 14, 22, 0.98);
                 backdrop-filter: blur(25px);
                 transform: translateX(-100%);
+                padding-top: 50px;
             }
             #sidebar.open { transform: translateX(0); }
             .status { display: none; }
@@ -646,8 +673,9 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Account Portal</h2>
-            <p id="auth-subtext">Enter a unique username to create or join your account!</p>
-            <input type="text" id="auth-username" placeholder="Unique Username" maxlength="15">
+            <p id="auth-subtext">Display name can be shared, but your @username must be unique!</p>
+            <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Alex)" maxlength="15">
+            <input type="text" id="auth-username" placeholder="@Username (e.g. alex_99)" maxlength="15">
             <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
             <button onclick="handleAuth()">Continue</button>
         </div>
@@ -666,10 +694,13 @@
 
     <div id="app-container">
         <div id="sidebar">
+            <span class="sidebar-close-btn" onclick="toggleSidebar()" title="Close Friends List">&times;</span>
+
             <div class="user-profile-box">
                 <div class="user-profile-info">
                     <label>Logged in as</label>
-                    <span id="display-user">--</span>
+                    <span id="display-user" class="disp-name">--</span>
+                    <span id="display-handle" class="usr-handle">--</span>
                 </div>
                 <button class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="switchAccount()">Switch Account</button>
             </div>
@@ -682,7 +713,7 @@
                 <span>Friends List</span>
             </div>
             <div class="add-friend-box">
-                <input type="text" id="friend-input" placeholder="Friend's Name">
+                <input type="text" id="friend-input" placeholder="@Username">
                 <button class="btn-secondary" onclick="sendFriendRequest()">Add</button>
             </div>
             <div id="friends-list"></div>
@@ -699,8 +730,6 @@
                 <span id="room-display">Room: Not Connected</span>
                 
                 <div class="header-actions">
-                    <span id="eye-indicator" class="eye-indicator looking" title="Chat Focus Status">👁️</span>
-
                     <button class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
                         ✉️
                         <span id="mail-badge" class="green-badge"></span>
@@ -737,13 +766,15 @@
 
     <script>
         let pubnub = null;
-        let myName = "";
+        let myName = "";        // Display Name (e.g. Alex)
+        let myUsername = "";    // Unique @username (e.g. alex_99)
         let userChannel = "";
         let activeRoomCode = "";
         let pendingInviteRoomCode = "";
-        let openRooms = []; // Stores list of room codes
-        let roomAliases = {}; // Custom tab names per room
-        let roomMessages = {}; // Stores message elements per room
+        let openRooms = [];
+        let roomAliases = {};
+        let roomMessages = {};  // Array of message data objects per room
+        let userFocusStates = {}; // Stores focus status (true/false) per username
         let friends = [];
         let incomingRequests = [];
         let systemMessages = [];
@@ -753,11 +784,16 @@
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         window.onload = function() {
-            const activeUser = localStorage.getItem("chat_current_active_user");
-            if (activeUser) {
-                myName = activeUser;
-                document.getElementById('auth-overlay').style.display = 'none';
-                initApp();
+            const activeUserHandle = localStorage.getItem("chat_current_active_handle");
+            if (activeUserHandle) {
+                let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
+                const account = globalAccounts[activeUserHandle.toLowerCase()];
+                if (account) {
+                    myUsername = account.username;
+                    myName = account.displayName;
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    initApp();
+                }
             }
             setupVisibilityListener();
         };
@@ -774,24 +810,16 @@
 
         function setLookingStatus(looking) {
             isUserLooking = looking;
-            const eye = document.getElementById('eye-indicator');
-            if (looking) {
-                eye.className = 'eye-indicator looking';
-                eye.innerText = '👁️';
-                eye.title = 'You are looking at the chat';
-            } else {
-                eye.className = 'eye-indicator away';
-                eye.innerText = '🙈';
-                eye.title = 'You stopped looking at the chat';
-            }
+            userFocusStates[myUsername] = looking;
+            updateUserEyeElements(myUsername, looking);
 
-            // Broadcast focus event to active room
             if (activeRoomCode && pubnub) {
                 pubnub.publish({
                     channel: "room_code_" + activeRoomCode,
                     message: {
                         type: 'focus_change',
                         sender: myName,
+                        username: myUsername,
                         looking: looking
                     }
                 });
@@ -804,50 +832,59 @@
         }
 
         function handleAuth() {
-            const userInput = document.getElementById('auth-username').value.trim();
+            const dispInput = document.getElementById('auth-displayname').value.trim();
+            const userInput = document.getElementById('auth-username').value.trim().toLowerCase().replace('@', '');
             const passInput = document.getElementById('auth-pass').value.trim();
 
+            if (!dispInput) {
+                alert("Please enter a Display Name!");
+                return;
+            }
+
             if (!userInput) {
-                alert("Please enter a username!");
+                alert("Please enter a unique @Username!");
                 return;
             }
 
             let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
 
-            if (globalAccounts[userInput.toLowerCase()]) {
-                if (globalAccounts[userInput.toLowerCase()].pass && globalAccounts[userInput.toLowerCase()].pass !== passInput) {
-                    alert("This username is already taken! Please enter the correct password or pick a different name.");
+            if (globalAccounts[userInput]) {
+                if (globalAccounts[userInput].pass && globalAccounts[userInput].pass !== passInput) {
+                    alert("This @username is already taken! Please enter the correct password or pick a different username.");
                     return;
                 }
             } else {
-                globalAccounts[userInput.toLowerCase()] = { name: userInput, pass: passInput };
+                globalAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
                 localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
             }
 
-            myName = userInput;
-            localStorage.setItem("chat_current_active_user", myName);
+            myUsername = userInput;
+            myName = dispInput;
+            localStorage.setItem("chat_current_active_handle", myUsername);
             document.getElementById('auth-overlay').style.display = 'none';
             initApp();
         }
 
         function switchAccount() {
-            localStorage.removeItem("chat_current_active_user");
+            localStorage.removeItem("chat_current_active_handle");
             location.reload();
         }
 
         function initApp() {
             document.getElementById('display-user').innerText = myName;
+            document.getElementById('display-handle').innerText = "@" + myUsername;
+            userFocusStates[myUsername] = true;
 
             const urlParams = new URLSearchParams(window.location.search);
             const inviteRoom = urlParams.get('room');
-            const savedFriends = localStorage.getItem("chat_friends_" + myName.toLowerCase());
+            const savedFriends = localStorage.getItem("chat_friends_" + myUsername);
 
             if (savedFriends) {
                 try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
             }
             renderFriends();
 
-            userChannel = "user_direct_" + myName.toLowerCase();
+            userChannel = "user_direct_" + myUsername;
 
             pubnub = new PubNub({
                 publishKey: 'demo',
@@ -868,17 +905,18 @@
                     // Direct Room Pop-up Invite
                     if (data.type === 'direct_room_invite') {
                         pendingInviteRoomCode = data.roomCode;
-                        document.getElementById('popup-invite-text').innerText = `${data.from} invited you to join Room [${data.roomCode}]!`;
+                        document.getElementById('popup-invite-text').innerText = `${data.from} (@${data.fromUsername}) invited you to join Room [${data.roomCode}]!`;
                         document.getElementById('invite-popup-overlay').style.display = 'flex';
                         return;
                     }
 
                     // Direct Friend Request
                     if (data.type === 'friend_request') {
-                        if (!incomingRequests.includes(data.from)) {
-                            incomingRequests.push(data.from);
+                        const exists = incomingRequests.some(r => r.username === data.fromUsername);
+                        if (!exists) {
+                            incomingRequests.push({ displayName: data.from, username: data.fromUsername });
                             document.getElementById('mail-badge').classList.add('active');
-                            addSystemMsg(`🔔 Friend request received from ${data.from}! Check Inbox.`);
+                            addSystemMsg(`🔔 Friend request from ${data.from} (@${data.fromUsername})! Check Inbox.`);
                             renderInbox();
                         }
                         return;
@@ -886,12 +924,13 @@
 
                     // Direct Friend Request Accepted
                     if (data.type === 'friend_accept') {
-                        if (!friends.includes(data.from)) {
-                            friends.push(data.from);
-                            localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
+                        const isAlreadyFriend = friends.some(f => f.username === data.fromUsername);
+                        if (!isAlreadyFriend) {
+                            friends.push({ displayName: data.from, username: data.fromUsername });
+                            localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
                             renderFriends();
                         }
-                        systemMessages.push(`🎉 ${data.from} accepted your friend request!`);
+                        systemMessages.push(`🎉 ${data.from} (@${data.fromUsername}) accepted your friend request!`);
                         document.getElementById('mail-badge').classList.add('active');
                         addSystemMsg(`🎉 ${data.from} accepted your friend request!`);
                         renderInbox();
@@ -902,13 +941,13 @@
                     const targetRoom = channel.replace("room_code_", "");
 
                     if (data.type === 'presence') {
-                        if (data.sender !== myName) {
-                            activeUsers.add(data.sender.toLowerCase());
+                        if (data.username !== myUsername) {
+                            activeUsers.add(data.username);
                             renderFriends();
                             if (data.status === 'join') {
                                 pubnub.publish({
                                     channel: channel,
-                                    message: { type: 'presence_ack', sender: myName }
+                                    message: { type: 'presence_ack', sender: myName, username: myUsername, looking: isUserLooking }
                                 });
                                 addSystemMsgToRoom(targetRoom, `👋 ${data.sender} joined the room!`);
                             } else if (data.status === 'leave') {
@@ -919,31 +958,32 @@
                     }
 
                     if (data.type === 'focus_change') {
-                        if (data.sender !== myName) {
-                            if (!data.looking) {
-                                addSystemMsgToRoom(targetRoom, `🙈 ${data.sender} stopped looking at the chat.`);
-                            } else {
-                                addSystemMsgToRoom(targetRoom, `👁️ ${data.sender} is back looking at the chat.`);
-                            }
+                        if (data.username !== myUsername) {
+                            userFocusStates[data.username] = data.looking;
+                            updateUserEyeElements(data.username, data.looking);
                         }
                         return;
                     }
 
                     if (data.type === 'presence_ack') {
-                        if (data.sender !== myName) {
-                            activeUsers.add(data.sender.toLowerCase());
+                        if (data.username !== myUsername) {
+                            activeUsers.add(data.username);
+                            if (typeof data.looking !== 'undefined') {
+                                userFocusStates[data.username] = data.looking;
+                                updateUserEyeElements(data.username, data.looking);
+                            }
                             renderFriends();
                         }
                         return;
                     }
 
                     if (data.senderId !== myId) {
-                        addMsgToRoom(targetRoom, data.sender, data.text, false);
+                        userFocusStates[data.username] = (typeof data.looking !== 'undefined') ? data.looking : true;
+                        addMsgToRoom(targetRoom, data.sender, data.username, data.text, false, userFocusStates[data.username]);
                     }
                 }
             });
 
-            // Subscribe to private channel
             pubnub.subscribe({ channels: [userChannel] });
 
             const initialRoom = inviteRoom || "GLOBAL1";
@@ -962,7 +1002,7 @@
                 
                 pubnub.publish({
                     channel: channel,
-                    message: { type: 'presence', sender: myName, status: 'join' }
+                    message: { type: 'presence', sender: myName, username: myUsername, status: 'join', looking: isUserLooking }
                 });
             }
 
@@ -998,10 +1038,9 @@
         function closeRoomTab(code) {
             const channel = "room_code_" + code;
 
-            // Broadcast leave message
             pubnub.publish({
                 channel: channel,
-                message: { type: 'presence', sender: myName, status: 'leave' }
+                message: { type: 'presence', sender: myName, username: myUsername, status: 'leave' }
             });
 
             pubnub.unsubscribe({ channels: [channel] });
@@ -1043,61 +1082,98 @@
             box.innerHTML = "";
             if (!activeRoomCode || !roomMessages[activeRoomCode]) return;
 
-            roomMessages[activeRoomCode].forEach(msgNode => {
-                box.appendChild(msgNode.cloneNode(true));
+            roomMessages[activeRoomCode].forEach(msgObj => {
+                box.appendChild(createMessageDOMElement(msgObj));
             });
             box.scrollTop = box.scrollHeight;
         }
 
-        function addMsgToRoom(roomCode, sender, text, isSelf) {
+        function createMessageDOMElement(msgObj) {
+            if (msgObj.isSystem) {
+                const div = document.createElement('div');
+                div.style.textAlign = 'center';
+                div.style.fontSize = '11px';
+                div.style.color = '#a1a1aa';
+                div.style.margin = '4px 0';
+                div.innerText = msgObj.text;
+                return div;
+            }
+
+            const isLooking = userFocusStates[msgObj.username] !== false;
+            const eyeIcon = isLooking ? '👁️' : '🙈';
+            const eyeClass = isLooking ? 'looking' : 'away';
+
             const div = document.createElement('div');
-            div.className = `msg ${isSelf ? 'self' : ''}`;
-            div.innerHTML = `<span class="sender">${sender}</span>${escape(text)}`;
+            div.className = `msg ${msgObj.isSelf ? 'self' : ''}`;
+            
+            div.innerHTML = `
+                <div class="sender-header">
+                    <span>${msgObj.isSelf ? 'You' : escape(msgObj.sender)}</span>
+                    <span class="user-eye ${eyeClass}" data-username="${escape(msgObj.username)}" title="${isLooking ? 'Currently looking at chat' : 'Away / Closed tab'}">${eyeIcon}</span>
+                </div>
+                ${escape(msgObj.text)}
+            `;
+            return div;
+        }
+
+        function updateUserEyeElements(username, looking) {
+            const eyeElements = document.querySelectorAll(`.user-eye[data-username="${username}"]`);
+            eyeElements.forEach(eye => {
+                eye.innerText = looking ? '👁️' : '🙈';
+                eye.className = `user-eye ${looking ? 'looking' : 'away'}`;
+                eye.title = looking ? 'Currently looking at chat' : 'Away / Closed tab';
+            });
+        }
+
+        function addMsgToRoom(roomCode, sender, username, text, isSelf, looking) {
+            const msgObj = {
+                sender: sender,
+                username: username,
+                text: text,
+                isSelf: isSelf,
+                isSystem: false
+            };
 
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
-            roomMessages[roomCode].push(div);
+            roomMessages[roomCode].push(msgObj);
 
             if (roomCode === activeRoomCode) {
                 const box = document.getElementById('messages');
-                box.appendChild(div);
+                box.appendChild(createMessageDOMElement(msgObj));
                 box.scrollTop = box.scrollHeight;
             }
         }
 
         function addSystemMsgToRoom(roomCode, text) {
-            const div = document.createElement('div');
-            div.style.textAlign = 'center';
-            div.style.fontSize = '11px';
-            div.style.color = '#a1a1aa';
-            div.style.margin = '4px 0';
-            div.innerText = text;
+            const msgObj = { text: text, isSystem: true };
 
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
-            roomMessages[roomCode].push(div);
+            roomMessages[roomCode].push(msgObj);
 
             if (roomCode === activeRoomCode) {
                 const box = document.getElementById('messages');
-                box.appendChild(div);
+                box.appendChild(createMessageDOMElement(msgObj));
                 box.scrollTop = box.scrollHeight;
             }
         }
 
-        function directInviteFriend(friendName) {
+        function directInviteFriend(friendUsername) {
             if (!activeRoomCode) {
                 alert("You need to join or create a room first!");
                 return;
             }
 
             pubnub.publish({
-                channel: "user_direct_" + friendName.toLowerCase(),
+                channel: "user_direct_" + friendUsername,
                 message: {
                     type: 'direct_room_invite',
                     from: myName,
+                    fromUsername: myUsername,
                     roomCode: activeRoomCode
                 }
             });
 
-            addSystemMsg(`Sent a live room invite to ${friendName}!`);
+            addSystemMsg(`Sent a room invite to @${friendUsername}!`);
         }
 
         function acceptRoomInvite() {
@@ -1138,14 +1214,17 @@
                     container.innerHTML = `<span style="font-size:11px; color:#a1a1aa;">No pending friend requests</span>`;
                     return;
                 }
-                incomingRequests.forEach(reqName => {
+                incomingRequests.forEach(req => {
                     const card = document.createElement('div');
                     card.className = "req-card";
                     card.innerHTML = `
-                        <span style="font-size:11px; font-weight:600;">${escape(reqName)}</span>
+                        <div style="display:flex; flex-direction:column;">
+                            <span style="font-size:11px; font-weight:600;">${escape(req.displayName)}</span>
+                            <span style="font-size:9px; color:#6b7280;">@${escape(req.username)}</span>
+                        </div>
                         <div class="req-actions">
-                            <button class="btn-accept" onclick="acceptRequest('${escape(reqName)}')">Accept</button>
-                            <button class="btn-decline" onclick="declineRequest('${escape(reqName)}')">Decline</button>
+                            <button class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Accept</button>
+                            <button class="btn-decline" onclick="declineRequest('${escape(req.username)}')">Decline</button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -1166,58 +1245,61 @@
 
         function sendFriendRequest() {
             const input = document.getElementById('friend-input');
-            const friendName = input.value.trim();
-            if (!friendName || !pubnub) return;
+            const friendHandle = input.value.trim().toLowerCase().replace('@', '');
+            if (!friendHandle || !pubnub) return;
 
-            if (friendName.toLowerCase() === myName.toLowerCase()) {
+            if (friendHandle === myUsername) {
                 alert("You cannot add yourself!");
                 return;
             }
 
             pubnub.publish({
-                channel: "user_direct_" + friendName.toLowerCase(),
+                channel: "user_direct_" + friendHandle,
                 message: {
                     type: 'friend_request',
-                    from: myName
+                    from: myName,
+                    fromUsername: myUsername
                 }
             });
 
-            addSystemMsg(`Sent a friend request to ${friendName}!`);
+            addSystemMsg(`Sent a friend request to @${friendHandle}!`);
             input.value = "";
         }
 
-        function acceptRequest(fromUser) {
-            if (!friends.includes(fromUser)) {
-                friends.push(fromUser);
-                localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
+        function acceptRequest(fromName, fromUsername) {
+            const isAlreadyFriend = friends.some(f => f.username === fromUsername);
+            if (!isAlreadyFriend) {
+                friends.push({ displayName: fromName, username: fromUsername });
+                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
                 renderFriends();
             }
 
-            incomingRequests = incomingRequests.filter(u => u !== fromUser);
+            incomingRequests = incomingRequests.filter(u => u.username !== fromUsername);
             renderInbox();
 
             pubnub.publish({
-                channel: "user_direct_" + fromUser.toLowerCase(),
+                channel: "user_direct_" + fromUsername,
                 message: {
                     type: 'friend_accept',
-                    from: myName
+                    from: myName,
+                    fromUsername: myUsername
                 }
             });
 
-            addSystemMsg(`You are now friends with ${fromUser}!`);
+            addSystemMsg(`You are now friends with ${fromName}!`);
         }
 
-        function declineRequest(fromUser) {
-            incomingRequests = incomingRequests.filter(u => u !== fromUser);
+        function declineRequest(fromUsername) {
+            incomingRequests = incomingRequests.filter(u => u.username !== fromUsername);
             renderInbox();
         }
 
         function removeFriend(index) {
-            const friendName = friends[index];
-            const confirmed = confirm(`Are you sure you want to delete ${friendName} from your friends list?`);
+            const friend = friends[index];
+            const confirmed = confirm(`Are you sure you want to delete ${friend.displayName} (@${friend.username}) from your friends list?`);
             if (confirmed) {
                 friends.splice(index, 1);
-                localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
+                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
                 renderFriends();
             }
         }
@@ -1227,19 +1309,19 @@
             list.innerHTML = "";
 
             friends.forEach((friend, idx) => {
-                const isOnline = activeUsers.has(friend.toLowerCase());
+                const isOnline = activeUsers.has(friend.username);
                 const card = document.createElement('div');
                 card.className = "friend-card";
                 card.innerHTML = `
                     <div class="friend-info">
                         <div class="status-dot ${isOnline ? 'online' : ''}"></div>
                         <div class="friend-details">
-                            <span class="friend-name">${escape(friend)}</span>
-                            <span class="friend-status-text">${isOnline ? 'Online in Room' : 'Offline'}</span>
+                            <span class="friend-name">${escape(friend.displayName)}</span>
+                            <span class="friend-handle">@${escape(friend.username)}</span>
                         </div>
                     </div>
                     <div class="friend-actions">
-                        <button class="btn-invite-friend" onclick="directInviteFriend('${escape(friend)}')">Invite</button>
+                        <button class="btn-invite-friend" onclick="directInviteFriend('${escape(friend.username)}')">Invite</button>
                         <span class="remove-friend" onclick="removeFriend(${idx})" title="Delete Friend">&times;</span>
                     </div>
                 `;
@@ -1283,7 +1365,7 @@
 
             if (!text) return;
 
-            addMsgToRoom(activeRoomCode, myName, text, true);
+            addMsgToRoom(activeRoomCode, myName, myUsername, text, true, isUserLooking);
             input.value = "";
 
             pubnub.publish({
@@ -1291,7 +1373,9 @@
                 message: {
                     senderId: myId,
                     sender: myName,
-                    text: text
+                    username: myUsername,
+                    text: text,
+                    looking: isUserLooking
                 }
             });
         }
