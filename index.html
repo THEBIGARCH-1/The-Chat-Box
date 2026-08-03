@@ -253,7 +253,7 @@
             width: 100%;
         }
 
-        /* Top Room Tabs Bar */
+        /* Fixed Scrollable Top Room Tabs Bar */
         #tabs-bar {
             background: rgba(8, 9, 13, 0.8);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -262,6 +262,24 @@
             padding: 6px 12px 0 12px;
             gap: 6px;
             overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+
+        #tabs-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        #tabs-bar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        #tabs-list {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-tab {
@@ -278,6 +296,8 @@
             align-items: center;
             gap: 8px;
             white-space: nowrap;
+            flex-shrink: 0;
+            max-width: 200px;
         }
 
         .chat-tab.active {
@@ -286,6 +306,20 @@
             border-color: rgba(99, 102, 241, 0.4);
             font-weight: 600;
         }
+
+        .tab-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .edit-tab-btn {
+            font-size: 10px;
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .edit-tab-btn:hover { opacity: 1; }
 
         .tab-close-btn {
             font-size: 12px;
@@ -621,7 +655,7 @@
 
         <div id="chat-container">
             <div id="tabs-bar">
-                <div id="tabs-list" style="display:flex; gap:6px;"></div>
+                <div id="tabs-list"></div>
                 <div class="add-tab-btn" onclick="promptJoinRoom()" title="Open New Room">+</div>
             </div>
 
@@ -671,6 +705,7 @@
         let activeRoomCode = "";
         let pendingInviteRoomCode = "";
         let openRooms = []; // Stores list of room codes
+        let roomAliases = {}; // Custom tab names per room
         let roomMessages = {}; // Stores message elements per room
         let friends = [];
         let incomingRequests = [];
@@ -832,10 +867,10 @@
 
             if (!openRooms.includes(code)) {
                 openRooms.push(code);
+                roomAliases[code] = roomAliases[code] || code;
                 roomMessages[code] = roomMessages[code] || [];
                 pubnub.subscribe({ channels: [channel] });
                 
-                // Send join notification
                 pubnub.publish({
                     channel: channel,
                     message: { type: 'presence', sender: myName, status: 'join' }
@@ -847,9 +882,23 @@
 
         function switchRoomTab(code) {
             activeRoomCode = code;
-            document.getElementById('room-display').innerText = "Room: " + activeRoomCode;
+            const displayName = roomAliases[code] || code;
+            document.getElementById('room-display').innerText = "Room: " + displayName + (displayName !== code ? ` (${code})` : '');
             renderTabs();
             renderActiveMessages();
+        }
+
+        function renameRoomTab(code) {
+            const currentName = roomAliases[code] || code;
+            const newName = prompt(`Enter a custom name for room [${code}]:`, currentName);
+            if (newName && newName.trim()) {
+                roomAliases[code] = newName.trim();
+                if (activeRoomCode === code) {
+                    switchRoomTab(code);
+                } else {
+                    renderTabs();
+                }
+            }
         }
 
         function leaveCurrentRoom() {
@@ -863,6 +912,7 @@
 
             openRooms = openRooms.filter(r => r !== code);
             delete roomMessages[code];
+            delete roomAliases[code];
 
             if (openRooms.length > 0) {
                 switchRoomTab(openRooms[openRooms.length - 1]);
@@ -879,12 +929,14 @@
             container.innerHTML = "";
 
             openRooms.forEach(room => {
+                const displayName = roomAliases[room] || room;
                 const tab = document.createElement('div');
                 tab.className = `chat-tab ${room === activeRoomCode ? 'active' : ''}`;
                 tab.onclick = () => switchRoomTab(room);
                 tab.innerHTML = `
-                    <span># ${room}</span>
-                    <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')">&times;</span>
+                    <span class="tab-title"># ${escape(displayName)}</span>
+                    <span class="edit-tab-btn" onclick="event.stopPropagation(); renameRoomTab('${room}')" title="Rename Chat">✏️</span>
+                    <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')" title="Close Chat">&times;</span>
                 `;
                 container.appendChild(tab);
             });
