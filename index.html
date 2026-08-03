@@ -370,7 +370,42 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+        }
+
+        /* Eye Icon & Animations */
+        .eye-indicator {
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .eye-indicator.looking {
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.15);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+            animation: eye-pulse 2s infinite ease-in-out;
+        }
+
+        .eye-indicator.away {
+            color: #6b7280;
+            border-color: rgba(107, 114, 128, 0.3);
+            background: rgba(107, 114, 128, 0.1);
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+
+        @keyframes eye-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.4)); }
         }
 
         .inbox-btn, .menu-toggle-btn {
@@ -664,6 +699,8 @@
                 <span id="room-display">Room: Not Connected</span>
                 
                 <div class="header-actions">
+                    <span id="eye-indicator" class="eye-indicator looking" title="Chat Focus Status">👁️</span>
+
                     <button class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
                         ✉️
                         <span id="mail-badge" class="green-badge"></span>
@@ -712,6 +749,7 @@
         let systemMessages = [];
         let activeUsers = new Set();
         let currentTab = 'requests';
+        let isUserLooking = true;
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         window.onload = function() {
@@ -721,7 +759,44 @@
                 document.getElementById('auth-overlay').style.display = 'none';
                 initApp();
             }
+            setupVisibilityListener();
         };
+
+        function setupVisibilityListener() {
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    setLookingStatus(false);
+                } else {
+                    setLookingStatus(true);
+                }
+            });
+        }
+
+        function setLookingStatus(looking) {
+            isUserLooking = looking;
+            const eye = document.getElementById('eye-indicator');
+            if (looking) {
+                eye.className = 'eye-indicator looking';
+                eye.innerText = '👁️';
+                eye.title = 'You are looking at the chat';
+            } else {
+                eye.className = 'eye-indicator away';
+                eye.innerText = '🙈';
+                eye.title = 'You stopped looking at the chat';
+            }
+
+            // Broadcast focus event to active room
+            if (activeRoomCode && pubnub) {
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: {
+                        type: 'focus_change',
+                        sender: myName,
+                        looking: looking
+                    }
+                });
+            }
+        }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -835,6 +910,20 @@
                                     channel: channel,
                                     message: { type: 'presence_ack', sender: myName }
                                 });
+                                addSystemMsgToRoom(targetRoom, `👋 ${data.sender} joined the room!`);
+                            } else if (data.status === 'leave') {
+                                addSystemMsgToRoom(targetRoom, `🚪 ${data.sender} left the chat.`);
+                            }
+                        }
+                        return;
+                    }
+
+                    if (data.type === 'focus_change') {
+                        if (data.sender !== myName) {
+                            if (!data.looking) {
+                                addSystemMsgToRoom(targetRoom, `🙈 ${data.sender} stopped looking at the chat.`);
+                            } else {
+                                addSystemMsgToRoom(targetRoom, `👁️ ${data.sender} is back looking at the chat.`);
                             }
                         }
                         return;
@@ -908,6 +997,13 @@
 
         function closeRoomTab(code) {
             const channel = "room_code_" + code;
+
+            // Broadcast leave message
+            pubnub.publish({
+                channel: channel,
+                message: { type: 'presence', sender: myName, status: 'leave' }
+            });
+
             pubnub.unsubscribe({ channels: [channel] });
 
             openRooms = openRooms.filter(r => r !== code);
@@ -957,6 +1053,24 @@
             const div = document.createElement('div');
             div.className = `msg ${isSelf ? 'self' : ''}`;
             div.innerHTML = `<span class="sender">${sender}</span>${escape(text)}`;
+
+            if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
+            roomMessages[roomCode].push(div);
+
+            if (roomCode === activeRoomCode) {
+                const box = document.getElementById('messages');
+                box.appendChild(div);
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function addSystemMsgToRoom(roomCode, text) {
+            const div = document.createElement('div');
+            div.style.textAlign = 'center';
+            div.style.fontSize = '11px';
+            div.style.color = '#a1a1aa';
+            div.style.margin = '4px 0';
+            div.innerText = text;
 
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
             roomMessages[roomCode].push(div);
@@ -1190,19 +1304,7 @@
 
         function addSystemMsg(text) {
             if (!activeRoomCode) return;
-            const div = document.createElement('div');
-            div.style.textAlign = 'center';
-            div.style.fontSize = '11px';
-            div.style.color = '#a1a1aa';
-            div.style.margin = '4px 0';
-            div.innerText = text;
-
-            if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
-            roomMessages[activeRoomCode].push(div);
-
-            const box = document.getElementById('messages');
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
+            addSystemMsgToRoom(activeRoomCode, text);
         }
 
         function escape(str) {
