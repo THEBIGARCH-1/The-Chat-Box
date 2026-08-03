@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Room Code Chat</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Live Cloud Room Chat</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0d0e15; color: #fff; height: 100vh; display: flex; justify-content: center; align-items: center; }
         #chat-container { width: 90vw; max-width: 800px; height: 85vh; background: #1a1d2e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #3b4252; }
         #chat-header { padding: 16px 20px; background: #141625; border-bottom: 1px solid #2e3440; display: flex; justify-content: space-between; align-items: center; }
-        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #bf616a; color: #fff; font-weight: bold; }
-        .status.online { background: #a3be8c; color: #1a1d2e; }
+        .status { font-size: 12px; padding: 6px 12px; border-radius: 12px; background: #a3be8c; color: #1a1d2e; font-weight: bold; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg { background: #2e3440; padding: 10px 14px; border-radius: 8px; max-width: 75%; width: fit-content; word-break: break-word; }
         .msg.self { align-self: flex-end; background: #5e81ac; }
@@ -27,18 +27,18 @@
 
     <div id="overlay">
         <div class="modal">
-            <h2>Enter Live Chat</h2>
-            <p style="font-size: 12px; color: #88c0d0;">Enter a name & match room codes to talk!</p>
+            <h2>Enter Live Room</h2>
+            <p style="font-size: 12px; color: #88c0d0;">Enter a name & room code to talk anywhere!</p>
             <input type="text" id="username" placeholder="Your Name" maxlength="15">
-            <input type="text" id="roomcode" placeholder="Room Code (e.g. ROOM99)" maxlength="15">
-            <button onclick="startChat()">Connect to Room</button>
+            <input type="text" id="roomcode" placeholder="Room Code (e.g. CHAT99)" maxlength="15">
+            <button onclick="joinRoom()">Join Room</button>
         </div>
     </div>
 
     <div id="chat-container">
         <div id="chat-header">
             <span id="room-display" style="font-weight: bold;">Room: ----</span>
-            <span id="status-badge" class="status">Disconnected</span>
+            <span id="status-badge" class="status">Connected to Cloud</span>
         </div>
         <div id="messages"></div>
         <div id="input-area">
@@ -48,105 +48,56 @@
     </div>
 
     <script>
-        let peer = null;
-        let conn = null;
+        // PASTE YOUR FIREBASE REALTIME DATABASE URL HERE:
+        const FIREBASE_DB_URL = "YOUR_FIREBASE_DATABASE_URL_HERE";
+
+        let db = null;
         let myName = "User";
-        let roomID = "";
+        let roomCode = "";
 
-        // PeerJS Configuration with Google STUN Servers to bypass network firewalls
-        const peerConfig = {
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
-            }
-        };
-
-        function startChat() {
+        function joinRoom() {
             myName = document.getElementById('username').value.trim() || "User";
-            const code = document.getElementById('roomcode').value.trim().toUpperCase();
-            if (!code) return;
+            roomCode = document.getElementById('roomcode').value.trim().toUpperCase();
 
-            roomID = "ROOM_" + code;
-            document.getElementById('room-display').innerText = "Room: " + code;
+            if (!roomCode) {
+                alert("Please enter a room code!");
+                return;
+            }
+
+            if (FIREBASE_DB_URL === "YOUR_FIREBASE_DATABASE_URL_HERE") {
+                alert("Please add your Firebase Database URL inside the code!");
+                return;
+            }
+
+            // Initialize Firebase
+            firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+            db = firebase.database();
+
+            document.getElementById('room-display').innerText = "Room: " + roomCode;
             document.getElementById('overlay').style.display = 'none';
 
-            addSystemMsg("Connecting to Peer Server...");
+            addSystemMsg(`Joined room [${roomCode}]. Tell your friends to enter code: ${roomCode}`);
 
-            // Try joining as Host using Room Code
-            peer = new Peer(roomID, peerConfig);
-
-            peer.on('open', () => {
-                addSystemMsg(`Created room [${code}]. Tell your friend to enter the exact same code!`);
+            // Listen for new incoming messages in this specific Room Code
+            db.ref('rooms/' + roomCode).on('child_added', (snapshot) => {
+                const msg = snapshot.val();
+                addMsg(msg.sender, msg.text, msg.sender === myName);
             });
-
-            // If the code is already hosted by Person 1, join them as a Client
-            peer.on('error', (err) => {
-                if (err.type === 'unavailable-id') {
-                    peer = new Peer(peerConfig); 
-                    peer.on('open', () => {
-                        conn = peer.connect(roomID, { reliable: true });
-                        setupClientHandlers();
-                    });
-                } else {
-                    addSystemMsg("Error connecting: " + err.type);
-                }
-            });
-
-            // Host receives connection from Friend
-            peer.on('connection', (c) => {
-                conn = c;
-                setupConnectionHandlers();
-            });
-        }
-
-        function setupClientHandlers() {
-            conn.on('open', () => {
-                setOnline();
-                addSystemMsg("Connected live to your friend!");
-            });
-            conn.on('data', data => addMsg(data.sender, data.text, false));
-            conn.on('close', () => setOffline());
-        }
-
-        function setupConnectionHandlers() {
-            conn.on('open', () => {
-                setOnline();
-                addSystemMsg("Your friend joined the room!");
-            });
-            conn.on('data', data => addMsg(data.sender, data.text, false));
-            conn.on('close', () => setOffline());
         }
 
         function send() {
             const input = document.getElementById('message-input');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || !db) return;
 
-            addMsg(myName, text, true);
-
-            if (conn && conn.open) {
-                conn.send({ sender: myName, text: text });
-            } else {
-                addSystemMsg("Message not sent. Waiting for your friend to enter the code...");
-            }
+            // Push message directly to cloud database
+            db.ref('rooms/' + roomCode).push({
+                sender: myName,
+                text: text,
+                timestamp: Date.now()
+            });
 
             input.value = "";
-        }
-
-        function setOnline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "Connected Live!";
-            badge.classList.add('online');
-        }
-
-        function setOffline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "Partner Disconnected";
-            badge.classList.remove('online');
-            addSystemMsg("Connection lost.");
         }
 
         function addMsg(sender, text, isSelf) {
