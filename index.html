@@ -576,7 +576,8 @@
     <script>
         let pubnub = null;
         let myName = "";
-        let channelName = "";
+        let roomChannel = "";
+        let userChannel = "";
         let currentRoomCode = "";
         let friends = [];
         let incomingRequests = [];
@@ -611,7 +612,6 @@
                 return;
             }
 
-            // Global Account Safety Check
             let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
 
             if (globalAccounts[userInput.toLowerCase()]) {
@@ -647,6 +647,81 @@
                 try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
             }
             renderFriends();
+
+            userChannel = "user_direct_" + myName.toLowerCase();
+
+            pubnub = new PubNub({
+                publishKey: 'demo',
+                subscribeKey: 'demo',
+                userId: myId
+            });
+
+            pubnub.addListener({
+                status: function(statusEvent) {
+                    if (statusEvent.category === "PNConnectedCategory") {
+                        setOnline();
+                    }
+                },
+                message: function(event) {
+                    const data = event.message;
+
+                    // Direct Friend Request
+                    if (data.type === 'friend_request') {
+                        if (!incomingRequests.includes(data.from)) {
+                            incomingRequests.push(data.from);
+                            document.getElementById('mail-badge').classList.add('active');
+                            addSystemMsg(`🔔 Friend request received from ${data.from}! Check Inbox.`);
+                            renderInbox();
+                        }
+                        return;
+                    }
+
+                    // Direct Friend Request Accepted
+                    if (data.type === 'friend_accept') {
+                        if (!friends.includes(data.from)) {
+                            friends.push(data.from);
+                            localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
+                            renderFriends();
+                        }
+                        systemMessages.push(`🎉 ${data.from} accepted your friend request!`);
+                        document.getElementById('mail-badge').classList.add('active');
+                        addSystemMsg(`🎉 ${data.from} accepted your friend request!`);
+                        renderInbox();
+                        return;
+                    }
+
+                    // Presence
+                    if (data.type === 'presence') {
+                        if (data.sender !== myName) {
+                            activeUsers.add(data.sender.toLowerCase());
+                            renderFriends();
+                            if (data.status === 'join') {
+                                pubnub.publish({
+                                    channel: roomChannel,
+                                    message: { type: 'presence_ack', sender: myName }
+                                });
+                            }
+                        }
+                        return;
+                    }
+
+                    if (data.type === 'presence_ack') {
+                        if (data.sender !== myName) {
+                            activeUsers.add(data.sender.toLowerCase());
+                            renderFriends();
+                        }
+                        return;
+                    }
+
+                    // Room Messages
+                    if (data.senderId !== myId) {
+                        addMsg(data.sender, data.text, false);
+                    }
+                }
+            });
+
+            // Subscribe to user's private channel immediately
+            pubnub.subscribe({ channels: [userChannel] });
 
             if (savedCode) {
                 connectToRoom(savedCode);
@@ -723,12 +798,12 @@
                 return;
             }
 
+            // Publish directly to the friend's personal user channel
             pubnub.publish({
-                channel: channelName,
+                channel: "user_direct_" + friendName.toLowerCase(),
                 message: {
                     type: 'friend_request',
-                    from: myName,
-                    to: friendName
+                    from: myName
                 }
             });
 
@@ -746,12 +821,12 @@
             incomingRequests = incomingRequests.filter(u => u !== fromUser);
             renderInbox();
 
+            // Notify the requester directly on their personal channel
             pubnub.publish({
-                channel: channelName,
+                channel: "user_direct_" + fromUser.toLowerCase(),
                 message: {
                     type: 'friend_accept',
-                    from: myName,
-                    to: fromUser
+                    from: myName
                 }
             });
 
@@ -809,87 +884,21 @@
             currentRoomCode = rawCode;
             localStorage.setItem("chat_roomcode", currentRoomCode);
 
-            channelName = "room_code_" + currentRoomCode;
+            const newRoomChannel = "room_code_" + currentRoomCode;
             document.getElementById('room-display').innerText = "Room: " + currentRoomCode;
 
             addSystemMsg("Connecting to room " + currentRoomCode + "...");
 
-            if (pubnub) {
-                pubnub.unsubscribeAll();
+            if (roomChannel) {
+                pubnub.unsubscribe({ channels: [roomChannel] });
             }
 
-            pubnub = new PubNub({
-                publishKey: 'demo',
-                subscribeKey: 'demo',
-                userId: myId
-            });
+            roomChannel = newRoomChannel;
+            pubnub.subscribe({ channels: [roomChannel, userChannel] });
 
-            pubnub.addListener({
-                status: function(statusEvent) {
-                    if (statusEvent.category === "PNConnectedCategory") {
-                        setOnline();
-                        addSystemMsg(`Connected to room [${currentRoomCode}]! Share this code with friends.`);
-                        
-                        pubnub.publish({
-                            channel: channelName,
-                            message: { type: 'presence', sender: myName, status: 'join' }
-                        });
-                    }
-                },
-                message: function(event) {
-                    const data = event.message;
-
-                    if (data.type === 'friend_request' && data.to.toLowerCase() === myName.toLowerCase()) {
-                        if (!incomingRequests.includes(data.from)) {
-                            incomingRequests.push(data.from);
-                            document.getElementById('mail-badge').classList.add('active');
-                            addSystemMsg(`🔔 Friend request from ${data.from}! Check Inbox.`);
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'friend_accept' && data.to.toLowerCase() === myName.toLowerCase()) {
-                        if (!friends.includes(data.from)) {
-                            friends.push(data.from);
-                            localStorage.setItem("chat_friends_" + myName.toLowerCase(), JSON.stringify(friends));
-                            renderFriends();
-                        }
-                        systemMessages.push(`🎉 ${data.from} accepted your friend request!`);
-                        document.getElementById('mail-badge').classList.add('active');
-                        addSystemMsg(`🎉 ${data.from} accepted your friend request!`);
-                        return;
-                    }
-
-                    if (data.type === 'presence') {
-                        if (data.sender !== myName) {
-                            activeUsers.add(data.sender.toLowerCase());
-                            renderFriends();
-                            if (data.status === 'join') {
-                                pubnub.publish({
-                                    channel: channelName,
-                                    message: { type: 'presence_ack', sender: myName }
-                                });
-                            }
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'presence_ack') {
-                        if (data.sender !== myName) {
-                            activeUsers.add(data.sender.toLowerCase());
-                            renderFriends();
-                        }
-                        return;
-                    }
-
-                    if (data.senderId !== myId) {
-                        addMsg(data.sender, data.text, false);
-                    }
-                }
-            });
-
-            pubnub.subscribe({
-                channels: [channelName]
+            pubnub.publish({
+                channel: roomChannel,
+                message: { type: 'presence', sender: myName, status: 'join' }
             });
         }
 
@@ -923,7 +932,7 @@
             input.value = "";
 
             pubnub.publish({
-                channel: channelName,
+                channel: roomChannel,
                 message: {
                     senderId: myId,
                     sender: myName,
