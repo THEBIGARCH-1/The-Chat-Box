@@ -8,16 +8,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-        /* Dynamic Theme Palettes */
+        /* Dynamic Theme Palettes (Defaulted to Cyber Blue) */
         :root {
             --primary: #3b82f6;
             --primary-glow: rgba(59, 130, 246, 0.5);
             --secondary: #a855f7;
             --secondary-glow: rgba(168, 85, 247, 0.4);
-            --bg-base: #04020a;
-            --bg-panel: #06040f;
-            --bg-card: #0a0816;
-            --bg-input: #0b091c;
+            --bg-base: #02040a;
+            --bg-panel: #040814;
+            --bg-card: #080e1c;
+            --bg-input: #0c1426;
             --text-main: #f3f4f6;
             --text-accent: #60a5fa;
             --accent-glow: #3b82f6;
@@ -35,6 +35,20 @@
             --text-main: #e2fef0;
             --text-accent: #4ade80;
             --accent-glow: #00ffcc;
+        }
+
+        body.theme-cyber {
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --secondary: #a855f7;
+            --secondary-glow: rgba(168, 85, 247, 0.4);
+            --bg-base: #02040a;
+            --bg-panel: #040814;
+            --bg-card: #080e1c;
+            --bg-input: #0c1426;
+            --text-main: #f3f4f6;
+            --text-accent: #60a5fa;
+            --accent-glow: #3b82f6;
         }
 
         body.theme-synthwave {
@@ -98,7 +112,7 @@
             pointer-events: none;
         }
 
-        /* Dynamic Electrified Glowing Rain & Lightning Canvas Background */
+        /* Background Canvas */
         #bg-canvas {
             position: absolute;
             top: 0;
@@ -177,7 +191,7 @@
             justify-content: center;
         }
 
-        /* Sidebar - Solid */
+        /* Sidebar */
         #sidebar {
             width: 280px;
             background: var(--bg-panel);
@@ -326,6 +340,8 @@
             align-items: center;
             gap: 10px;
             overflow: hidden;
+            cursor: pointer;
+            flex: 1;
         }
 
         .status-dot {
@@ -614,6 +630,15 @@
             box-shadow: 0 0 10px var(--primary-glow);
         }
 
+        /* Message Area & Viewports */
+        #messages-view-port {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
         #messages {
             flex: 1;
             padding: 16px;
@@ -626,7 +651,48 @@
             background: var(--bg-panel);
         }
 
-        /* Solid message bubbles */
+        /* Whiteboard Tab View */
+        #whiteboard-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            background: var(--bg-panel);
+            padding: 12px;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        #wb-canvas {
+            flex: 1;
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: crosshair;
+            box-shadow: inset 0 0 15px var(--primary-glow);
+            touch-action: none;
+        }
+
+        .wb-tools {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wb-colors {
+            display: flex;
+            gap: 6px;
+        }
+
+        .wb-color-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            cursor: pointer;
+        }
+
+        /* Message Bubbles */
         .msg {
             background: var(--bg-card);
             border: 1px solid var(--primary);
@@ -667,6 +733,25 @@
         .msg.self .sender-header {
             color: rgba(255, 255, 255, 0.9);
             justify-content: flex-end;
+        }
+
+        /* Spoiler Ciphers */
+        .spoiler-hidden {
+            background: var(--bg-input);
+            color: transparent;
+            text-shadow: 0 0 8px var(--text-accent);
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 6px;
+            user-select: none;
+        }
+
+        .spoiler-revealed {
+            background: var(--bg-card);
+            color: #fff;
+            padding: 0 6px;
+            border-radius: 4px;
+            border: 1px dashed var(--secondary);
         }
 
         /* Reactions Styling */
@@ -826,7 +911,7 @@
             color: #fff;
         }
 
-        .glitch-btn {
+        .tool-btn {
             background: var(--bg-card);
             border: 1px solid var(--secondary);
             color: var(--secondary);
@@ -836,10 +921,16 @@
             cursor: pointer;
             box-shadow: 0 0 8px var(--secondary-glow);
         }
-        .glitch-btn:hover {
+        .tool-btn:hover {
             background: var(--bg-input);
             box-shadow: 0 0 12px var(--secondary);
             color: #fff;
+        }
+
+        .tool-btn.active-tool {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 0 12px var(--secondary);
         }
 
         #inbox-modal {
@@ -899,7 +990,6 @@
         .btn-accept:hover { box-shadow: 0 0 12px var(--primary); }
         .btn-decline { background: var(--bg-card); color: var(--secondary); border: 1px solid var(--secondary); }
 
-        /* Settings Modal & Deck Utilities */
         .deck-menu {
             display: flex;
             flex-direction: column;
@@ -916,7 +1006,7 @@
             color: var(--text-accent);
         }
 
-        .setting-row select {
+        .setting-row select, .setting-row input[type="range"] {
             background: var(--bg-input);
             color: #fff;
             border: 1px solid var(--primary);
@@ -955,7 +1045,7 @@
         }
     </style>
 </head>
-<body class="theme-matrix crt-enabled">
+<body class="theme-cyber crt-enabled">
 
     <canvas id="bg-canvas"></canvas>
 
@@ -1017,11 +1107,23 @@
                 <div class="setting-row">
                     <span>Theme Palette</span>
                     <select id="theme-select" onchange="changeTheme(this.value)">
+                        <option value="cyber" selected>Cyber Blue</option>
                         <option value="matrix">Matrix Green</option>
-                        <option value="cyber">Cyber Blue</option>
                         <option value="synthwave">Synthwave Pink</option>
                         <option value="acid">Acid Yellow</option>
                     </select>
+                </div>
+                <div class="setting-row">
+                    <span>Background Wallpaper</span>
+                    <select id="wallpaper-select" onchange="changeWallpaper(this.value)">
+                        <option value="rain">Electrified Rain</option>
+                        <option value="grid">Wireframe Horizon</option>
+                        <option value="minimal">Minimal Dark</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <span>Rain Speed / Density</span>
+                    <input type="range" id="rain-range" min="10" max="100" value="55" oninput="updateRainSettings(this.value)">
                 </div>
                 <div class="setting-row">
                     <span>CRT Monitor Overlay</span>
@@ -1037,6 +1139,9 @@
         <div id="chat-container">
             <div id="tabs-bar">
                 <div id="tabs-list"></div>
+                <div class="chat-tab" onclick="openWhiteboardTab()" id="tab-whiteboard" style="color:var(--primary);">
+                    <span class="tab-title">🎨 Whiteboard</span>
+                </div>
                 <div class="add-tab-btn" onclick="promptJoinRoom()" title="Open New Channel">+</div>
             </div>
 
@@ -1056,12 +1161,31 @@
                 </div>
             </div>
 
-            <div id="messages"></div>
+            <div id="messages-view-port">
+                <div id="messages"></div>
+                
+                <div id="whiteboard-view">
+                    <canvas id="wb-canvas"></canvas>
+                    <div class="wb-tools">
+                        <div class="wb-colors">
+                            <div class="wb-color-dot" style="background:#3b82f6;" onclick="setWbColor('#3b82f6')"></div>
+                            <div class="wb-color-dot" style="background:#00ffcc;" onclick="setWbColor('#00ffcc')"></div>
+                            <div class="wb-color-dot" style="background:#ec4899;" onclick="setWbColor('#ec4899')"></div>
+                            <div class="wb-color-dot" style="background:#eab308;" onclick="setWbColor('#eab308')"></div>
+                            <div class="wb-color-dot" style="background:#ffffff;" onclick="setWbColor('#ffffff')"></div>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="clearWhiteboard()">Wipe Grid</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="typing-indicator"></div>
 
             <div id="input-area">
-                <button type="button" class="glitch-btn" onclick="toggleGlitchText()" title="Glitch Text Converter">⚡Glitch</button>
-                <input type="text" id="message-input" placeholder="Transmit message..." autocomplete="off" oninput="handleTypingInput(); handleKeyStrokeSound();" onkeypress="if(event.key==='Enter') send()">
+                <button type="button" class="tool-btn" onclick="toggleGlitchText()" title="Glitch Text Converter">⚡Glitch</button>
+                <button type="button" class="tool-btn" onclick="toggleSpoilerInput()" id="spoiler-btn" title="Secret Spoiler Cipher">🔒Spoiler</button>
+                <button type="button" class="tool-btn" onclick="toggleVoiceRecorder()" id="mic-btn" title="Record Voice Synth">🎙️Mic</button>
+                <input type="text" id="message-input" placeholder="Transmit message or command (e.g. /roll 1d20)..." autocomplete="off" oninput="handleTypingInput(); handleKeyStrokeSound();" onkeypress="if(event.key==='Enter') send()">
                 <button type="button" onclick="send()">Send</button>
             </div>
         </div>
@@ -1105,15 +1229,22 @@
         let activeTypers = {};
         let isAudioAmbienceEnabled = true;
         let isGlitchModeActive = false;
+        let isSpoilerModeActive = false;
         let customMood = "⚡ Jacked In";
-        
+        let wallpaperMode = "rain";
+        let rainDensity = 55;
+        let isWhiteboardActive = false;
+
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
         const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
 
-        // Web Audio API Sound Synthesizer & Ambiance
+        // Web Audio API Sound Synthesizer & Voice Modulator
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let ambientOsc = null;
         let ambientGain = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecordingAudio = false;
 
         function startAmbientHum() {
             if (!audioCtx || ambientOsc || !isAudioAmbienceEnabled) return;
@@ -1122,7 +1253,7 @@
                 ambientOsc = audioCtx.createOscillator();
                 ambientGain = audioCtx.createGain();
                 ambientOsc.type = 'sine';
-                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // Deep sub-bass hum
+                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
                 ambientGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
                 ambientOsc.connect(ambientGain);
                 ambientGain.connect(audioCtx.destination);
@@ -1200,12 +1331,22 @@
             }
         }
 
-        // Theme and CRT controls
+        // Theme, Wallpaper & CRT controls
         function changeTheme(themeName) {
             playSciFiSound('click');
             document.body.className = document.body.className.replace(/theme-\w+/g, '');
             document.body.classList.add('theme-' + themeName);
             localStorage.setItem("chat_theme_pref", themeName);
+        }
+
+        function changeWallpaper(mode) {
+            playSciFiSound('click');
+            wallpaperMode = mode;
+            localStorage.setItem("chat_wallpaper_pref", mode);
+        }
+
+        function updateRainSettings(val) {
+            rainDensity = parseInt(val);
         }
 
         function toggleCRT(enabled) {
@@ -1236,7 +1377,10 @@
         function toggleGlitchText() {
             playSciFiSound('click');
             isGlitchModeActive = !isGlitchModeActive;
-            const btn = document.querySelector('.glitch-btn');
+            isSpoilerModeActive = false;
+            document.getElementById('spoiler-btn').classList.remove('active-tool');
+
+            const btn = document.querySelector('.tool-btn');
             const input = document.getElementById('message-input');
             if (isGlitchModeActive) {
                 btn.style.borderColor = "var(--primary)";
@@ -1245,6 +1389,21 @@
             } else {
                 btn.style.borderColor = "";
                 btn.style.boxShadow = "";
+            }
+        }
+
+        function toggleSpoilerInput() {
+            playSciFiSound('click');
+            isSpoilerModeActive = !isSpoilerModeActive;
+            isGlitchModeActive = false;
+            document.querySelector('.tool-btn').style.borderColor = "";
+            document.querySelector('.tool-btn').style.boxShadow = "";
+
+            const sBtn = document.getElementById('spoiler-btn');
+            if (isSpoilerModeActive) {
+                sBtn.classList.add('active-tool');
+            } else {
+                sBtn.classList.remove('active-tool');
             }
         }
 
@@ -1260,13 +1419,70 @@
             }).join('');
         }
 
-        // Enlarged & Electrified Glowing Raindrops, Smoke & Lightning Canvas Effect
+        // Voice-Note Synth Recorder
+        async function toggleVoiceRecorder() {
+            playSciFiSound('click');
+            const micBtn = document.getElementById('mic-btn');
+            if (!isRecordingAudio) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        sendVoiceAudioMessage(audioUrl);
+                    };
+
+                    mediaRecorder.start();
+                    isRecordingAudio = true;
+                    micBtn.classList.add('active-tool');
+                    micBtn.innerText = "🔴Recording";
+                } catch (err) {
+                    alert("Microphone access denied or unsupported.");
+                }
+            } else {
+                if (mediaRecorder) {
+                    mediaRecorder.stop();
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+                isRecordingAudio = false;
+                micBtn.classList.remove('active-tool');
+                micBtn.innerText = "🎙️Mic";
+            }
+        }
+
+        function sendVoiceAudioMessage(audioUrl) {
+            if (!activeRoomCode) return;
+            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
+            const audioHtml = `<audio controls style="height:32px; max-width:220px;"><source src="${audioUrl}" type="audio/webm"></audio>`;
+            playSciFiSound('send');
+            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, audioHtml, true, isUserLooking, true);
+
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: {
+                    id: msgId,
+                    senderId: myId,
+                    sender: myName,
+                    username: myUsername,
+                    text: audioHtml,
+                    isHtml: true,
+                    looking: isUserLooking
+                }
+            });
+        }
+
+        // Background Canvas Animation (Rain, Grid, Minimal)
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let drops = [];
         let smokeParticles = [];
         let lightningAlpha = 0;
         let lightningPath = [];
+        let gridOffset = 0;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -1275,7 +1491,7 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        for (let i = 0; i < 55; i++) {
+        for (let i = 0; i < 100; i++) {
             drops.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
@@ -1297,18 +1513,19 @@
         }
 
         function triggerLightningBolt() {
-            lightningAlpha = 1.0;
-            lightningPath = [];
-            let currX = Math.random() * canvas.width;
-            let currY = 0;
-            lightningPath.push({x: currX, y: currY});
-
-            while (currY < canvas.height) {
-                currX += (Math.random() - 0.5) * 90;
-                currY += Math.random() * 50 + 25;
+            if (wallpaperMode === 'rain') {
+                lightningAlpha = 1.0;
+                lightningPath = [];
+                let currX = Math.random() * canvas.width;
+                let currY = 0;
                 lightningPath.push({x: currX, y: currY});
-            }
 
+                while (currY < canvas.height) {
+                    currX += (Math.random() - 0.5) * 90;
+                    currY += Math.random() * 50 + 25;
+                    lightningPath.push({x: currX, y: currY});
+                }
+            }
             setTimeout(triggerLightningBolt, Math.random() * 5000 + 3000);
         }
         setTimeout(triggerLightningBolt, 2000);
@@ -1316,68 +1533,201 @@
         function animateBg() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            smokeParticles.forEach(p => {
-                let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-                grad.addColorStop(0, `rgba(0, 255, 204, ${p.opacity})`);
-                grad.addColorStop(0.5, `rgba(34, 197, 94, ${p.opacity * 0.6})`);
-                grad.addColorStop(1, `rgba(2, 8, 4, 0)`);
+            if (wallpaperMode === 'rain') {
+                smokeParticles.forEach(p => {
+                    let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+                    grad.addColorStop(0, `rgba(59, 130, 246, ${p.opacity})`);
+                    grad.addColorStop(0.5, `rgba(168, 85, 247, ${p.opacity * 0.6})`);
+                    grad.addColorStop(1, `rgba(2, 4, 10, 0)`);
 
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
 
-                p.x += p.vx;
-                p.y += p.vy;
+                    p.x += p.vx;
+                    p.y += p.vy;
 
-                if (p.y < -p.radius) {
-                    p.y = canvas.height + p.radius;
-                    p.x = Math.random() * canvas.width;
-                }
-                if (p.x < -p.radius) p.x = canvas.width + p.radius;
-                if (p.x > canvas.width + p.radius) p.x = -p.radius;
-            });
+                    if (p.y < -p.radius) {
+                        p.y = canvas.height + p.radius;
+                        p.x = Math.random() * canvas.width;
+                    }
+                    if (p.x < -p.radius) p.x = canvas.width + p.radius;
+                    if (p.x > canvas.width + p.radius) p.x = -p.radius;
+                });
 
-            ctx.lineWidth = 4;
-            drops.forEach(d => {
-                let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
-                grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`);
-                grad.addColorStop(0.3, `rgba(0, 255, 204, ${d.opacity})`);
-                grad.addColorStop(1, `rgba(34, 197, 94, 0)`);
-                ctx.strokeStyle = grad;
+                ctx.lineWidth = 3;
+                const activeDropsCount = Math.floor((rainDensity / 100) * drops.length);
+                for (let i = 0; i < activeDropsCount; i++) {
+                    let d = drops[i];
+                    let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`);
+                    grad.addColorStop(0.3, `rgba(59, 130, 246, ${d.opacity})`);
+                    grad.addColorStop(1, `rgba(168, 85, 247, 0)`);
+                    ctx.strokeStyle = grad;
 
-                ctx.beginPath();
-                ctx.moveTo(d.x, d.y);
-                ctx.lineTo(d.x, d.y + d.length);
-                ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(d.x, d.y);
+                    ctx.lineTo(d.x, d.y + d.length);
+                    ctx.stroke();
 
-                d.y += d.speed;
-                if (d.y > canvas.height) {
-                    d.y = -d.length;
-                    d.x = Math.random() * canvas.width;
-                }
-            });
-
-            if (lightningAlpha > 0) {
-                ctx.strokeStyle = `rgba(220, 255, 240, ${lightningAlpha})`;
-                ctx.fillStyle = `rgba(0, 255, 204, ${lightningAlpha * 0.12})`;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.lineWidth = 5;
-                ctx.beginPath();
-                if (lightningPath.length > 0) {
-                    ctx.moveTo(lightningPath[0].x, lightningPath[0].y);
-                    for (let i = 1; i < lightningPath.length; i++) {
-                        ctx.lineTo(lightningPath[i].x, lightningPath[i].y);
+                    d.y += d.speed;
+                    if (d.y > canvas.height) {
+                        d.y = -d.length;
+                        d.x = Math.random() * canvas.width;
                     }
                 }
-                ctx.stroke();
-                lightningAlpha -= 0.05;
+
+                if (lightningAlpha > 0) {
+                    ctx.strokeStyle = `rgba(220, 240, 255, ${lightningAlpha})`;
+                    ctx.fillStyle = `rgba(59, 130, 246, ${lightningAlpha * 0.12})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    if (lightningPath.length > 0) {
+                        ctx.moveTo(lightningPath[0].x, lightningPath[0].y);
+                        for (let i = 1; i < lightningPath.length; i++) {
+                            ctx.lineTo(lightningPath[i].x, lightningPath[i].y);
+                        }
+                    }
+                    ctx.stroke();
+                    lightningAlpha -= 0.05;
+                }
+            } else if (wallpaperMode === 'grid') {
+                // Wireframe Horizon Cyber Grid
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+                ctx.lineWidth = 1;
+                const horizonY = canvas.height * 0.55;
+
+                gridOffset = (gridOffset + 0.8) % 40;
+
+                // Vertical perspective lines
+                for (let x = -canvas.width; x < canvas.width * 2; x += 60) {
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width / 2, horizonY);
+                    ctx.lineTo(x + gridOffset * 2, canvas.height);
+                    ctx.stroke();
+                }
+
+                // Horizontal moving floor lines
+                for (let y = horizonY; y < canvas.height; y += (y - horizonY) * 0.15 + 4) {
+                    let adjustedY = y + gridOffset;
+                    if (adjustedY < canvas.height) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, adjustedY);
+                        ctx.lineTo(canvas.width, adjustedY);
+                        ctx.stroke();
+                    }
+                }
             }
 
             requestAnimationFrame(animateBg);
         }
         animateBg();
+
+        // Whiteboard Collaborative Canvas Setup
+        const wbCanvas = document.getElementById('wb-canvas');
+        const wbCtx = wbCanvas.getContext('2d');
+        let isDrawing = false;
+        let wbColor = '#3b82f6';
+        let lastX = 0, lastY = 0;
+
+        function resizeWbCanvas() {
+            const rect = wbCanvas.getBoundingClientRect();
+            wbCanvas.width = rect.width;
+            wbCanvas.height = rect.height;
+        }
+
+        function openWhiteboardTab() {
+            playSciFiSound('click');
+            isWhiteboardActive = true;
+            document.getElementById('messages').style.display = 'none';
+            document.getElementById('whiteboard-view').style.display = 'flex';
+            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-whiteboard').classList.add('active');
+            setTimeout(resizeWbCanvas, 50);
+        }
+
+        function switchRoomTab(code) {
+            playSciFiSound('click');
+            isWhiteboardActive = false;
+            document.getElementById('messages').style.display = 'flex';
+            document.getElementById('whiteboard-view').style.display = 'none';
+            activeRoomCode = code;
+            activeTypers = {};
+            updateTypingDisplay();
+            const displayName = roomAliases[code] || code;
+            document.getElementById('room-display').innerText = "Channel: " + displayName + (displayName !== code ? ` (${code})` : '');
+            renderTabs();
+            renderActiveMessages();
+        }
+
+        function setWbColor(color) {
+            playSciFiSound('click');
+            wbColor = color;
+        }
+
+        function clearWhiteboard() {
+            playSciFiSound('click');
+            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+            if (activeRoomCode && pubnub) {
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: { type: 'wb_clear', username: myUsername }
+                });
+            }
+        }
+
+        wbCanvas.addEventListener('mousedown', e => {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        wbCanvas.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            drawOnWhiteboard(lastX, lastY, e.offsetX, e.offsetY, wbColor, true);
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        wbCanvas.addEventListener('touchstart', e => {
+            isDrawing = true;
+            const rect = wbCanvas.getBoundingClientRect();
+            lastX = e.touches[0].clientX - rect.left;
+            lastY = e.touches[0].clientY - rect.top;
+            e.preventDefault();
+        });
+
+        wbCanvas.addEventListener('touchmove', e => {
+            if (!isDrawing) return;
+            const rect = wbCanvas.getBoundingClientRect();
+            const currentX = e.touches[0].clientX - rect.left;
+            const currentY = e.touches[0].clientY - rect.top;
+            drawOnWhiteboard(lastX, lastY, currentX, currentY, wbColor, true);
+            [lastX, lastY] = [currentX, currentY];
+            e.preventDefault();
+        });
+
+        window.addEventListener('touchend', () => isDrawing = false);
+
+        function drawOnWhiteboard(x1, y1, x2, y2, color, broadcast) {
+            wbCtx.strokeStyle = color;
+            wbCtx.lineWidth = 3;
+            wbCtx.lineCap = 'round';
+            wbCtx.beginPath();
+            wbCtx.moveTo(x1, y1);
+            wbCtx.lineTo(x2, y2);
+            wbCtx.stroke();
+
+            if (broadcast && activeRoomCode && pubnub) {
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: { type: 'wb_draw', x1, y1, x2, y2, color, username: myUsername }
+                });
+            }
+        }
 
         window.onload = function() {
             authPubNub = new PubNub({
@@ -1390,6 +1740,12 @@
             if (savedTheme) {
                 changeTheme(savedTheme);
                 document.getElementById('theme-select').value = savedTheme;
+            }
+
+            const savedWallpaper = localStorage.getItem("chat_wallpaper_pref");
+            if (savedWallpaper) {
+                wallpaperMode = savedWallpaper;
+                document.getElementById('wallpaper-select').value = savedWallpaper;
             }
 
             const savedCrt = localStorage.getItem("chat_crt_pref");
@@ -1589,6 +1945,20 @@
 
                     const targetRoom = channel.replace("room_code_", "");
 
+                    if (data.type === 'wb_draw') {
+                        if (targetRoom === activeRoomCode) {
+                            drawOnWhiteboard(data.x1, data.y1, data.x2, data.y2, data.color, false);
+                        }
+                        return;
+                    }
+
+                    if (data.type === 'wb_clear') {
+                        if (targetRoom === activeRoomCode) {
+                            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                        }
+                        return;
+                    }
+
                     if (data.type === 'mood_change') {
                         userMoods[data.username] = data.mood;
                         renderFriends();
@@ -1652,7 +2022,7 @@
 
                     if (data.senderId !== myId) {
                         userFocusStates[data.username] = (typeof data.looking !== 'undefined') ? data.looking : true;
-                        addMsgToRoom(targetRoom, data.senderId, data.sender, data.username, data.text, false, userFocusStates[data.username]);
+                        addMsgToRoom(targetRoom, data.id, data.sender, data.username, data.text, false, userFocusStates[data.username], data.isHtml);
                         playSciFiSound('receive');
                     }
                 }
@@ -1686,17 +2056,6 @@
             }
 
             switchRoomTab(code);
-        }
-
-        function switchRoomTab(code) {
-            playSciFiSound('click');
-            activeRoomCode = code;
-            activeTypers = {};
-            updateTypingDisplay();
-            const displayName = roomAliases[code] || code;
-            document.getElementById('room-display').innerText = "Channel: " + displayName + (displayName !== code ? ` (${code})` : '');
-            renderTabs();
-            renderActiveMessages();
         }
 
         function renameRoomTab(code) {
@@ -1752,7 +2111,7 @@
             openRooms.forEach(room => {
                 const displayName = roomAliases[room] || room;
                 const tab = document.createElement('div');
-                tab.className = `chat-tab ${room === activeRoomCode ? 'active' : ''}`;
+                tab.className = `chat-tab ${room === activeRoomCode && !isWhiteboardActive ? 'active' : ''}`;
                 tab.onclick = () => switchRoomTab(room);
                 tab.innerHTML = `
                     <span class="tab-title"># ${escape(displayName)}</span>
@@ -1805,12 +2164,21 @@
             }
             reactionsHtml += `</div>`;
 
+            let contentHtml = msgObj.text;
+            if (msgObj.isSpoiler && !msgObj.isSelf) {
+                contentHtml = `<span class="spoiler-hidden" onclick="revealSpoiler(this)">[CLASSIFIED CIPHER &bull; CLICK TO DECRYPT]</span><span style="display:none;">${escape(msgObj.rawText)}</span>`;
+            } else if (msgObj.isHtml) {
+                contentHtml = msgObj.text;
+            } else {
+                contentHtml = escape(msgObj.text);
+            }
+
             div.innerHTML = `
                 <div class="sender-header">
                     <span>${msgObj.isSelf ? 'You' : escape(msgObj.sender)}</span>
                     <span class="user-eye ${eyeClass}" data-username="${escape(msgObj.username)}" title="${isLooking ? 'Terminal active' : 'Terminal away'}">${eyeIcon}</span>
                 </div>
-                ${escape(msgObj.text)}
+                ${contentHtml}
                 ${reactionsHtml}
                 <button type="button" class="add-reaction-btn" onclick="toggleReactionPicker('${msgObj.id}')" title="Add reaction">+</button>
                 <div class="reaction-picker" id="picker-${msgObj.id}">
@@ -1822,6 +2190,12 @@
                 </div>
             `;
             return div;
+        }
+
+        function revealSpoiler(el) {
+            playSciFiSound('click');
+            const hiddenSpan = el.nextElementSibling;
+            el.outerHTML = `<span class="spoiler-revealed">${hiddenSpan.innerText}</span>`;
         }
 
         function toggleReactionPicker(msgId) {
@@ -1909,7 +2283,7 @@
             });
         }
 
-        function addMsgToRoom(roomCode, msgId, sender, username, text, isSelf, looking) {
+        function addMsgToRoom(roomCode, msgId, sender, username, text, isSelf, looking, isHtml, isSpoiler, rawText) {
             const msgObj = {
                 id: msgId || ("msg_" + Math.random().toString(36).substr(2, 9)),
                 sender: sender,
@@ -1917,13 +2291,16 @@
                 text: text,
                 isSelf: isSelf,
                 isSystem: false,
+                isHtml: isHtml || false,
+                isSpoiler: isSpoiler || false,
+                rawText: rawText || text,
                 reactions: {}
             };
 
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
             roomMessages[roomCode].push(msgObj);
 
-            if (roomCode === activeRoomCode) {
+            if (roomCode === activeRoomCode && !isWhiteboardActive) {
                 const box = document.getElementById('messages');
                 box.appendChild(createMessageDOMElement(msgObj));
                 box.scrollTop = box.scrollHeight;
@@ -1936,7 +2313,7 @@
             if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
             roomMessages[roomCode].push(msgObj);
 
-            if (roomCode === activeRoomCode) {
+            if (roomCode === activeRoomCode && !isWhiteboardActive) {
                 const box = document.getElementById('messages');
                 box.appendChild(createMessageDOMElement(msgObj));
                 box.scrollTop = box.scrollHeight;
@@ -2133,6 +2510,13 @@
             }
         }
 
+        function startDM(friendUsername) {
+            playSciFiSound('click');
+            const dmRoomCode = "DM_" + [myUsername, friendUsername].sort().join("_").toUpperCase();
+            connectToRoom(dmRoomCode);
+            if (window.innerWidth <= 768) toggleSidebar();
+        }
+
         function renderFriends() {
             const list = document.getElementById('friends-list');
             list.innerHTML = "";
@@ -2143,7 +2527,7 @@
                 const card = document.createElement('div');
                 card.className = "friend-card";
                 card.innerHTML = `
-                    <div class="friend-info">
+                    <div class="friend-info" onclick="startDM('${escape(friend.username)}')">
                         <div class="status-dot ${isOnline ? 'online' : ''}"></div>
                         <div class="friend-details">
                             <span class="friend-name">${escape(friend.displayName)}</span>
@@ -2186,6 +2570,35 @@
             });
         }
 
+        function processTerminalCommand(text) {
+            if (text.startsWith('/roll')) {
+                const parts = text.split(' ');
+                let count = 1, sides = 20;
+                if (parts[1]) {
+                    const diceParts = parts[1].toLowerCase().split('d');
+                    if (diceParts.length === 2) {
+                        count = parseInt(diceParts[0]) || 1;
+                        sides = parseInt(diceParts[1]) || 20;
+                    }
+                }
+                let total = 0;
+                let rolls = [];
+                for (let i = 0; i < count; i++) {
+                    const roll = Math.floor(Math.random() * sides) + 1;
+                    rolls.push(roll);
+                    total += roll;
+                }
+                return `🎲 Dice Roll [${count}d${sides}]: ${rolls.join(', ')} (Total: ${total})`;
+            } else if (text === '/clear') {
+                if (roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
+                renderActiveMessages();
+                return null;
+            } else if (text === '/help') {
+                return `💻 Available Commands: /roll [NdM] (e.g. /roll 1d20), /clear (wipe console)`;
+            }
+            return text;
+        }
+
         function send() {
             const input = document.getElementById('message-input');
             let text = input.value.trim();
@@ -2197,17 +2610,30 @@
 
             if (!text) return;
 
+            if (text.startsWith('/')) {
+                const res = processTerminalCommand(text);
+                input.value = "";
+                if (res) {
+                    addSystemMsgToRoom(activeRoomCode, res);
+                }
+                return;
+            }
+
             if (isGlitchModeActive) {
                 text = convertToGlitch(text);
             }
 
+            const isSpoiler = isSpoilerModeActive;
             const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
             playSciFiSound('send');
-            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, text, true, isUserLooking);
+            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, text, true, isUserLooking, false, isSpoiler, text);
             input.value = "";
+            
             isGlitchModeActive = false;
-            document.querySelector('.glitch-btn').style.borderColor = "";
-            document.querySelector('.glitch-btn').style.boxShadow = "";
+            isSpoilerModeActive = false;
+            document.querySelector('.tool-btn').style.borderColor = "";
+            document.querySelector('.tool-btn').style.boxShadow = "";
+            document.getElementById('spoiler-btn').classList.remove('active-tool');
 
             isCurrentlyTyping = false;
             pubnub.publish({
@@ -2223,6 +2649,7 @@
                     sender: myName,
                     username: myUsername,
                     text: text,
+                    isSpoiler: isSpoiler,
                     looking: isUserLooking
                 }
             });
