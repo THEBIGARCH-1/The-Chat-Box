@@ -47,10 +47,10 @@
         }
 
         /* Account Auth Overlay */
-        #auth-overlay {
+        #auth-overlay, #invite-popup-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(8, 9, 13, 0.95);
+            background: rgba(8, 9, 13, 0.85);
             backdrop-filter: blur(15px);
             display: flex;
             justify-content: center;
@@ -59,7 +59,12 @@
             padding: 16px;
         }
 
-        .auth-card {
+        #invite-popup-overlay {
+            display: none;
+            z-index: 300;
+        }
+
+        .auth-card, .popup-card {
             background: rgba(22, 25, 38, 0.95);
             padding: 24px;
             border-radius: 20px;
@@ -73,7 +78,7 @@
             text-align: center;
         }
 
-        .auth-card h2 {
+        .auth-card h2, .popup-card h2 {
             font-size: 20px;
             font-weight: 700;
             background: linear-gradient(135deg, #ffffff, #a1a1aa);
@@ -81,9 +86,15 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .auth-card p {
-            font-size: 12px;
+        .auth-card p, .popup-card p {
+            font-size: 13px;
             color: #a1a1aa;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
         /* Sidebar */
@@ -204,6 +215,25 @@
             color: #a1a1aa;
         }
 
+        .friend-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-invite-friend {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 6px;
+        }
+
+        .btn-invite-friend:hover {
+            background: rgba(99, 102, 241, 0.4);
+        }
+
         .remove-friend {
             color: #ef4444;
             cursor: pointer;
@@ -223,8 +253,67 @@
             width: 100%;
         }
 
+        /* Top Room Tabs Bar */
+        #tabs-bar {
+            background: rgba(8, 9, 13, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            padding: 6px 12px 0 12px;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .chat-tab {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: none;
+            padding: 6px 12px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            font-size: 12px;
+            color: #a1a1aa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .chat-tab.active {
+            background: rgba(22, 25, 38, 0.95);
+            color: #ffffff;
+            border-color: rgba(99, 102, 241, 0.4);
+            font-weight: 600;
+        }
+
+        .tab-close-btn {
+            font-size: 12px;
+            color: #ef4444;
+            opacity: 0.6;
+            cursor: pointer;
+        }
+
+        .tab-close-btn:hover { opacity: 1; }
+
+        .add-tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
         #chat-header {
-            padding: 14px 18px;
+            padding: 12px 18px;
             background: rgba(12, 14, 22, 0.6);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
@@ -281,26 +370,6 @@
 
         .green-badge.active { display: block; }
 
-        .device-icons {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 4px 6px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .device-icon {
-            font-size: 12px;
-            opacity: 0.4;
-        }
-
-        .device-icon.active {
-            opacity: 1;
-            color: #8b5cf6;
-        }
-
         .header-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -310,6 +379,16 @@
             color: #a1a1aa;
             cursor: pointer;
             white-space: nowrap;
+        }
+
+        .btn-leave-room {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .btn-leave-room:hover {
+            background: rgba(239, 68, 68, 0.3);
         }
 
         .status {
@@ -505,6 +584,17 @@
         </div>
     </div>
 
+    <div id="invite-popup-overlay">
+        <div class="popup-card">
+            <h2>Room Invite!</h2>
+            <p id="popup-invite-text">Your friend invited you to join their room.</p>
+            <div class="popup-actions">
+                <button onclick="acceptRoomInvite()">Join Room</button>
+                <button class="btn-secondary" onclick="declineRoomInvite()">Decline</button>
+            </div>
+        </div>
+    </div>
+
     <div id="app-container">
         <div id="sidebar">
             <div class="user-profile-box">
@@ -530,6 +620,11 @@
         </div>
 
         <div id="chat-container">
+            <div id="tabs-bar">
+                <div id="tabs-list" style="display:flex; gap:6px;"></div>
+                <div class="add-tab-btn" onclick="promptJoinRoom()" title="Open New Room">+</div>
+            </div>
+
             <div id="chat-header">
                 <button class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">👥</button>
                 <span id="room-display">Room: Not Connected</span>
@@ -540,11 +635,7 @@
                         <span id="mail-badge" class="green-badge"></span>
                     </button>
 
-                    <div class="device-icons">
-                        <span id="icon-desktop" class="device-icon" title="Computer View">💻</span>
-                        <span id="icon-mobile" class="device-icon" title="Mobile View">📱</span>
-                    </div>
-
+                    <button class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">🚪 Leave Chat</button>
                     <button class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
                     <span id="status-badge" class="status">Disconnected</span>
                 </div>
@@ -576,9 +667,11 @@
     <script>
         let pubnub = null;
         let myName = "";
-        let roomChannel = "";
         let userChannel = "";
-        let currentRoomCode = "";
+        let activeRoomCode = "";
+        let pendingInviteRoomCode = "";
+        let openRooms = []; // Stores list of room codes
+        let roomMessages = {}; // Stores message elements per room
         let friends = [];
         let incomingRequests = [];
         let systemMessages = [];
@@ -587,9 +680,6 @@
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         window.onload = function() {
-            detectDeviceMode();
-            window.addEventListener('resize', detectDeviceMode);
-
             const activeUser = localStorage.getItem("chat_current_active_user");
             if (activeUser) {
                 myName = activeUser;
@@ -640,7 +730,6 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const inviteRoom = urlParams.get('room');
-            const savedCode = inviteRoom || localStorage.getItem("chat_roomcode");
             const savedFriends = localStorage.getItem("chat_friends_" + myName.toLowerCase());
 
             if (savedFriends) {
@@ -664,6 +753,15 @@
                 },
                 message: function(event) {
                     const data = event.message;
+                    const channel = event.channel;
+
+                    // Direct Room Pop-up Invite
+                    if (data.type === 'direct_room_invite') {
+                        pendingInviteRoomCode = data.roomCode;
+                        document.getElementById('popup-invite-text').innerText = `${data.from} invited you to join Room [${data.roomCode}]!`;
+                        document.getElementById('invite-popup-overlay').style.display = 'flex';
+                        return;
+                    }
 
                     // Direct Friend Request
                     if (data.type === 'friend_request') {
@@ -690,14 +788,16 @@
                         return;
                     }
 
-                    // Presence
+                    // Room Specific Messages & Presence
+                    const targetRoom = channel.replace("room_code_", "");
+
                     if (data.type === 'presence') {
                         if (data.sender !== myName) {
                             activeUsers.add(data.sender.toLowerCase());
                             renderFriends();
                             if (data.status === 'join') {
                                 pubnub.publish({
-                                    channel: roomChannel,
+                                    channel: channel,
                                     message: { type: 'presence_ack', sender: myName }
                                 });
                             }
@@ -713,27 +813,137 @@
                         return;
                     }
 
-                    // Room Messages
                     if (data.senderId !== myId) {
-                        addMsg(data.sender, data.text, false);
+                        addMsgToRoom(targetRoom, data.sender, data.text, false);
                     }
                 }
             });
 
-            // Subscribe to user's private channel immediately
+            // Subscribe to private channel
             pubnub.subscribe({ channels: [userChannel] });
 
-            if (savedCode) {
-                connectToRoom(savedCode);
+            const initialRoom = inviteRoom || "GLOBAL1";
+            connectToRoom(initialRoom);
+        }
+
+        function connectToRoom(rawCode) {
+            const code = rawCode.toUpperCase();
+            const channel = "room_code_" + code;
+
+            if (!openRooms.includes(code)) {
+                openRooms.push(code);
+                roomMessages[code] = roomMessages[code] || [];
+                pubnub.subscribe({ channels: [channel] });
+                
+                // Send join notification
+                pubnub.publish({
+                    channel: channel,
+                    message: { type: 'presence', sender: myName, status: 'join' }
+                });
+            }
+
+            switchRoomTab(code);
+        }
+
+        function switchRoomTab(code) {
+            activeRoomCode = code;
+            document.getElementById('room-display').innerText = "Room: " + activeRoomCode;
+            renderTabs();
+            renderActiveMessages();
+        }
+
+        function leaveCurrentRoom() {
+            if (!activeRoomCode) return;
+            closeRoomTab(activeRoomCode);
+        }
+
+        function closeRoomTab(code) {
+            const channel = "room_code_" + code;
+            pubnub.unsubscribe({ channels: [channel] });
+
+            openRooms = openRooms.filter(r => r !== code);
+            delete roomMessages[code];
+
+            if (openRooms.length > 0) {
+                switchRoomTab(openRooms[openRooms.length - 1]);
             } else {
-                connectToRoom("GLOBAL1");
+                activeRoomCode = "";
+                document.getElementById('room-display').innerText = "Not Connected";
+                document.getElementById('messages').innerHTML = `<div style="text-align:center; color:#a1a1aa; font-size:12px; margin-top:20px;">You left all rooms. Join or create a room to continue!</div>`;
+                renderTabs();
             }
         }
 
-        function detectDeviceMode() {
-            const isMobile = window.innerWidth <= 768;
-            document.getElementById('icon-mobile').classList.toggle('active', isMobile);
-            document.getElementById('icon-desktop').classList.toggle('active', !isMobile);
+        function renderTabs() {
+            const container = document.getElementById('tabs-list');
+            container.innerHTML = "";
+
+            openRooms.forEach(room => {
+                const tab = document.createElement('div');
+                tab.className = `chat-tab ${room === activeRoomCode ? 'active' : ''}`;
+                tab.onclick = () => switchRoomTab(room);
+                tab.innerHTML = `
+                    <span># ${room}</span>
+                    <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')">&times;</span>
+                `;
+                container.appendChild(tab);
+            });
+        }
+
+        function renderActiveMessages() {
+            const box = document.getElementById('messages');
+            box.innerHTML = "";
+            if (!activeRoomCode || !roomMessages[activeRoomCode]) return;
+
+            roomMessages[activeRoomCode].forEach(msgNode => {
+                box.appendChild(msgNode.cloneNode(true));
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function addMsgToRoom(roomCode, sender, text, isSelf) {
+            const div = document.createElement('div');
+            div.className = `msg ${isSelf ? 'self' : ''}`;
+            div.innerHTML = `<span class="sender">${sender}</span>${escape(text)}`;
+
+            if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
+            roomMessages[roomCode].push(div);
+
+            if (roomCode === activeRoomCode) {
+                const box = document.getElementById('messages');
+                box.appendChild(div);
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function directInviteFriend(friendName) {
+            if (!activeRoomCode) {
+                alert("You need to join or create a room first!");
+                return;
+            }
+
+            pubnub.publish({
+                channel: "user_direct_" + friendName.toLowerCase(),
+                message: {
+                    type: 'direct_room_invite',
+                    from: myName,
+                    roomCode: activeRoomCode
+                }
+            });
+
+            addSystemMsg(`Sent a live room invite to ${friendName}!`);
+        }
+
+        function acceptRoomInvite() {
+            document.getElementById('invite-popup-overlay').style.display = 'none';
+            if (pendingInviteRoomCode) {
+                connectToRoom(pendingInviteRoomCode);
+            }
+        }
+
+        function declineRoomInvite() {
+            document.getElementById('invite-popup-overlay').style.display = 'none';
+            pendingInviteRoomCode = "";
         }
 
         function toggleInbox() {
@@ -798,7 +1008,6 @@
                 return;
             }
 
-            // Publish directly to the friend's personal user channel
             pubnub.publish({
                 channel: "user_direct_" + friendName.toLowerCase(),
                 message: {
@@ -821,7 +1030,6 @@
             incomingRequests = incomingRequests.filter(u => u !== fromUser);
             renderInbox();
 
-            // Notify the requester directly on their personal channel
             pubnub.publish({
                 channel: "user_direct_" + fromUser.toLowerCase(),
                 message: {
@@ -864,7 +1072,10 @@
                             <span class="friend-status-text">${isOnline ? 'Online in Room' : 'Offline'}</span>
                         </div>
                     </div>
-                    <span class="remove-friend" onclick="removeFriend(${idx})" title="Delete Friend">&times;</span>
+                    <div class="friend-actions">
+                        <button class="btn-invite-friend" onclick="directInviteFriend('${escape(friend)}')">Invite</button>
+                        <span class="remove-friend" onclick="removeFriend(${idx})" title="Delete Friend">&times;</span>
+                    </div>
                 `;
                 list.appendChild(card);
             });
@@ -873,47 +1084,25 @@
         function promptJoinRoom() {
             const code = prompt("Enter a Room Code (e.g. CHAT99 or create a new code):");
             if (code && code.trim()) {
-                connectToRoom(code.trim().toUpperCase());
+                connectToRoom(code.trim());
                 if (window.innerWidth <= 768) {
                     toggleSidebar();
                 }
             }
         }
 
-        function connectToRoom(rawCode) {
-            currentRoomCode = rawCode;
-            localStorage.setItem("chat_roomcode", currentRoomCode);
-
-            const newRoomChannel = "room_code_" + currentRoomCode;
-            document.getElementById('room-display').innerText = "Room: " + currentRoomCode;
-
-            addSystemMsg("Connecting to room " + currentRoomCode + "...");
-
-            if (roomChannel) {
-                pubnub.unsubscribe({ channels: [roomChannel] });
-            }
-
-            roomChannel = newRoomChannel;
-            pubnub.subscribe({ channels: [roomChannel, userChannel] });
-
-            pubnub.publish({
-                channel: roomChannel,
-                message: { type: 'presence', sender: myName, status: 'join' }
-            });
-        }
-
         function inviteFriend() {
-            if (!currentRoomCode) {
+            if (!activeRoomCode) {
                 alert("Please join or create a room first!");
                 return;
             }
 
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${activeRoomCode}`;
 
             navigator.clipboard.writeText(inviteUrl).then(() => {
                 addSystemMsg("🔗 Room invite link copied to clipboard!");
             }).catch(() => {
-                addSystemMsg(`Share this code with friends: ${currentRoomCode}`);
+                addSystemMsg(`Share this code with friends: ${activeRoomCode}`);
             });
         }
 
@@ -921,18 +1110,18 @@
             const input = document.getElementById('message-input');
             const text = input.value.trim();
 
-            if (!currentRoomCode || !pubnub) {
-                alert("Please click 'Create / Join Room' first!");
+            if (!activeRoomCode || !pubnub) {
+                alert("Please join or create a room first!");
                 return;
             }
 
             if (!text) return;
 
-            addMsg(myName, text, true);
+            addMsgToRoom(activeRoomCode, myName, text, true);
             input.value = "";
 
             pubnub.publish({
-                channel: roomChannel,
+                channel: "room_code_" + activeRoomCode,
                 message: {
                     senderId: myId,
                     sender: myName,
@@ -947,23 +1136,19 @@
             badge.classList.add('online');
         }
 
-        function addMsg(sender, text, isSelf) {
-            const box = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = `msg ${isSelf ? 'self' : ''}`;
-            div.innerHTML = `<span class="sender">${sender}</span>${escape(text)}`;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
-
         function addSystemMsg(text) {
-            const box = document.getElementById('messages');
+            if (!activeRoomCode) return;
             const div = document.createElement('div');
             div.style.textAlign = 'center';
             div.style.fontSize = '11px';
             div.style.color = '#a1a1aa';
             div.style.margin = '4px 0';
             div.innerText = text;
+
+            if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
+            roomMessages[activeRoomCode].push(div);
+
+            const box = document.getElementById('messages');
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
         }
