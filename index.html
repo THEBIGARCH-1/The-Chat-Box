@@ -673,7 +673,7 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Account Portal</h2>
-            <p id="auth-subtext">Display name can be shared, but your @username must be unique!</p>
+            <p id="auth-subtext">Both your Display Name and Username cannot match an existing user!</p>
             <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Alex)" maxlength="15">
             <input type="text" id="auth-username" placeholder="@Username (e.g. alex_99)" maxlength="15">
             <input type="password" id="auth-pass" placeholder="Password (Optional)" maxlength="20">
@@ -773,8 +773,8 @@
         let pendingInviteRoomCode = "";
         let openRooms = [];
         let roomAliases = {};
-        let roomMessages = {};  // Array of message data objects per room
-        let userFocusStates = {}; // Stores focus status (true/false) per username
+        let roomMessages = {};  
+        let userFocusStates = {}; 
         let friends = [];
         let incomingRequests = [];
         let systemMessages = [];
@@ -842,21 +842,29 @@
             }
 
             if (!userInput) {
-                alert("Please enter a unique @Username!");
+                alert("Please enter a Username!");
                 return;
             }
 
             let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
 
-            if (globalAccounts[userInput]) {
-                if (globalAccounts[userInput].pass && globalAccounts[userInput].pass !== passInput) {
-                    alert("This @username is already taken! Please enter the correct password or pick a different username.");
-                    return;
+            // Check if BOTH Display Name AND Username match an existing user
+            let matchFound = false;
+            for (let key in globalAccounts) {
+                let acc = globalAccounts[key];
+                if (acc.username.toLowerCase() === userInput && acc.displayName.toLowerCase() === dispInput.toLowerCase()) {
+                    matchFound = true;
+                    break;
                 }
-            } else {
-                globalAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
-                localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
             }
+
+            if (matchFound) {
+                alert("This name and user has already been taken!");
+                return;
+            }
+
+            globalAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
+            localStorage.setItem("chat_registered_accounts", JSON.stringify(globalAccounts));
 
             myUsername = userInput;
             myName = dispInput;
