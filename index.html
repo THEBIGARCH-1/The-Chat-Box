@@ -2,2022 +2,542 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CyberChat // Retro-Futuristic Terminal</title>
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberTerminal Chat</title>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.29.9.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
         :root {
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --secondary: #a855f7;
-            --secondary-glow: rgba(168, 85, 247, 0.4);
-            --bg-base: #02040a;
-            --bg-panel: #040814;
-            --bg-card: #080e1c;
-            --bg-input: #0c1426;
-            --text-main: #f3f4f6;
-            --text-accent: #60a5fa;
-            --accent-glow: #3b82f6;
-        }
-
-        body.theme-matrix {
             --primary: #00ffcc;
-            --primary-glow: rgba(0, 255, 204, 0.5);
-            --secondary: #22c55e;
-            --secondary-glow: rgba(34, 197, 94, 0.4);
-            --bg-base: #020804;
-            --bg-panel: #040c06;
-            --bg-card: #07150a;
-            --bg-input: #0a1f0e;
-            --text-main: #e2fef0;
-            --text-accent: #4ade80;
-            --accent-glow: #00ffcc;
-        }
-
-        body.theme-cyber {
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --secondary: #a855f7;
-            --secondary-glow: rgba(168, 85, 247, 0.4);
-            --bg-base: #02040a;
-            --bg-panel: #040814;
-            --bg-card: #080e1c;
-            --bg-input: #0c1426;
-            --text-main: #f3f4f6;
-            --text-accent: #60a5fa;
-            --accent-glow: #3b82f6;
-        }
-
-        body.theme-synthwave {
-            --primary: #ec4899;
-            --primary-glow: rgba(236, 72, 153, 0.5);
-            --secondary: #f43f5e;
-            --secondary-glow: rgba(244, 63, 94, 0.4);
-            --bg-base: #090206;
-            --bg-panel: #11030d;
-            --bg-card: #1c0515;
-            --bg-input: #29081e;
-            --text-main: #fdf2f8;
-            --text-accent: #f472b6;
-            --accent-glow: #ec4899;
-        }
-
-        body.theme-acid {
-            --primary: #eab308;
-            --primary-glow: rgba(234, 179, 8, 0.5);
-            --secondary: #f97316;
-            --secondary-glow: rgba(249, 115, 22, 0.4);
-            --bg-base: #080502;
-            --bg-panel: #0f0903;
-            --bg-card: #1c1005;
-            --bg-input: #291807;
-            --text-main: #fefce8;
-            --text-accent: #fbbf24;
-            --accent-glow: #eab308;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            --primary-glow: rgba(0, 255, 204, 0.4);
+            --secondary: #ff007f;
+            --bg-dark: #0a0a12;
+            --bg-panel: #121222;
+            --text-main: #e0e0ff;
+            --text-accent: #8a8ab0;
         }
 
         body {
-            background: var(--bg-base);
+            background-color: var(--bg-dark);
             color: var(--text-main);
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
             height: 100vh;
-            height: 100dvh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
-            position: relative;
-            transition: background 0.3s ease;
         }
 
-        body.crt-enabled::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 999;
-            background-size: 100% 3px, 3px 100%;
-            pointer-events: none;
-        }
-
-        #bg-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-            filter: drop-shadow(0 0 10px var(--primary));
-        }
-
-        #app-container {
-            width: 95vw;
-            max-width: 1150px;
-            height: 88vh;
-            height: 88dvh;
-            background: var(--bg-panel);
-            border-radius: 12px;
-            display: flex;
-            overflow: hidden;
-            z-index: 10;
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 25px var(--primary), inset 0 0 25px var(--secondary-glow), 0 0 50px var(--secondary-glow);
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        #auth-overlay, #invite-popup-overlay, #confirm-switch-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-base);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            padding: 16px;
-        }
-
-        #invite-popup-overlay, #confirm-switch-overlay {
-            display: none;
-            z-index: 300;
-        }
-
-        .auth-card, .popup-card {
-            background: var(--bg-card);
-            padding: 28px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            width: 100%;
-            max-width: 360px;
-            border: 2px solid var(--secondary);
-            box-shadow: 0 0 25px var(--secondary), inset 0 0 15px var(--primary-glow);
-            text-align: center;
-        }
-
-        .auth-card h2, .popup-card h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--secondary);
-        }
-
-        .auth-card p, .popup-card p {
-            font-size: 12px;
-            color: var(--secondary);
-        }
-
-        .popup-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
+        /* Sidebar Styling */
         #sidebar {
             width: 280px;
-            background: var(--bg-panel);
-            border-right: 2px solid var(--primary);
-            box-shadow: 4px 0 15px var(--primary-glow);
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--primary-glow);
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 16px;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-            position: relative;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
-        .sidebar-close-btn {
-            display: none;
-            position: absolute;
-            top: 14px;
-            right: 16px;
-            font-size: 22px;
-            color: var(--secondary);
-            cursor: pointer;
-            line-height: 1;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: var(--secondary-glow);
-            border: 1px solid var(--secondary);
-        }
-
-        .user-profile-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--primary-glow);
-        }
-
-        .user-profile-info {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .user-profile-box label {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--primary);
-            text-transform: uppercase;
-            text-shadow: 0 0 6px var(--primary);
-        }
-
-        .user-profile-box span.disp-name {
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 8px var(--secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-profile-box span.usr-handle {
-            font-size: 11px;
-            color: var(--text-accent);
-        }
-
-        .status-badge-container {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 11px;
-            color: var(--text-accent);
-            cursor: pointer;
-        }
-
-        .room-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--primary-glow);
-        }
-
-        .sidebar-title {
+        .sidebar-header {
             font-family: 'Orbitron', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #fff;
-            text-shadow: 0 0 8px var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .add-friend-box {
-            display: flex;
-            gap: 6px;
-        }
-
-        .add-friend-box input, .auth-card input {
-            padding: 10px 14px;
-            font-size: 12px;
-        }
-
-        #friends-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-
-        .friend-card {
-            background: var(--bg-card);
-            border: 1px solid var(--primary-glow);
-            padding: 10px 12px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .friend-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #4b5563;
-            box-shadow: 0 0 4px rgba(75, 85, 99, 0.5);
-            flex-shrink: 0;
-        }
-
-        .status-dot.online {
-            background: var(--primary);
-            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
-        }
-
-        .friend-details {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .friend-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .friend-handle {
-            font-size: 10px;
-            color: var(--text-accent);
-        }
-
-        .friend-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .btn-invite-friend {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: var(--text-accent);
-            padding: 4px 8px;
-            font-size: 10px;
-            border-radius: 6px;
-        }
-
-        .remove-friend {
-            color: var(--secondary);
-            cursor: pointer;
             font-size: 14px;
-            opacity: 0.7;
-            padding: 4px;
-        }
-
-        #chat-container {
-            flex: 1;
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary-glow);
+            margin-bottom: 15px;
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            width: 100%;
-            background: var(--bg-panel);
-        }
-
-        #tabs-bar {
-            background: var(--bg-panel);
-            border-bottom: 2px solid var(--primary);
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 6px 12px 0 12px;
-            gap: 6px;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
+        }
+
+        #status-badge {
+            font-size: 10px;
+            padding: 3px 6px;
+            border: 1px solid var(--text-accent);
+            color: var(--text-accent);
+        }
+
+        #status-badge.online {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 5px var(--primary-glow);
         }
 
         #tabs-list {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-shrink: 0;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
         }
 
         .chat-tab {
-            background: var(--bg-card);
-            border: 1px solid var(--primary-glow);
-            border-bottom: none;
-            padding: 6px 12px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            font-size: 12px;
-            color: var(--secondary);
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid transparent;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            flex-shrink: 0;
-            max-width: 200px;
-        }
-
-        .chat-tab.active {
-            background: var(--bg-panel);
-            color: #fff;
-            border-color: var(--primary);
-            border-bottom: 1px solid var(--bg-panel);
-            font-weight: 600;
-            box-shadow: 0 -4px 15px var(--primary-glow);
-        }
-
-        .tab-title {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .edit-tab-btn {
-            font-size: 10px;
-            opacity: 0.6;
-            cursor: pointer;
-        }
-
-        .tab-close-btn {
-            font-size: 12px;
-            color: var(--secondary);
-            opacity: 0.7;
-            cursor: pointer;
-        }
-
-        .add-tab-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: var(--text-accent);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 4px;
-            flex-shrink: 0;
-        }
-
-        #chat-header {
-            padding: 12px 18px;
-            background: var(--bg-panel);
-            border-bottom: 2px solid var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
-        }
-
-        #room-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 12px var(--primary-glow);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .inbox-btn, .menu-toggle-btn {
-            position: relative;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 8px;
             font-size: 13px;
-            color: var(--text-accent);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 8px var(--primary-glow);
+            transition: all 0.2s ease;
         }
 
-        .menu-toggle-btn { display: none; }
-
-        .green-badge {
-            position: absolute;
-            top: -3px;
-            right: -3px;
-            width: 9px;
-            height: 9px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            border: 2px solid var(--bg-panel);
-            box-shadow: 0 0 8px var(--primary);
-            display: none;
+        .chat-tab:hover {
+            background: rgba(0, 255, 204, 0.05);
         }
 
-        .green-badge.active { display: block; }
-
-        .header-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            color: var(--text-accent);
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 0 8px var(--primary-glow);
-        }
-
-        .btn-leave-room {
-            background: var(--bg-card);
-            border: 1px solid var(--secondary);
-            color: var(--secondary);
-            box-shadow: 0 0 8px var(--secondary-glow);
-        }
-
-        .status {
-            font-size: 10px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--bg-card);
-            color: var(--secondary);
-            border: 1px solid var(--secondary);
-            font-weight: 600;
-            white-space: nowrap;
-            box-shadow: 0 0 8px var(--secondary-glow);
-        }
-
-        .status.online {
-            background: var(--bg-card);
+        .chat-tab.active {
+            background: rgba(0, 255, 204, 0.1);
+            border-left-color: var(--primary);
             color: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
+            box-shadow: inset 0 0 10px var(--primary-glow);
         }
 
-        #messages-view-port {
+        .tab-close-btn, .edit-tab-btn {
+            font-size: 14px;
+            color: var(--text-accent);
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .tab-close-btn:hover, .edit-tab-btn:hover {
+            color: var(--secondary);
+        }
+
+        /* Main Chat Window Styling */
+        #main-chat {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            background-color: var(--bg-dark);
             position: relative;
+        }
+
+        #chat-header {
+            padding: 15px;
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--primary-glow);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary-glow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         #messages {
             flex: 1;
-            padding: 16px;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-            background: var(--bg-panel);
-        }
-
-        #whiteboard-view {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            background: var(--bg-panel);
-            padding: 12px;
-            gap: 10px;
-            overflow: hidden;
-        }
-
-        #wb-canvas {
-            flex: 1;
-            background: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            cursor: crosshair;
-            box-shadow: inset 0 0 15px var(--primary-glow);
-            touch-action: none;
-        }
-
-        .wb-tools {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .wb-colors {
-            display: flex;
-            gap: 6px;
-        }
-
-        .wb-color-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            cursor: pointer;
         }
 
         .msg {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             padding: 10px 14px;
-            border-radius: 10px;
-            border-top-left-radius: 2px;
-            max-width: 80%;
-            width: fit-content;
-            word-break: break-word;
-            font-size: 13px;
-            line-height: 1.4;
-            color: var(--text-main);
-            box-shadow: 0 0 12px var(--primary-glow);
+            max-width: 70%;
+            border-radius: 4px;
             position: relative;
         }
 
         .msg.self {
             align-self: flex-end;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: 1px solid var(--text-accent);
-            color: #ffffff;
-            font-weight: 600;
-            border-radius: 10px;
-            border-top-right-radius: 2px;
-            box-shadow: 0 0 15px var(--primary-glow);
+            border-color: var(--primary-glow);
+            background: rgba(0, 255, 204, 0.03);
         }
 
-        .msg .sender-header {
+        .sender-header {
             font-size: 11px;
             color: var(--text-accent);
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             display: flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 600;
+            justify-content: space-between;
+            gap: 15px;
         }
 
-        .msg.self .sender-header {
-            color: rgba(255, 255, 255, 0.9);
-            justify-content: flex-end;
-        }
+        .user-eye.looking { color: var(--primary); }
+        .user-eye.away { color: var(--text-accent); }
 
-        .spoiler-hidden {
-            background: var(--bg-input);
-            color: transparent;
-            text-shadow: 0 0 8px var(--text-accent);
-            cursor: pointer;
-            border-radius: 4px;
-            padding: 0 6px;
-            user-select: none;
-        }
-
-        .spoiler-revealed {
-            background: var(--bg-card);
-            color: #fff;
-            padding: 0 6px;
-            border-radius: 4px;
-            border: 1px dashed var(--secondary);
-        }
-
+        /* Reactions Styling */
         .msg-reactions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
+            gap: 5px;
             margin-top: 6px;
+            flex-wrap: wrap;
         }
 
         .reaction-pill {
-            background: var(--bg-panel);
-            border: 1px solid var(--primary-glow);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 2px 6px;
-            font-size: 10px;
-            color: var(--text-accent);
+            font-size: 11px;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
+            border-radius: 3px;
+        }
+
+        .reaction-pill:hover {
+            border-color: var(--primary);
         }
 
         .add-reaction-btn {
             background: transparent;
-            border: 1px dashed var(--primary-glow);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
+            border: 1px dashed var(--text-accent);
             color: var(--text-accent);
+            font-size: 10px;
+            padding: 1px 5px;
             cursor: pointer;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
             margin-top: 6px;
-            padding: 0;
+        }
+
+        .add-reaction-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
         }
 
         .reaction-picker {
-            position: absolute;
-            bottom: -32px;
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 4px 6px;
             display: none;
-            gap: 6px;
-            z-index: 50;
+            position: absolute;
+            background: var(--bg-panel);
+            border: 1px solid var(--primary);
+            padding: 5px;
+            gap: 5px;
+            z-index: 10;
             box-shadow: 0 0 10px var(--primary-glow);
         }
 
-        .reaction-picker.open { display: flex; }
-        .reaction-option { cursor: pointer; font-size: 14px; }
-
-        .user-eye {
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-eye.looking {
-            color: var(--primary);
-            filter: drop-shadow(0 0 6px var(--primary));
-        }
-
-        .user-eye.away {
-            color: #6b7280;
-            filter: grayscale(100%);
-            opacity: 0.5;
-        }
-
-        #typing-indicator {
-            font-size: 11px;
-            color: var(--secondary);
-            padding: 2px 16px;
-            font-style: italic;
-            height: 18px;
-            font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 0 6px var(--secondary-glow);
-            background: var(--bg-panel);
-        }
-
-        #input-area {
-            padding: 12px 16px;
-            background: var(--bg-panel);
+        .reaction-picker.open {
             display: flex;
+        }
+
+        .reaction-option {
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        .reaction-option:hover {
+            background: rgba(0, 255, 204, 0.2);
+        }
+
+        /* Spoiler Styles */
+        .spoiler-hidden {
+            background: rgba(255, 255, 255, 0.1);
+            color: transparent;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            user-select: none;
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .spoiler-revealed {
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px dashed var(--secondary);
+            padding: 2px 6px;
+            color: #fff;
+        }
+
+        /* Friends & Inbox Panels */
+        #friends-section {
+            margin-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .friend-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .friend-info {
+            display: flex;
+            align-items: center;
             gap: 8px;
-            border-top: 2px solid var(--primary);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-accent);
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: var(--primary);
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        .friend-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .friend-name { color: #fff; font-weight: bold; }
+        .friend-handle { font-size: 10px; color: var(--text-accent); }
+
+        .friend-actions {
+            display: flex;
+            gap: 5px;
             align-items: center;
         }
 
-        input[type="text"], input[type="password"] {
-            flex: 1;
-            padding: 12px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--primary);
-            background: var(--bg-input);
-            color: #fff;
-            outline: none;
-            font-size: 13px;
-            box-shadow: inset 0 0 8px var(--primary-glow);
+        .btn-invite-friend {
+            font-size: 9px;
+            padding: 2px 4px;
         }
 
-        button {
-            padding: 10px 16px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: 1px solid var(--text-accent);
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            color: #ffffff;
-            font-size: 12px;
-            white-space: nowrap;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
+        .remove-friend {
             color: var(--text-accent);
-            box-shadow: 0 0 8px var(--primary-glow);
-        }
-
-        .tool-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--secondary);
-            color: var(--secondary);
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 0 8px var(--secondary-glow);
+            font-size: 12px;
         }
-        .tool-btn.active-tool {
-            background: var(--secondary);
-            color: #fff;
-            box-shadow: 0 0 12px var(--secondary);
-        }
+        .remove-friend:hover { color: var(--secondary); }
 
-        #inbox-modal {
-            display: none;
-            position: absolute;
-            top: 55px;
-            right: 12px;
-            width: calc(100% - 24px);
-            max-width: 320px;
-            background: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            box-shadow: 0 0 25px var(--primary), inset 0 0 15px var(--secondary-glow);
-            padding: 14px;
-            z-index: 100;
-            flex-direction: column;
+        /* Input Area Styling */
+        #input-area {
+            padding: 15px;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--primary-glow);
+            display: flex;
             gap: 10px;
         }
 
-        .inbox-tabs {
-            display: flex;
-            gap: 6px;
-            border-bottom: 1px solid var(--primary-glow);
-            padding-bottom: 6px;
-        }
-
-        .inbox-tab {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-accent);
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        .inbox-tab.active {
-            color: #ffffff;
-            background: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-            font-weight: 700;
-        }
-
-        .req-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--primary-glow);
-            border-radius: 8px;
-            padding: 8px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .req-actions { display: flex; gap: 4px; }
-        .req-actions button { padding: 4px 8px; font-size: 10px; border-radius: 6px; }
-        .btn-accept { background: var(--primary); color: var(--bg-base); border: none; font-weight: 700; }
-        .btn-decline { background: var(--bg-card); color: var(--secondary); border: 1px solid var(--secondary); }
-
-        .deck-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid var(--primary-glow);
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: var(--text-accent);
-        }
-
-        .setting-row select, .setting-row input[type="range"] {
-            background: var(--bg-input);
-            color: #fff;
-            border: 1px solid var(--primary);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
+        #message-input {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 1px solid var(--text-accent);
+            color: var(--text-main);
+            padding: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
             outline: none;
         }
 
-        @media (max-width: 768px) {
-            body { padding: 0; }
-            #app-container { 
-                width: 100vw; 
-                height: 100vh; 
-                height: 100dvh; 
-                border-radius: 0; 
-                border: none;
-                flex-direction: column; 
-            }
-            .menu-toggle-btn { display: flex; }
-            .sidebar-close-btn { display: block; }
-            #sidebar { 
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 90;
-                background: var(--bg-panel);
-                transform: translateX(-100%);
-                padding-top: 50px;
-            }
-            #sidebar.open { transform: translateX(0); }
-            .status { display: none; }
-            #chat-header { height: 50px; }
+        #message-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Modals & Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 18, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--primary);
+            padding: 25px;
+            width: 350px;
+            box-shadow: 0 0 20px var(--primary-glow);
+            text-align: center;
         }
     </style>
 </head>
-<body class="theme-cyber crt-enabled">
+<body>
 
-    <canvas id="bg-canvas"></canvas>
-
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2>CYBERNET LOGIN</h2>
-            <p id="auth-subtext">Enter your link credentials. Use exact password for multi-device sync!</p>
-            <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Neo)" maxlength="15" autocomplete="off">
-            <input type="text" id="auth-username" placeholder="@USER (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
-            <input type="password" id="auth-pass" placeholder="Secure Password" maxlength="20">
-            <button type="button" id="auth-btn" onclick="handleAuth()">Initialize Connection</button>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <span>CHANNELS</span>
+            <div id="status-badge">Offline</div>
         </div>
-    </div>
+        <div id="tabs-list"></div>
+        <button type="button" onclick="promptJoinRoom()">+ NEW CHANNEL</button>
 
-    <div id="invite-popup-overlay">
-        <div class="popup-card">
-            <h2>ROOM INVITE</h2>
-            <p id="popup-invite-text">Your connection invited you to join a secure channel.</p>
-            <div class="popup-actions">
-                <button type="button" onclick="acceptRoomInvite()">Accept Link</button>
-                <button type="button" class="btn-secondary" onclick="declineRoomInvite()">Decline</button>
+        <div id="friends-section">
+            <div class="sidebar-header" style="font-size:11px; margin-bottom:8px;">
+                <span>LINKED OPERATORS</span>
+                <button type="button" style="font-size:9px; padding:2px 5px;" onclick="toggleInbox()">INBOX</button>
             </div>
-        </div>
-    </div>
-
-    <div id="confirm-switch-overlay">
-        <div class="popup-card">
-            <h2>SWITCH ACCOUNT</h2>
-            <p>Are you sure you want to switch accounts?</p>
-            <div class="popup-actions">
-                <button type="button" onclick="confirmSwitchAccount()">Yes, Switch</button>
-                <button type="button" class="btn-secondary" onclick="cancelSwitchAccount()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="app-container">
-        <div id="sidebar">
-            <span class="sidebar-close-btn" onclick="toggleSidebar()" title="Close Menu">&times;</span>
-
-            <div class="user-profile-box">
-                <div class="user-profile-info">
-                    <label>Terminal User</label>
-                    <span id="display-user" class="disp-name">--</span>
-                    <span id="display-handle" class="usr-handle">--</span>
-                </div>
-                <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="promptSwitchAccount()">Switch</button>
-            </div>
-
-            <div class="status-badge-container" onclick="promptCustomStatus()" title="Set Status Mood">
-                <span>🟢</span>
-                <span id="user-status-mood" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⚡ Jacked In</span>
-            </div>
-
-            <div class="room-actions">
-                <button type="button" onclick="promptJoinRoom()">// Create / Join Channel</button>
-            </div>
-
-            <div class="sidebar-title">
-                <span>Linked Contacts</span>
-            </div>
-            <div class="add-friend-box">
-                <input type="text" id="friend-input" placeholder="@USER" autocapitalize="none" autocomplete="off">
-                <button type="button" class="btn-secondary" onclick="sendFriendRequest()">Link</button>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <input type="text" id="friend-input" placeholder="Add operator @handle..." style="flex:1; background:var(--bg-dark); border:1px solid var(--text-accent); color:var(--text-main); font-size:11px; padding:4px;">
+                <button type="button" style="font-size:10px; padding:2px 6px;" onclick="sendFriendRequest()">LINK</button>
             </div>
             <div id="friends-list"></div>
+        </div>
+    </div>
 
-            <div class="deck-menu">
-                <div class="sidebar-title"><span>Cyber Settings</span></div>
-                <div class="setting-row">
-                    <span>Theme Palette</span>
-                    <select id="theme-select" onchange="changeTheme(this.value)">
-                        <option value="cyber" selected>Cyber Blue</option>
-                        <option value="matrix">Matrix Green</option>
-                        <option value="synthwave">Synthwave Pink</option>
-                        <option value="acid">Acid Yellow</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <span>Background Wallpaper</span>
-                    <select id="wallpaper-select" onchange="changeWallpaper(this.value)">
-                        <option value="rain">Electrified Rain</option>
-                        <option value="grid">Wireframe Horizon</option>
-                        <option value="minimal">Minimal Dark</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <span>Rain Speed / Density</span>
-                    <input type="range" id="rain-range" min="10" max="100" value="55" oninput="updateRainSettings(this.value)">
-                </div>
-                <div class="setting-row">
-                    <span>CRT Monitor Overlay</span>
-                    <input type="checkbox" id="crt-toggle" checked onchange="toggleCRT(this.checked)">
-                </div>
-                <div class="setting-row">
-                    <span>Synth Audio Ambience</span>
-                    <input type="checkbox" id="audio-toggle" checked onchange="toggleAudioAmbience(this.checked)">
-                </div>
+    <div id="main-chat">
+        <div id="chat-header">
+            <span id="room-display">Channel: Offline</span>
+            <div>
+                <button type="button" id="spoiler-btn" onclick="toggleSpoilerMode()" style="font-size:10px; padding:4px 8px;">CLASSIFIED</button>
+                <button type="button" onclick="inviteFriend()">SHARE</button>
+                <button type="button" onclick="leaveCurrentRoom()">LEAVE</button>
             </div>
         </div>
 
-        <div id="chat-container">
-            <div id="tabs-bar">
-                <div id="tabs-list"></div>
-                <div class="chat-tab" onclick="openWhiteboardTab()" id="tab-whiteboard" style="color:var(--primary);">
-                    <span class="tab-title">🎨 Whiteboard</span>
-                </div>
-                <div class="add-tab-btn" onclick="promptJoinRoom()" title="Open New Channel">+</div>
-            </div>
-
-            <div id="chat-header">
-                <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">⚡</button>
-                <span id="room-display">Channel: Offline</span>
-                
-                <div class="header-actions">
-                    <button type="button" class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
-                        📬
-                        <span id="mail-badge" class="green-badge"></span>
-                    </button>
-
-                    <button type="button" class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">Disconnect</button>
-                    <button type="button" class="header-btn" onclick="inviteFriend()">Share Link</button>
-                    <span id="status-badge" class="status">Offline</span>
-                </div>
-            </div>
-
-            <div id="messages-view-port">
-                <div id="messages"></div>
-                
-                <div id="whiteboard-view">
-                    <canvas id="wb-canvas"></canvas>
-                    <div class="wb-tools">
-                        <div class="wb-colors">
-                            <div class="wb-color-dot" style="background:#ef4444;" onclick="setWbColor('#ef4444')" title="Fire Red"></div>
-                            <div class="wb-color-dot" style="background:#f97316;" onclick="setWbColor('#f97316')" title="Fire Orange"></div>
-                            <div class="wb-color-dot" style="background:#eab308;" onclick="setWbColor('#eab308')" title="Fire Yellow"></div>
-                            <div class="wb-color-dot" style="background:#3b82f6;" onclick="setWbColor('#3b82f6')"></div>
-                            <div class="wb-color-dot" style="background:#ffffff;" onclick="setWbColor('#ffffff')"></div>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <input type="file" id="image-upload-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
-                            <button type="button" class="btn-secondary" onclick="triggerImageUpload()">Upload Picture</button>
-                            <button type="button" class="btn-secondary" onclick="sendDrawingToChat()">Send Drawing To Chat</button>
-                            <button type="button" class="btn-secondary" onclick="clearWhiteboard()">Wipe Grid</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="typing-indicator"></div>
-
-            <div id="input-area">
-                <button type="button" class="tool-btn" onclick="toggleGlitchText()" title="Glitch Text Converter">⚡Glitch</button>
-                <button type="button" class="tool-btn" onclick="toggleSpoilerInput()" id="spoiler-btn" title="Secret Spoiler Cipher">🔒Spoiler</button>
-                <button type="button" class="tool-btn" onclick="toggleVoiceRecorder()" id="mic-btn" title="Record Voice Synth">🎙️Mic</button>
-                <input type="text" id="message-input" placeholder="Transmit message or command (e.g. /roll 1d20)..." autocomplete="off" oninput="handleTypingInput(); handleKeyStrokeSound();" onkeypress="if(event.key==='Enter') send()">
-                <button type="button" onclick="send()">Send</button>
+        <div id="messages">
+            <div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px var(--primary-glow);">
+                Enter a Channel Code or click + to start transmitting!
             </div>
         </div>
 
-        <div id="inbox-modal">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:var(--text-accent);">Incoming Signals</h3>
-                <span style="cursor:pointer; font-weight:bold; color:var(--secondary);" onclick="toggleInbox()">&times;</span>
-            </div>
-            
-            <div class="inbox-tabs">
-                <div id="tab-requests" class="inbox-tab active" onclick="switchInboxTab('requests')">Link Requests</div>
-                <div id="tab-system" class="inbox-tab" onclick="switchInboxTab('system')">System Logs</div>
-            </div>
+        <div id="typing-indicator" style="padding: 0 20px; height: 20px; font-size: 11px; color: var(--text-accent);"></div>
 
-            <div id="inbox-content" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="input-area">
+            <input type="text" id="message-input" placeholder="Type transmission or /help..." oninput="handleTypingInput()" onkeydown="if(event.key==='Enter') send()">
+            <button type="button" onclick="send()">TRANSMIT</button>
+        </div>
+    </div>
+
+    <div id="inbox-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="font-family:'Orbitron',sans-serif; font-size:14px; color:var(--primary); margin-bottom:15px;">OPERATOR INBOX</div>
+            <div style="display:flex; gap:5px; margin-bottom:10px;">
+                <button type="button" id="tab-requests" class="active" style="flex:1; font-size:10px; padding:4px;" onclick="switchInboxTab('requests')">Signals</button>
+                <button type="button" id="tab-system" style="flex:1; font-size:10px; padding:4px;" onclick="switchInboxTab('system')">System Logs</button>
+            </div>
+            <div id="inbox-content" style="max-height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:15px;"></div>
+            <button type="button" onclick="toggleInbox()">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="invite-popup-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div style="font-family:'Orbitron',sans-serif; font-size:14px; color:var(--primary); margin-bottom:10px;">INCOMING CHANNEL INVITE</div>
+            <div id="invite-popup-text" style="font-size:12px; margin-bottom:15px;"></div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button type="button" onclick="acceptRoomInvite()">ACCEPT</button>
+                <button type="button" style="border-color:var(--secondary); color:var(--secondary);" onclick="declineRoomInvite()">DECLINE</button>
+            </div>
         </div>
     </div>
 
     <script>
         let pubnub = null;
-        let authPubNub = null;
-        let myName = "";        
-        let myUsername = "";    
-        let userChannel = "";
+        let myUsername = "operator_" + Math.floor(Math.random() * 1000);
+        let myName = "User " + myUsername;
+        let myId = "id_" + Math.random().toString(36).substr(2, 9);
         let activeRoomCode = "";
-        let pendingInviteRoomCode = "";
         let openRooms = [];
+        let roomMessages = {};
         let roomAliases = {};
-        let roomMessages = {};  
-        let userFocusStates = {}; 
+        let activeUsers = new Set();
         let userMoods = {};
-        let friends = [];
+        let userFocusStates = {};
         let incomingRequests = [];
         let systemMessages = [];
-        let activeUsers = new Set();
-        let currentTab = 'requests';
+        let friends = [];
+        
         let isUserLooking = true;
-        let typingTimeout = null;
-        let isCurrentlyTyping = false;
-        let activeTypers = {};
-        let isAudioAmbienceEnabled = true;
         let isGlitchModeActive = false;
         let isSpoilerModeActive = false;
-        let customMood = "⚡ Jacked In";
-        let wallpaperMode = "rain";
-        let rainDensity = 55;
         let isWhiteboardActive = false;
+        let isCurrentlyTyping = false;
+        let typingTimeout = null;
+        let pendingInviteRoomCode = "";
+        let currentTab = 'requests';
+        let activeTypers = {};
 
-        const myId = "usr_" + Math.random().toString(36).substr(2, 9);
-        const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let ambientOsc = null;
-        let ambientGain = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecordingAudio = false;
-
-        function startAmbientHum() {
-            if (!audioCtx || ambientOsc || !isAudioAmbienceEnabled) return;
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                ambientOsc = audioCtx.createOscillator();
-                ambientGain = audioCtx.createGain();
-                ambientOsc.type = 'sine';
-                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
-                ambientGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-                ambientOsc.connect(ambientGain);
-                ambientGain.connect(audioCtx.destination);
-                ambientOsc.start();
-            } catch (e) {}
-        }
-
-        function stopAmbientHum() {
-            if (ambientOsc) {
-                try { ambientOsc.stop(); ambientOsc.disconnect(); } catch(e) {}
-                ambientOsc = null;
-                ambientGain = null;
-            }
-        }
-
-        function toggleAudioAmbience(enabled) {
-            isAudioAmbienceEnabled = enabled;
-            if (enabled) {
-                startAmbientHum();
-            } else {
-                stopAmbientHum();
-            }
-        }
-
-        function playSciFiSound(type) {
-            if (!audioCtx || !isAudioAmbienceEnabled) return;
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-
-            if (type === 'send') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-            } else if (type === 'receive') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(880, now);
-                osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-                osc.start(now);
-                osc.stop(now + 0.12);
-            } else if (type === 'click') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(300, now);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                osc.start(now);
-                osc.stop(now + 0.04);
-            } else if (type === 'key') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150 + Math.random() * 100, now);
-                gain.gain.setValueAtTime(0.02, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
-                osc.start(now);
-                osc.stop(now + 0.02);
-            }
-        }
-
-        let lastKeySoundTime = 0;
-        function handleKeyStrokeSound() {
-            const now = Date.now();
-            if (now - lastKeySoundTime > 120) {
-                playSciFiSound('key');
-                lastKeySoundTime = now;
-            }
-        }
-
-        function changeTheme(themeName) {
-            playSciFiSound('click');
-            document.body.className = document.body.className.replace(/theme-\w+/g, '');
-            document.body.classList.add('theme-' + themeName);
-            localStorage.setItem("chat_theme_pref", themeName);
-        }
-
-        function changeWallpaper(mode) {
-            playSciFiSound('click');
-            wallpaperMode = mode;
-            localStorage.setItem("chat_wallpaper_pref", mode);
-        }
-
-        function updateRainSettings(val) {
-            rainDensity = parseInt(val);
-        }
-
-        function toggleCRT(enabled) {
-            playSciFiSound('click');
-            if (enabled) {
-                document.body.classList.add('crt-enabled');
-            } else {
-                document.body.classList.remove('crt-enabled');
-            }
-            localStorage.setItem("chat_crt_pref", enabled);
-        }
-
-        function promptCustomStatus() {
-            playSciFiSound('click');
-            const newMood = prompt("Enter your terminal status mood:", customMood);
-            if (newMood && newMood.trim()) {
-                customMood = newMood.trim();
-                document.getElementById('user-status-mood').innerText = customMood;
-                if (activeRoomCode && pubnub) {
-                    pubnub.publish({
-                        channel: "room_code_" + activeRoomCode,
-                        message: { type: 'mood_change', username: myUsername, mood: customMood }
-                    });
-                }
-            }
-        }
-
-        function toggleGlitchText() {
-            playSciFiSound('click');
-            isGlitchModeActive = !isGlitchModeActive;
-            isSpoilerModeActive = false;
-            document.getElementById('spoiler-btn').classList.remove('active-tool');
-
-            const btn = document.querySelector('.tool-btn');
-            const input = document.getElementById('message-input');
-            if (isGlitchModeActive) {
-                btn.style.borderColor = "var(--primary)";
-                btn.style.boxShadow = "0 0 10px var(--primary)";
-                input.value = convertToGlitch(input.value || "SYSTEM OVERRIDE");
-            } else {
-                btn.style.borderColor = "";
-                btn.style.boxShadow = "";
-            }
-        }
-
-        function toggleSpoilerInput() {
-            playSciFiSound('click');
-            isSpoilerModeActive = !isSpoilerModeActive;
-            isGlitchModeActive = false;
-            document.querySelector('.tool-btn').style.borderColor = "";
-            document.querySelector('.tool-btn').style.boxShadow = "";
-
-            const sBtn = document.getElementById('spoiler-btn');
-            if (isSpoilerModeActive) {
-                sBtn.classList.add('active-tool');
-            } else {
-                sBtn.classList.remove('active-tool');
-            }
-        }
-
-        function convertToGlitch(text) {
-            const glitchChars = ['̸', '̷', '̶', '̴', '̵', '̹', '̺', '̻', '̼', '̽', '̾', '̿', '̀', '́', '͂', '̓', '̈́', 'ͅ', '͆', '͇', '͈', '͉', '͊', '͋', '͌', '͐', '͑', '͒', ''];
-            return text.split('').map(char => {
-                if (char === ' ') return ' ';
-                let res = char;
-                for (let i = 0; i < 2; i++) {
-                    res += glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                }
-                return res;
-            }).join('');
-        }
-
-        async function toggleVoiceRecorder() {
-            playSciFiSound('click');
-            const micBtn = document.getElementById('mic-btn');
-            if (!isRecordingAudio) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        sendVoiceAudioMessage(audioUrl);
-                    };
-
-                    mediaRecorder.start();
-                    isRecordingAudio = true;
-                    micBtn.classList.add('active-tool');
-                    micBtn.innerText = "🔴Recording";
-                } catch (err) {
-                    alert("Microphone access denied or unsupported.");
-                }
-            } else {
-                if (mediaRecorder) {
-                    mediaRecorder.stop();
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                }
-                isRecordingAudio = false;
-                micBtn.classList.remove('active-tool');
-                micBtn.innerText = "🎙️Mic";
-            }
-        }
-
-        function sendVoiceAudioMessage(audioUrl) {
-            if (!activeRoomCode) return;
-            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
-            const audioHtml = `<audio controls style="height:32px; max-width:220px;"><source src="${audioUrl}" type="audio/webm"></audio>`;
-            playSciFiSound('send');
-            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, audioHtml, true, isUserLooking, true);
-
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: {
-                    id: msgId,
-                    senderId: myId,
-                    sender: myName,
-                    username: myUsername,
-                    text: audioHtml,
-                    isHtml: true,
-                    looking: isUserLooking
-                }
+        window.addEventListener('DOMContentLoaded', () => {
+            pubnub = new PubNub({
+                publishKey: 'pub-c-your-publish-key',
+                subscribeKey: 'sub-c-your-subscribe-key',
+                uuid: myUsername
             });
-        }
 
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let drops = [];
-        let smokeParticles = [];
-        let lightningAlpha = 0;
-        let lightningPath = [];
-        let gridOffset = 0;
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        for (let i = 0; i < 100; i++) {
-            drops.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                length: Math.random() * 70 + 45,
-                speed: Math.random() * 14 + 11,
-                opacity: Math.random() * 0.6 + 0.4
-            });
-        }
-
-        for (let i = 0; i < 18; i++) {
-            smokeParticles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 120 + 80,
-                vx: (Math.random() - 0.5) * 0.6,
-                vy: -Math.random() * 0.8 - 0.2,
-                opacity: Math.random() * 0.15 + 0.05
-            });
-        }
-
-        function triggerLightningBolt() {
-            if (wallpaperMode === 'rain') {
-                lightningAlpha = 1.0;
-                lightningPath = [];
-                let currX = Math.random() * canvas.width;
-                let currY = 0;
-                lightningPath.push({x: currX, y: currY});
-
-                while (currY < canvas.height) {
-                    currX += (Math.random() - 0.5) * 90;
-                    currY += Math.random() * 50 + 25;
-                    lightningPath.push({x: currX, y: currY});
-                }
-            }
-            setTimeout(triggerLightningBolt, Math.random() * 5000 + 3000);
-        }
-        setTimeout(triggerLightningBolt, 2000);
-
-        function animateBg() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (wallpaperMode === 'rain') {
-                smokeParticles.forEach(p => {
-                    let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-                    grad.addColorStop(0, `rgba(59, 130, 246, ${p.opacity})`);
-                    grad.addColorStop(0.5, `rgba(168, 85, 247, ${p.opacity * 0.6})`);
-                    grad.addColorStop(1, `rgba(2, 4, 10, 0)`);
-
-                    ctx.fillStyle = grad;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    if (p.y < -p.radius) {
-                        p.y = canvas.height + p.radius;
-                        p.x = Math.random() * canvas.width;
-                    }
-                    if (p.x < -p.radius) p.x = canvas.width + p.radius;
-                    if (p.x > canvas.width + p.radius) p.x = -p.radius;
-                });
-
-                ctx.lineWidth = 3;
-                const activeDropsCount = Math.floor((rainDensity / 100) * drops.length);
-                for (let i = 0; i < activeDropsCount; i++) {
-                    let d = drops[i];
-                    let grad = ctx.createLinearGradient(d.x, d.y, d.x, d.y + d.length);
-                    grad.addColorStop(0, `rgba(255, 255, 255, ${d.opacity})`);
-                    grad.addColorStop(0.3, `rgba(59, 130, 246, ${d.opacity})`);
-                    grad.addColorStop(1, `rgba(168, 85, 247, 0)`);
-                    ctx.strokeStyle = grad;
-
-                    ctx.beginPath();
-                    ctx.moveTo(d.x, d.y);
-                    ctx.lineTo(d.x, d.y + d.length);
-                    ctx.stroke();
-
-                    d.y += d.speed;
-                    if (d.y > canvas.height) {
-                        d.y = -d.length;
-                        d.x = Math.random() * canvas.width;
-                    }
-                }
-
-                if (lightningAlpha > 0) {
-                    ctx.strokeStyle = `rgba(220, 240, 255, ${lightningAlpha})`;
-                    ctx.fillStyle = `rgba(59, 130, 246, ${lightningAlpha * 0.12})`;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    if (lightningPath.length > 0) {
-                        ctx.moveTo(lightningPath[0].x, lightningPath[0].y);
-                        for (let i = 1; i < lightningPath.length; i++) {
-                            ctx.lineTo(lightningPath[i].x, lightningPath[i].y);
-                        }
-                    }
-                    ctx.stroke();
-                    lightningAlpha -= 0.05;
-                }
-            } else if (wallpaperMode === 'grid') {
-                ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
-                ctx.lineWidth = 1;
-                const horizonY = canvas.height * 0.55;
-
-                gridOffset = (gridOffset + 0.8) % 40;
-
-                for (let x = -canvas.width; x < canvas.width * 2; x += 60) {
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width / 2, horizonY);
-                    ctx.lineTo(x + gridOffset * 2, canvas.height);
-                    ctx.stroke();
-                }
-
-                for (let y = horizonY; y < canvas.height; y += (y - horizonY) * 0.15 + 4) {
-                    let adjustedY = y + gridOffset;
-                    if (adjustedY < canvas.height) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, adjustedY);
-                        ctx.lineTo(canvas.width, adjustedY);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            requestAnimationFrame(animateBg);
-        }
-        animateBg();
-
-        const wbCanvas = document.getElementById('wb-canvas');
-        const wbCtx = wbCanvas.getContext('2d');
-        let isDrawing = false;
-        let wbColor = '#ef4444';
-        let lastX = 0, lastY = 0;
-
-        function resizeWbCanvas() {
-            const rect = wbCanvas.getBoundingClientRect();
-            wbCanvas.width = rect.width;
-            wbCanvas.height = rect.height;
-            wbCtx.fillStyle = '#080e1c';
-            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
-        }
-
-        function openWhiteboardTab() {
-            playSciFiSound('click');
-            isWhiteboardActive = true;
-            document.getElementById('messages').style.display = 'none';
-            document.getElementById('whiteboard-view').style.display = 'flex';
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-whiteboard').classList.add('active');
-            setTimeout(resizeWbCanvas, 50);
-        }
-
-        function switchRoomTab(code) {
-            playSciFiSound('click');
-            isWhiteboardActive = false;
-            document.getElementById('messages').style.display = 'flex';
-            document.getElementById('whiteboard-view').style.display = 'none';
-            activeRoomCode = code;
-            activeTypers = {};
-            updateTypingDisplay();
-            const displayName = roomAliases[code] || code;
-            document.getElementById('room-display').innerText = "Channel: " + displayName + (displayName !== code ? ` (${code})` : '');
-            renderTabs();
-            renderActiveMessages();
-        }
-
-        function setWbColor(color) {
-            playSciFiSound('click');
-            wbColor = color;
-        }
-
-        function clearWhiteboard() {
-            playSciFiSound('click');
-            wbCtx.fillStyle = '#080e1c';
-            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
-            if (activeRoomCode && pubnub) {
-                pubnub.publish({
-                    channel: "room_code_" + activeRoomCode,
-                    message: { type: 'wb_clear', username: myUsername }
-                });
-            }
-        }
-
-        function triggerImageUpload() {
-            playSciFiSound('click');
-            document.getElementById('image-upload-input').click();
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    // Draw uploaded image onto the canvas scaled to fit nicely
-                    wbCtx.fillStyle = '#080e1c';
-                    wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
-                    
-                    let hRatio = wbCanvas.width / img.width;
-                    let vRatio = wbCanvas.height / img.height;
-                    let ratio = Math.min(hRatio, vRatio);
-                    let centerShiftX = (wbCanvas.width - img.width * ratio) / 2;
-                    let centerShiftY = (wbCanvas.height - img.height * ratio) / 2;
-                    
-                    wbCtx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
-                    
-                    if (activeRoomCode && pubnub) {
-                        pubnub.publish({
-                            channel: "room_code_" + activeRoomCode,
-                            message: { type: 'wb_clear', username: myUsername }
-                        });
-                    }
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-            event.target.value = '';
-        }
-
-        function sendDrawingToChat() {
-            playSciFiSound('click');
-            if (!activeRoomCode) {
-                alert("Join a channel first to send your drawing!");
-                return;
-            }
-            const dataUrl = wbCanvas.toDataURL('image/png');
-            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
-            const imgHtml = `<img src="${dataUrl}" style="max-width:100%; border-radius:6px; border:1px solid var(--primary); display:block;" alt="User Drawing">`;
+            setOnline();
             
-            playSciFiSound('send');
-            addMsgToRoom(activeRoomCode, msgId, myName, myUsername, imgHtml, true, isUserLooking, true);
-
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: {
-                    id: msgId,
-                    senderId: myId,
-                    sender: myName,
-                    username: myUsername,
-                    text: imgHtml,
-                    isHtml: true,
-                    looking: isUserLooking
-                }
-            });
-
-            if (openRooms.length > 0) {
-                switchRoomTab(openRooms[openRooms.indexOf(activeRoomCode)] || openRooms[0]);
-            }
-        }
-
-        wbCanvas.addEventListener('mousedown', e => {
-            isDrawing = true;
-            [lastX, lastY] = [e.offsetX, e.offsetY];
-        });
-
-        wbCanvas.addEventListener('mousemove', e => {
-            if (!isDrawing) return;
-            drawOnWhiteboard(lastX, lastY, e.offsetX, e.offsetY, wbColor, true);
-            [lastX, lastY] = [e.offsetX, e.offsetY];
-        });
-
-        window.addEventListener('mouseup', () => isDrawing = false);
-
-        wbCanvas.addEventListener('touchstart', e => {
-            isDrawing = true;
-            const rect = wbCanvas.getBoundingClientRect();
-            lastX = e.touches[0].clientX - rect.left;
-            lastY = e.touches[0].clientY - rect.top;
-            e.preventDefault();
-        });
-
-        wbCanvas.addEventListener('touchmove', e => {
-            if (!isDrawing) return;
-            const rect = wbCanvas.getBoundingClientRect();
-            const currentX = e.touches[0].clientX - rect.left;
-            const currentY = e.touches[0].clientY - rect.top;
-            drawOnWhiteboard(lastX, lastY, currentX, currentY, wbColor, true);
-            [lastX, lastY] = [currentX, currentY];
-            e.preventDefault();
-        });
-
-        window.addEventListener('touchend', () => isDrawing = false);
-
-        function drawOnWhiteboard(x1, y1, x2, y2, color, broadcast) {
-            wbCtx.strokeStyle = color;
-            wbCtx.lineWidth = 4;
-            wbCtx.lineCap = 'round';
-            wbCtx.beginPath();
-            wbCtx.moveTo(x1, y1);
-            wbCtx.lineTo(x2, y2);
-            wbCtx.stroke();
-
-            if (broadcast && activeRoomCode && pubnub) {
-                pubnub.publish({
-                    channel: "room_code_" + activeRoomCode,
-                    message: { type: 'wb_draw', x1, y1, x2, y2, color, username: myUsername }
-                });
-            }
-        }
-
-        window.onload = function() {
-            authPubNub = new PubNub({
-                publishKey: 'demo',
-                subscribeKey: 'demo',
-                userId: myId
-            });
-
-            const savedTheme = localStorage.getItem("chat_theme_pref");
-            if (savedTheme) {
-                changeTheme(savedTheme);
-                document.getElementById('theme-select').value = savedTheme;
-            }
-
-            const savedWallpaper = localStorage.getItem("chat_wallpaper_pref");
-            if (savedWallpaper) {
-                wallpaperMode = savedWallpaper;
-                document.getElementById('wallpaper-select').value = savedWallpaper;
-            }
-
-            const savedCrt = localStorage.getItem("chat_crt_pref");
-            if (savedCrt !== null) {
-                const isCrt = savedCrt === 'true';
-                toggleCRT(isCrt);
-                document.getElementById('crt-toggle').checked = isCrt;
-            }
-
-            const activeUserHandle = localStorage.getItem("chat_current_active_handle");
-            if (activeUserHandle) {
-                let globalAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
-                const account = globalAccounts[activeUserHandle.toLowerCase()];
-                if (account) {
-                    myUsername = account.username;
-                    myName = account.displayName;
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    initApp();
-                }
-            }
-            setupVisibilityListener();
-        };
-
-        function setupVisibilityListener() {
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    setLookingStatus(false);
-                } else {
-                    setLookingStatus(true);
-                }
-            });
-        }
-
-        function setLookingStatus(looking) {
-            isUserLooking = looking;
-            userFocusStates[myUsername] = looking;
-            updateUserEyeElements(myUsername, looking);
-
-            if (activeRoomCode && pubnub) {
-                pubnub.publish({
-                    channel: "room_code_" + activeRoomCode,
-                    message: {
-                        type: 'focus_change',
-                        sender: myName,
-                        username: myUsername,
-                        looking: looking
-                    }
-                });
-            }
-        }
-
-        function toggleSidebar() {
-            playSciFiSound('click');
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
-
-        function handleAuth() {
-            playSciFiSound('click');
-            const dispInput = document.getElementById('auth-displayname').value.trim();
-            const userInput = document.getElementById('auth-username').value.trim().toLowerCase().replace('@', '');
-            const passInput = document.getElementById('auth-pass').value.trim();
-            const btn = document.getElementById('auth-btn');
-
-            if (!dispInput) { alert("Please enter a Display Name!"); return; }
-            if (!userInput) { alert("Please enter a @USER!"); return; }
-            if (!passInput) { alert("Please set a password to secure your terminal link!"); return; }
-
-            btn.disabled = true;
-            btn.innerText = "Verifying Credentials...";
-
-            authPubNub.fetchMessages({
-                channels: [GLOBAL_REGISTRY_CHANNEL],
-                count: 100
-            }, function(status, response) {
-                btn.disabled = false;
-                btn.innerText = "Initialize Connection";
-
-                let existingAccount = null;
-                if (!status.error && response && response.channels[GLOBAL_REGISTRY_CHANNEL]) {
-                    response.channels[GLOBAL_REGISTRY_CHANNEL].forEach(msgObj => {
-                        if (msgObj.message && msgObj.message.username === userInput) {
-                            existingAccount = msgObj.message;
-                        }
-                    });
-                }
-
-                let localAccounts = JSON.parse(localStorage.getItem("chat_registered_accounts") || "{}");
-
-                if (existingAccount) {
-                    if (existingAccount.pass === passInput) {
-                        myUsername = userInput;
-                        myName = dispInput;
-                        localAccounts[userInput] = { displayName: myName, username: myUsername, pass: passInput };
-                        localStorage.setItem("chat_registered_accounts", JSON.stringify(localAccounts));
-                        localStorage.setItem("chat_current_active_handle", myUsername);
-                        document.getElementById('auth-overlay').style.display = 'none';
-                        initApp();
-                        return;
-                    } else {
-                        alert("Incorrect password for @" + userInput + "! Access denied.");
-                        return;
-                    }
-                }
-
-                authPubNub.publish({
-                    channel: GLOBAL_REGISTRY_CHANNEL,
-                    message: { username: userInput, displayName: dispInput, pass: passInput }
-                });
-
-                localAccounts[userInput] = { displayName: dispInput, username: userInput, pass: passInput };
-                localStorage.setItem("chat_registered_accounts", JSON.stringify(localAccounts));
-
-                myUsername = userInput;
-                myName = dispInput;
-                localStorage.setItem("chat_current_active_handle", myUsername);
-                document.getElementById('auth-overlay').style.display = 'none';
-                initApp();
-            });
-        }
-
-        function promptSwitchAccount() {
-            playSciFiSound('click');
-            document.getElementById('confirm-switch-overlay').style.display = 'flex';
-        }
-
-        function cancelSwitchAccount() {
-            playSciFiSound('click');
-            document.getElementById('confirm-switch-overlay').style.display = 'none';
-        }
-
-        function confirmSwitchAccount() {
-            playSciFiSound('click');
-            localStorage.removeItem("chat_current_active_handle");
-            location.reload();
-        }
-
-        function initApp() {
-            document.getElementById('display-user').innerText = myName;
-            document.getElementById('display-handle').innerText = "@" + myUsername;
-            userFocusStates[myUsername] = true;
-            userMoods[myUsername] = customMood;
-
-            startAmbientHum();
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const inviteRoom = urlParams.get('room');
             const savedFriends = localStorage.getItem("chat_friends_" + myUsername);
-
             if (savedFriends) {
-                try { friends = JSON.parse(savedFriends); } catch (e) { friends = []; }
+                try { friends = JSON.parse(savedFriends); } catch(e){}
             }
             renderFriends();
 
-            userChannel = "user_direct_" + myUsername;
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteRoom = urlParams.get('room');
+            const userChannel = "user_direct_" + myUsername;
 
-            pubnub = new PubNub({
-                publishKey: 'demo',
-                subscribeKey: 'demo',
-                userId: myId
-            });
+            pubnub.subscribe({ channels: [userChannel] });
 
             pubnub.addListener({
-                status: function(statusEvent) {
-                    if (statusEvent.category === "PNConnectedCategory") {
-                        setOnline();
-                    }
-                },
                 message: function(event) {
-                    const data = event.message;
                     const channel = event.channel;
+                    const msg = event.message;
 
-                    if (data.type === 'direct_room_invite') {
-                        pendingInviteRoomCode = data.roomCode;
-                        document.getElementById('popup-invite-text').innerText = `${data.from} (@${data.fromUsername}) invited you to channel [${data.roomCode}]!`;
-                        document.getElementById('invite-popup-overlay').style.display = 'flex';
-                        playSciFiSound('receive');
-                        return;
-                    }
-
-                    if (data.type === 'friend_request') {
-                        const exists = incomingRequests.some(r => r.username === data.fromUsername);
-                        if (!exists) {
-                            incomingRequests.push({ displayName: data.from, username: data.fromUsername });
-                            document.getElementById('mail-badge').classList.add('active');
-                            addSystemMsg(`⚡ Link request from ${data.from} (@${data.fromUsername})! Check Inbox.`);
+                    if (channel.startsWith("user_direct_")) {
+                        if (msg.type === 'friend_request') {
+                            incomingRequests.push({ displayName: msg.from, username: msg.fromUsername });
+                            addSystemMsg(`Link request received from @${msg.fromUsername}`);
                             renderInbox();
-                            playSciFiSound('receive');
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'friend_accept') {
-                        const isAlreadyFriend = friends.some(f => f.username === data.fromUsername);
-                        if (!isAlreadyFriend) {
-                            friends.push({ displayName: data.from, username: data.fromUsername });
-                            localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
-                            renderFriends();
-                        }
-                        systemMessages.push(`⚡ ${data.from} (@${data.fromUsername}) established link connection!`);
-                        document.getElementById('mail-badge').classList.add('active');
-                        addSystemMsg(`⚡ ${data.from} accepted your link request!`);
-                        renderInbox();
-                        playSciFiSound('receive');
-                        return;
-                    }
-
-                    const targetRoom = channel.replace("room_code_", "");
-
-                    if (data.type === 'wb_draw') {
-                        if (targetRoom === activeRoomCode) {
-                            drawOnWhiteboard(data.x1, data.y1, data.x2, data.y2, data.color, false);
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'wb_clear') {
-                        if (targetRoom === activeRoomCode) {
-                            wbCtx.fillStyle = '#080e1c';
-                            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'mood_change') {
-                        userMoods[data.username] = data.mood;
-                        renderFriends();
-                        return;
-                    }
-
-                    if (data.type === 'typing') {
-                        if (data.username !== myUsername && targetRoom === activeRoomCode) {
-                            activeTypers[data.username] = data.isTyping;
-                            updateTypingDisplay();
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'reaction') {
-                        if (targetRoom === activeRoomCode) {
-                            handleIncomingReaction(data.msgId, data.emoji, data.username);
-                        }
-                        return;
-                    }
-
-                    if (data.type === 'presence') {
-                        if (data.username !== myUsername) {
-                            activeUsers.add(data.username);
-                            renderFriends();
-                            if (data.status === 'join') {
-                                pubnub.publish({
-                                    channel: channel,
-                                    message: { type: 'presence_ack', sender: myName, username: myUsername, looking: isUserLooking, mood: customMood }
-                                });
-                                addSystemMsgToRoom(targetRoom, `⚡ ${data.sender} entered the channel.`);
-                            } else if (data.status === 'leave') {
-                                addSystemMsgToRoom(targetRoom, `🔌 ${data.sender} disconnected.`);
+                        } else if (msg.type === 'friend_accept') {
+                            const exists = friends.some(f => f.username === msg.fromUsername);
+                            if (!exists) {
+                                friends.push({ displayName: msg.from, username: msg.fromUsername });
+                                localStorage.setItem("chat_friends_" + myUsername, JSON.stringify(friends));
+                                renderFriends();
                             }
+                            addSystemMsg(`Link established with ${msg.from}!`);
+                        } else if (msg.type === 'direct_room_invite') {
+                            pendingInviteRoomCode = msg.roomCode;
+                            document.getElementById('invite-popup-text').innerText = `@${msg.fromUsername} invited you to channel #${msg.roomCode}`;
+                            document.getElementById('invite-popup-overlay').style.display = 'flex';
                         }
                         return;
                     }
 
-                    if (data.type === 'focus_change') {
-                        if (data.username !== myUsername) {
-                            userFocusStates[data.username] = data.looking;
-                            updateUserEyeElements(data.username, data.looking);
-                        }
-                        return;
-                    }
+                    if (channel.startsWith("room_code_")) {
+                        const roomCode = channel.replace("room_code_", "").toUpperCase();
+                        if (!openRooms.includes(roomCode)) return;
 
-                    if (data.type === 'presence_ack') {
-                        if (data.username !== myUsername) {
-                            activeUsers.add(data.username);
-                            if (typeof data.looking !== 'undefined') {
-                                userFocusStates[data.username] = data.looking;
-                                updateUserEyeElements(data.username, data.looking);
-                            }
-                            if (data.mood) {
-                                userMoods[data.username] = data.mood;
+                        if (msg.type === 'presence') {
+                            if (msg.status === 'join') {
+                                activeUsers.add(msg.username);
+                                addSystemMsgToRoom(roomCode, `⚡ @${msg.username} jacked into the channel.`);
+                            } else if (msg.status === 'leave') {
+                                activeUsers.delete(msg.username);
+                                addSystemMsgToRoom(roomCode, `⚡ @${msg.username} unlinked.`);
                             }
                             renderFriends();
+                        } else if (msg.type === 'typing') {
+                            if (roomCode === activeRoomCode) {
+                                activeTypers[msg.username] = msg.isTyping;
+                                updateTypingDisplay();
+                            }
+                        } else if (msg.type === 'reaction') {
+                            handleIncomingReaction(msg.msgId, msg.emoji, msg.username);
+                        } else {
+                            if (msg.username !== myUsername) {
+                                addMsgToRoom(roomCode, msg.id, msg.sender, msg.username, msg.text, false, msg.looking, false, msg.isSpoiler, msg.text);
+                            }
                         }
-                        return;
-                    }
-
-                    if (data.senderId !== myId) {
-                        userFocusStates[data.username] = (typeof data.looking !== 'undefined') ? data.looking : true;
-                        addMsgToRoom(targetRoom, data.id, data.sender, data.username, data.text, false, userFocusStates[data.username], data.isHtml);
-                        playSciFiSound('receive');
                     }
                 }
             });
-
-            pubnub.subscribe({ channels: [userChannel] });
 
             if (inviteRoom) {
                 connectToRoom(inviteRoom);
@@ -2025,7 +545,9 @@
                 document.getElementById('room-display').innerText = "Channel: Offline";
                 document.getElementById('messages').innerHTML = `<div style="text-align:center; color:var(--text-accent); font-size:12px; margin-top:20px; font-family:'Orbitron',sans-serif; text-shadow:0 0 8px var(--primary-glow);">Enter a Channel Code or click + to start transmitting!</div>`;
             }
-        }
+        });
+
+        function playSciFiSound(type) {}
 
         function connectToRoom(rawCode) {
             playSciFiSound('click');
@@ -2040,11 +562,22 @@
                 
                 pubnub.publish({
                     channel: channel,
-                    message: { type: 'presence', sender: myName, username: myUsername, status: 'join', looking: isUserLooking, mood: customMood }
+                    message: { type: 'presence', sender: myName, username: myUsername, status: 'join', looking: isUserLooking }
                 });
             }
 
             switchRoomTab(code);
+        }
+
+        function switchRoomTab(code) {
+            playSciFiSound('click');
+            activeRoomCode = code;
+            isWhiteboardActive = false;
+            document.getElementById('room-display').innerText = `Channel: #${roomAliases[code] || code}`;
+            renderTabs();
+            renderActiveMessages();
+            activeTypers = {};
+            updateTypingDisplay();
         }
 
         function renameRoomTab(code) {
@@ -2104,7 +637,7 @@
                 tab.onclick = () => switchRoomTab(room);
                 tab.innerHTML = `
                     <span class="tab-title"># ${escape(displayName)}</span>
-                    <span class="edit-tab-btn" onclick="event.stopPropagation(); renameRoomTab('${room}')" title="Rename Channel">✏️</span>
+                    <span class="edit-tab-btn" onclick="event.stopPropagation(); renameRoomTab('${room}')" title="Rename Channel">&#9998;</span>
                     <span class="tab-close-btn" onclick="event.stopPropagation(); closeRoomTab('${room}')" title="Close Channel">&times;</span>
                 `;
                 container.appendChild(tab);
@@ -2136,7 +669,7 @@
             }
 
             const isLooking = userFocusStates[msgObj.username] !== false;
-            const eyeIcon = isLooking ? '👁️' : '🙈';
+            const eyeIcon = isLooking ? '&#128065;' : '&#128584;';
             const eyeClass = isLooking ? 'looking' : 'away';
 
             const div = document.createElement('div');
@@ -2171,11 +704,11 @@
                 ${reactionsHtml}
                 <button type="button" class="add-reaction-btn" onclick="toggleReactionPicker('${msgObj.id}')" title="Add reaction">+</button>
                 <div class="reaction-picker" id="picker-${msgObj.id}">
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '⚡')">⚡</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '🤖')">🤖</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '💻')">💻</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '🔥')">🔥</span>
-                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '💧')">💧</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#9889;')">&#9889;</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#129302;')">&#129302;</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128187;')">&#128187;</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128293;')">&#128293;</span>
+                    <span class="reaction-option" onclick="addReaction('${msgObj.id}', '&#128167;')">&#128167;</span>
                 </div>
             `;
             return div;
@@ -2187,6 +720,13 @@
             el.outerHTML = `<span class="spoiler-revealed">${hiddenSpan.innerText}</span>`;
         }
 
+        function toggleSpoilerMode() {
+            playSciFiSound('click');
+            isSpoilerModeActive = !isSpoilerModeActive;
+            document.getElementById('spoiler-btn').style.borderColor = isSpoilerModeActive ? 'var(--secondary)' : '';
+            document.getElementById('spoiler-btn').style.color = isSpoilerModeActive ? 'var(--secondary)' : '';
+        }
+
         function toggleReactionPicker(msgId) {
             playSciFiSound('click');
             const picker = document.getElementById(`picker-${msgId}`);
@@ -2196,7 +736,7 @@
         function addReaction(msgId, emoji) {
             playSciFiSound('click');
             const picker = document.getElementById(`picker-${msgId}`);
-            picker.classList.remove('open');
+            if(picker) picker.classList.remove('open');
 
             let msgObj = null;
             if (roomMessages[activeRoomCode]) {
@@ -2261,15 +801,6 @@
                     container.appendChild(pill);
                 }
             }
-        }
-
-        function updateUserEyeElements(username, looking) {
-            const eyeElements = document.querySelectorAll(`.user-eye[data-username="${username}"]`);
-            eyeElements.forEach(eye => {
-                eye.innerText = looking ? '👁️' : '🙈';
-                eye.className = `user-eye ${looking ? 'looking' : 'away'}`;
-                eye.title = looking ? 'Terminal active' : 'Terminal away';
-            });
         }
 
         function addMsgToRoom(roomCode, msgId, sender, username, text, isSelf, looking, isHtml, isSpoiler, rawText) {
@@ -2337,9 +868,9 @@
             if (typingUsers.length === 0) {
                 indicator.innerText = "";
             } else if (typingUsers.length === 1) {
-                indicator.innerText = `⚡ @${typingUsers[0]} is transmitting...`;
+                indicator.innerText = `&#9889; @${typingUsers[0]} is transmitting...`;
             } else {
-                indicator.innerText = `⚡ Multiple terminals transmitting...`;
+                indicator.innerText = `&#9889; Multiple terminals transmitting...`;
             }
         }
 
@@ -2383,7 +914,6 @@
             const isShowing = modal.style.display === 'flex';
             modal.style.display = isShowing ? 'none' : 'flex';
             if (!isShowing) {
-                document.getElementById('mail-badge').classList.remove('active');
                 renderInbox();
             }
         }
@@ -2407,15 +937,15 @@
                 }
                 incomingRequests.forEach(req => {
                     const card = document.createElement('div');
-                    card.className = "req-card";
+                    card.className = "friend-card";
                     card.innerHTML = `
                         <div style="display:flex; flex-direction:column;">
                             <span style="font-size:11px; font-weight:600; color:#fff;">${escape(req.displayName)}</span>
                             <span style="font-size:9px; color:var(--text-accent);">@${escape(req.username)}</span>
                         </div>
-                        <div class="req-actions">
-                            <button type="button" class="btn-accept" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Link</button>
-                            <button type="button" class="btn-decline" onclick="declineRequest('${escape(req.username)}')">Drop</button>
+                        <div class="friend-actions">
+                            <button type="button" style="font-size:9px; padding:2px 5px;" onclick="acceptRequest('${escape(req.displayName)}', '${escape(req.username)}')">Link</button>
+                            <button type="button" style="font-size:9px; padding:2px 5px; border-color:var(--secondary); color:var(--secondary);" onclick="declineRequest('${escape(req.username)}')">Drop</button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -2427,7 +957,7 @@
                 }
                 systemMessages.forEach(msg => {
                     const card = document.createElement('div');
-                    card.className = "req-card";
+                    card.className = "friend-card";
                     card.innerHTML = `<span style="font-size:11px; color:var(--text-main);">${escape(msg)}</span>`;
                     container.appendChild(card);
                 });
@@ -2503,16 +1033,16 @@
             playSciFiSound('click');
             const dmRoomCode = "DM_" + [myUsername, friendUsername].sort().join("_").toUpperCase();
             connectToRoom(dmRoomCode);
-            if (window.innerWidth <= 768) toggleSidebar();
         }
 
         function renderFriends() {
             const list = document.getElementById('friends-list');
+            if(!list) return;
             list.innerHTML = "";
 
             friends.forEach((friend, idx) => {
                 const isOnline = activeUsers.has(friend.username);
-                const moodText = userMoods[friend.username] || "⚡ Jacked In";
+                const moodText = userMoods[friend.username] || "&#9889; Jacked In";
                 const card = document.createElement('div');
                 card.className = "friend-card";
                 card.innerHTML = `
@@ -2537,9 +1067,6 @@
             const code = prompt("Enter Channel Code (e.g. CYBER99):");
             if (code && code.trim()) {
                 connectToRoom(code.trim());
-                if (window.innerWidth <= 768) {
-                    toggleSidebar();
-                }
             }
         }
 
@@ -2551,9 +1078,8 @@
             }
 
             const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${activeRoomCode}`;
-
             navigator.clipboard.writeText(inviteUrl).then(() => {
-                addSystemMsg("⚡ Channel link copied to clipboard!");
+                addSystemMsg("&#9889; Channel link copied to clipboard!");
             }).catch(() => {
                 addSystemMsg(`Channel code: ${activeRoomCode}`);
             });
@@ -2577,13 +1103,13 @@
                     rolls.push(roll);
                     total += roll;
                 }
-                return `🎲 Dice Roll [${count}d${sides}]: ${rolls.join(', ')} (Total: ${total})`;
+                return `&#127922; Dice Roll [${count}d${sides}]: ${rolls.join(', ')} (Total: ${total})`;
             } else if (text === '/clear') {
                 if (roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
                 renderActiveMessages();
                 return null;
             } else if (text === '/help') {
-                return `💻 Available Commands: /roll [NdM] (e.g. /roll 1d20), /clear (wipe console)`;
+                return `&#128187; Available Commands: /roll [NdM] (e.g. /roll 1d20), /clear (wipe console)`;
             }
             return text;
         }
@@ -2608,21 +1134,15 @@
                 return;
             }
 
-            if (isGlitchModeActive) {
-                text = convertToGlitch(text);
-            }
-
             const isSpoiler = isSpoilerModeActive;
             const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
             playSciFiSound('send');
             addMsgToRoom(activeRoomCode, msgId, myName, myUsername, text, true, isUserLooking, false, isSpoiler, text);
             input.value = "";
             
-            isGlitchModeActive = false;
             isSpoilerModeActive = false;
-            document.querySelector('.tool-btn').style.borderColor = "";
-            document.querySelector('.tool-btn').style.boxShadow = "";
-            document.getElementById('spoiler-btn').classList.remove('active-tool');
+            document.getElementById('spoiler-btn').style.borderColor = "";
+            document.getElementById('spoiler-btn').style.color = "";
 
             isCurrentlyTyping = false;
             pubnub.publish({
@@ -2651,8 +1171,11 @@
         }
 
         function addSystemMsg(text) {
-            if (!activeRoomCode) return;
-            addSystemMsgToRoom(activeRoomCode, text);
+            systemMessages.unshift(text);
+            if(systemMessages.length > 50) systemMessages.pop();
+            if (activeRoomCode) {
+                addSystemMsgToRoom(activeRoomCode, text);
+            }
         }
 
         function escape(str) {
