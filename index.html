@@ -40,6 +40,7 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
         }
 
         /* Sidebar */
@@ -51,6 +52,7 @@
             flex-direction: column;
             padding: 20px;
             gap: 16px;
+            transition: all 0.3s ease;
         }
 
         .user-profile-box {
@@ -197,7 +199,67 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        /* Inbox Mail Button with Green Badge */
+        .inbox-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #a1a1aa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inbox-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+        }
+
+        .green-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 10px;
+            height: 10px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            border: 2px solid #08090d;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+            display: none;
+        }
+
+        .green-badge.active {
+            display: block;
+        }
+
+        /* Device Mode Icons */
+        .device-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .device-icon {
+            font-size: 13px;
+            opacity: 0.4;
+            transition: all 0.2s ease;
+        }
+
+        .device-icon.active {
+            opacity: 1;
+            color: #8b5cf6;
+            filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.6));
         }
 
         .header-btn {
@@ -208,14 +270,12 @@
             font-size: 11px;
             color: #a1a1aa;
             cursor: pointer;
-            box-shadow: none;
         }
 
         .header-btn:hover {
             background: rgba(99, 102, 241, 0.2);
             color: #a5b4fc;
             border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: none;
         }
 
         .status {
@@ -226,8 +286,6 @@
             color: #fca5a5;
             border: 1px solid rgba(239, 68, 68, 0.3);
             font-weight: 600;
-            letter-spacing: 0.3px;
-            transition: all 0.3s ease;
         }
 
         .status.online {
@@ -309,7 +367,6 @@
             color: #fff;
             outline: none;
             font-size: 14px;
-            transition: all 0.2s ease;
         }
 
         input[type="text"]:focus {
@@ -336,8 +393,6 @@
             box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
         }
 
-        button:active { transform: translateY(0); }
-
         .btn-secondary {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -347,6 +402,83 @@
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.15);
             box-shadow: none;
+        }
+
+        /* Inbox Popup Modal */
+        #inbox-modal {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: rgba(22, 25, 38, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            padding: 16px;
+            z-index: 100;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #inbox-modal h3 {
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .req-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .req-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .req-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 6px;
+        }
+
+        .btn-accept {
+            background: #22c55e;
+        }
+
+        .btn-decline {
+            background: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            #app-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                flex-direction: column;
+            }
+
+            #sidebar {
+                width: 100%;
+                max-height: 180px;
+                padding: 12px;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            #messages { padding: 12px; }
+            .msg { max-width: 85%; font-size: 13px; }
+            #input-area { padding: 12px; }
+            #chat-header { padding: 12px 16px; }
         }
 
         @keyframes popIn {
@@ -373,7 +505,7 @@
             </div>
             <div class="add-friend-box">
                 <input type="text" id="friend-input" placeholder="Friend's Name">
-                <button class="btn-secondary" onclick="addFriend()">Add</button>
+                <button class="btn-secondary" onclick="sendFriendRequest()">Add</button>
             </div>
             <div id="friends-list"></div>
         </div>
@@ -382,6 +514,16 @@
             <div id="chat-header">
                 <span id="room-display" style="font-weight: bold;">Room: Not Connected</span>
                 <div class="header-actions">
+                    <button class="inbox-btn" onclick="toggleInbox()" title="Inbox / Notifications">
+                        ✉️
+                        <span id="mail-badge" class="green-badge"></span>
+                    </button>
+
+                    <div class="device-icons" title="Device Mode Indicator">
+                        <span id="icon-desktop" class="device-icon" title="Computer View">💻</span>
+                        <span id="icon-mobile" class="device-icon" title="Mobile Phone View">📱</span>
+                    </div>
+
                     <button class="header-btn" onclick="inviteFriend()">🔗 Invite</button>
                     <span id="status-badge" class="status">Disconnected</span>
                 </div>
@@ -392,6 +534,13 @@
                 <button onclick="send()">Send</button>
             </div>
         </div>
+
+        <div id="inbox-modal">
+            <h3>Inbox Requests <span style="cursor:pointer;" onclick="toggleInbox()">&times;</span></h3>
+            <div id="inbox-items" style="display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; color:#a1a1aa;">No new notifications</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -400,10 +549,14 @@
         let channelName = "";
         let currentRoomCode = "";
         let friends = [];
+        let incomingRequests = [];
         let activeUsers = new Set();
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
 
         window.onload = function() {
+            detectDeviceMode();
+            window.addEventListener('resize', detectDeviceMode);
+
             const urlParams = new URLSearchParams(window.location.search);
             const inviteRoom = urlParams.get('room');
 
@@ -426,12 +579,103 @@
             }
         };
 
+        function detectDeviceMode() {
+            const isMobile = window.innerWidth <= 768;
+            document.getElementById('icon-mobile').classList.toggle('active', isMobile);
+            document.getElementById('icon-desktop').classList.toggle('active', !isMobile);
+        }
+
         function saveUsername() {
             const val = document.getElementById('username').value.trim();
             if (val) {
                 myName = val;
                 localStorage.setItem("chat_username", myName);
             }
+        }
+
+        function toggleInbox() {
+            const modal = document.getElementById('inbox-modal');
+            const isShowing = modal.style.display === 'flex';
+            modal.style.display = isShowing ? 'none' : 'flex';
+            if (!isShowing) {
+                document.getElementById('mail-badge').classList.remove('active');
+            }
+        }
+
+        function sendFriendRequest() {
+            const input = document.getElementById('friend-input');
+            const friendName = input.value.trim();
+            if (!friendName || !pubnub) return;
+
+            if (friendName.toLowerCase() === myName.toLowerCase()) {
+                alert("You cannot add yourself!");
+                return;
+            }
+
+            // Send Real Friend Request over current channel
+            pubnub.publish({
+                channel: channelName,
+                message: {
+                    type: 'friend_request',
+                    from: myName,
+                    to: friendName
+                }
+            });
+
+            addSystemMsg(`Sent a friend request to ${friendName}!`);
+            input.value = "";
+        }
+
+        function acceptRequest(fromUser) {
+            if (!friends.includes(fromUser)) {
+                friends.push(fromUser);
+                localStorage.setItem("chat_friends", JSON.stringify(friends));
+                renderFriends();
+            }
+
+            // Remove from inbox
+            incomingRequests = incomingRequests.filter(u => u !== fromUser);
+            renderInbox();
+
+            // Broadcast acceptance
+            pubnub.publish({
+                channel: channelName,
+                message: {
+                    type: 'friend_accept',
+                    from: myName,
+                    to: fromUser
+                }
+            });
+
+            addSystemMsg(`You are now friends with ${fromUser}!`);
+        }
+
+        function declineRequest(fromUser) {
+            incomingRequests = incomingRequests.filter(u => u !== fromUser);
+            renderInbox();
+        }
+
+        function renderInbox() {
+            const container = document.getElementById('inbox-items');
+            container.innerHTML = "";
+
+            if (incomingRequests.length === 0) {
+                container.innerHTML = `<span style="font-size:12px; color:#a1a1aa;">No new notifications</span>`;
+                return;
+            }
+
+            incomingRequests.forEach(reqName => {
+                const card = document.createElement('div');
+                card.className = "req-card";
+                card.innerHTML = `
+                    <span style="font-size:12px; font-weight:600;">${escape(reqName)}</span>
+                    <div class="req-actions">
+                        <button class="btn-accept" onclick="acceptRequest('${escape(reqName)}')">Accept</button>
+                        <button class="btn-decline" onclick="declineRequest('${escape(reqName)}')">Decline</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
         function promptJoinRoom() {
@@ -476,6 +720,28 @@
                 message: function(event) {
                     const data = event.message;
 
+                    // Handle Friend Request Message
+                    if (data.type === 'friend_request' && data.to.toLowerCase() === myName.toLowerCase()) {
+                        if (!incomingRequests.includes(data.from)) {
+                            incomingRequests.push(data.from);
+                            document.getElementById('mail-badge').classList.add('active');
+                            renderInbox();
+                            addSystemMsg(`🔔 You received a friend request from ${data.from}! Check your Mail Inbox.`);
+                        }
+                        return;
+                    }
+
+                    // Handle Acceptance Notification
+                    if (data.type === 'friend_accept' && data.to.toLowerCase() === myName.toLowerCase()) {
+                        if (!friends.includes(data.from)) {
+                            friends.push(data.from);
+                            localStorage.setItem("chat_friends", JSON.stringify(friends));
+                            renderFriends();
+                        }
+                        addSystemMsg(`🎉 ${data.from} accepted your friend request!`);
+                        return;
+                    }
+
                     if (data.type === 'presence') {
                         if (data.sender !== myName) {
                             activeUsers.add(data.sender.toLowerCase());
@@ -507,19 +773,6 @@
             pubnub.subscribe({
                 channels: [channelName]
             });
-        }
-
-        function addFriend() {
-            const input = document.getElementById('friend-input');
-            const friendName = input.value.trim();
-            if (!friendName) return;
-
-            if (!friends.includes(friendName)) {
-                friends.push(friendName);
-                localStorage.setItem("chat_friends", JSON.stringify(friends));
-                renderFriends();
-            }
-            input.value = "";
         }
 
         function removeFriend(index) {
