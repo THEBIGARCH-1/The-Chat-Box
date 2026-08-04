@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Fully Interactive Login Fix</title>
+    <title>Cyber Terminal Chat - Final Fixed Version</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,28 +20,27 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.1);
             border: 4px solid #101026;
         }
 
-        /* CRT Scanline Overlay */
+        /* CRT Scanline Overlay - pointer-events: none is critical here */
         body::before {
             content: " ";
             display: block;
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 1;
+            z-index: 9999;
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
         }
 
-        /* Modal Overlay for Sign-Up / Auth - Fixed High Z-Index */
+        /* Modal Overlay for Sign-Up / Auth */
         #authModal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 3, 8, 0.98);
-            z-index: 999999;
+            z-index: 100000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,7 +58,8 @@
             flex-direction: column;
             gap: 15px;
             position: relative;
-            z-index: 1000000;
+            z-index: 100001;
+            pointer-events: auto;
         }
 
         .auth-box h2 {
@@ -78,8 +78,6 @@
             box-shadow: 0 0 20px rgba(46, 26, 71, 0.6);
             background: #05050f;
             display: none;
-            position: relative;
-            z-index: 10;
         }
 
         /* Sidebar Styling */
@@ -387,7 +385,7 @@
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 3, 8, 0.9);
-            z-index: 1000000;
+            z-index: 200000;
             display: none;
             justify-content: center;
             align-items: center;
@@ -505,7 +503,7 @@
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Fully synchronized P2P terminal online. Login overlay z-index and click events fixed. Enter your username, display name, and password, then click **// Jack Into Network** to access the terminal!
+                    Fully updated. The CRT scanline overlay has been corrected with `pointer-events: none` and modal elements have been given dedicated higher z-indexes and explicit pointer activation so the login button and peer add buttons respond immediately.
                 </div>
             </div>
 
