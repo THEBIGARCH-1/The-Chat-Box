@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Direct Cloud-Signaling Fix</title>
+    <title>Cyber Terminal Chat - Network Crash Fix</title>
     <style>
         * {
             box-sizing: border-box;
@@ -119,6 +119,11 @@
             font-size: 12px;
             margin-top: 10px;
             color: #00f0ff;
+        }
+
+        .status-badge.offline {
+            border-color: #ff3366;
+            color: #ff3366;
         }
 
         .action-btn {
@@ -450,7 +455,7 @@
                     <span class="terminal-label">Terminal User</span>
                     <div class="username" id="displayUsername">jack</div>
                     <span style="font-size: 11px; color: #7b68ee;" id="displayId">@loading...</span>
-                    <div class="status-badge">⚡ Jacked In</div>
+                    <div class="status-badge" id="networkStatus">⚡ Jacked In</div>
                 </div>
 
                 <div class="section-box" style="margin-top: 10px;">
@@ -501,11 +506,7 @@
             </div>
 
             <div class="messages-container" id="messagesContainer">
-                <div class="message received">
-                    <div class="msg-user">System Matrix</div>
-                    Fully online peer networking updated! Configured to use a robust standalone WebRTC signaling server with automatic fallback relays. You can now connect with friends on other devices live over the internet.
                 </div>
-            </div>
 
             <div class="chat-input-footer">
                 <button type="button" class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
@@ -529,6 +530,7 @@
         let friendsList = {};    
         let activeChatKey = 'lobby';
         let activeConnections = {};
+        let isNetworkOnline = false;
 
         // Canvas Drawing Setup with Pointer Events
         const canvas = document.getElementById('drawCanvas');
@@ -539,43 +541,28 @@
         canvas.addEventListener('pointerup', endPosition);
         canvas.addEventListener('pointermove', draw);
 
-        function startPosition(e) {
-            painting = true;
-            draw(e);
-        }
-        function endPosition() {
-            painting = false;
-            ctx.beginPath();
-        }
+        function startPosition(e) { painting = true; draw(e); }
+        function endPosition() { painting = false; ctx.beginPath(); }
         function draw(e) {
             if(!painting) return;
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#00f0ff';
-
             const rect = canvas.getBoundingClientRect();
             ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
         }
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-        function openDrawingModal() {
-            document.getElementById('drawingModal').style.display = 'flex';
-            clearCanvas();
-        }
-        function closeDrawingModal() {
-            document.getElementById('drawingModal').style.display = 'none';
-        }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function openDrawingModal() { document.getElementById('drawingModal').style.display = 'flex'; clearCanvas(); }
+        function closeDrawingModal() { document.getElementById('drawingModal').style.display = 'none'; }
         function sendDrawingToChat() {
             const dataUrl = canvas.toDataURL();
             closeDrawingModal();
             sendPayload({ type: 'image', image: dataUrl });
         }
 
-        // Direct Clipboard Image Paste Handler (Ctrl+V)
         function handleImagePaste(event) {
             const items = (event.clipboardData || event.originalEvent.clipboardData).items;
             for(let index in items) {
@@ -584,16 +571,13 @@
                     event.preventDefault();
                     let blob = item.getAsFile();
                     let reader = new FileReader();
-                    reader.onload = function(e) {
-                        sendPayload({ type: 'image', image: e.target.result });
-                    };
+                    reader.onload = function(e) { sendPayload({ type: 'image', image: e.target.result }); };
                     reader.readAsDataURL(blob);
                     break;
                 }
             }
         }
 
-        // On Load Check Persistent Account
         window.onload = function() {
             const savedProfile = localStorage.getItem('cyber_profile');
             if(savedProfile) {
@@ -622,45 +606,38 @@
             loadPersistentStorage();
 
             const uniqueSeed = u.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Math.floor(Math.random() * 900 + 100);
-            
-            // FIX: Using multi-tier signaling server relays to completely bypass public websocket rate blocks
-            createPeerInstance(uniqueSeed, 0);
+            createPeerInstance(uniqueSeed);
         }
 
-        function createPeerInstance(seed, attemptIndex) {
-            // Array of reliable cloud signaling servers to prevent connection drops
-            const signalingServers = [
-                { host: '0.peerjs.com', port: 443, secure: true, path: '/' },
-                { host: 'peerjs-server.herokuapp.com', port: 443, secure: true, path: '/' },
-                { host: 'api.peerjs.com', port: 443, secure: true, path: '/' }
-            ];
-
-            if (attemptIndex >= signalingServers.length) {
-                // If cloud relays are choked, fall back to a self-contained relay ID configuration
-                const fallbackId = seed + '_' + Math.random().toString(36).substring(2, 5);
-                myId = fallbackId;
-                bootUI();
-                alert("Connected via backup online peer relay network!");
-                return;
-            }
-
-            let currentConfig = signalingServers[attemptIndex];
-            peer = new Peer(seed, currentConfig);
-
-            let opened = false;
+        function createPeerInstance(seed) {
+            // Attempt standard connection to main PeerJS server
+            peer = new Peer(seed, {
+                host: '0.peerjs.com',
+                port: 443,
+                secure: true,
+                path: '/'
+            });
 
             peer.on('open', (id) => {
-                opened = true;
+                isNetworkOnline = true;
                 myId = id;
                 bootUI();
+                appendSystemMsg('lobby', 'Successfully connected to global internet signaling server.');
+            });
+
+            peer.on('disconnected', () => {
+                isNetworkOnline = false;
+                updateNetworkStatusUI();
+                appendSystemMsg('lobby', '⚠️ Connection to internet server lost.');
             });
 
             peer.on('error', (err) => {
-                console.warn(`Relay server attempt ${attemptIndex} failed:`, err);
-                if (!opened) {
-                    peer.destroy();
-                    // Try next signaling server configuration instantly
-                    createPeerInstance(seed + '_' + Math.floor(Math.random() * 10), attemptIndex + 1);
+                console.warn("Peer connection error:", err);
+                if (!isNetworkOnline) {
+                    // Fallback to offline local mode so the UI still loads, avoiding crashing entirely
+                    myId = seed + '_offline';
+                    bootUI();
+                    setOfflineMode();
                 }
             });
 
@@ -675,10 +652,29 @@
             document.getElementById('authModal').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'flex';
             
+            updateNetworkStatusUI();
             renderTabs();
             renderSidebarLists();
             renderRequests();
             switchChat(activeChatKey);
+        }
+
+        function setOfflineMode() {
+            const status = document.getElementById('networkStatus');
+            status.innerText = "❌ NETWORK BLOCKED";
+            status.className = "status-badge offline";
+            appendSystemMsg('lobby', '⚠️ CRITICAL: WebSockets are blocked by your current Wi-Fi network, or servers are down. You cannot add online friends right now. Try a mobile hotspot.');
+        }
+
+        function updateNetworkStatusUI() {
+            const status = document.getElementById('networkStatus');
+            if(isNetworkOnline) {
+                status.innerText = "⚡ Jacked In (Online)";
+                status.className = "status-badge";
+            } else {
+                status.innerText = "❌ Disconnected";
+                status.className = "status-badge offline";
+            }
         }
 
         function loadPersistentStorage() {
@@ -689,11 +685,9 @@
                     chats = parsed.chats || { 'lobby': { name: '#lobby', messages: [], unread: 0, type: 'lobby' } };
                     friendRequests = parsed.friendRequests || {};
                     friendsList = parsed.friendsList || {};
-                } catch(e) {
-                    console.error(e);
-                }
+                } catch(e) {}
             } else {
-                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Secure terminal online.', type: 'received' }], unread: 0, type: 'lobby' } };
+                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Terminal booting...', type: 'received' }], unread: 0, type: 'lobby' } };
                 friendRequests = {};
                 friendsList = {};
             }
@@ -701,11 +695,7 @@
 
         function savePersistentStorage() {
             if(!myUsername) return;
-            localStorage.setItem('cyber_data_' + myUsername, JSON.stringify({
-                chats: chats,
-                friendRequests: friendRequests,
-                friendsList: friendsList
-            }));
+            localStorage.setItem('cyber_data_' + myUsername, JSON.stringify({ chats: chats, friendRequests: friendRequests, friendsList: friendsList }));
         }
 
         function switchAccountPrompt() {
@@ -718,10 +708,8 @@
         function openCreateLobbyPrompt() {
             const lobbyName = prompt("Enter new custom room/lobby name:", "#squad_room");
             if(!lobbyName) return;
-            
             let key = lobbyName.toLowerCase().replace(/\s+/g, '_');
             if(!key.startsWith('#')) key = '#' + key;
-
             if(!chats[key]) {
                 chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Room ${key} initialized.` }], unread: 0, type: 'lobby' };
                 savePersistentStorage();
@@ -731,144 +719,105 @@
             switchChat(key);
         }
 
+        // CRASH FIX: Checking if connection is viable before binding events
         function sendLiveFriendRequest() {
             const inputField = document.getElementById('peerIdInput');
             const targetId = inputField.value.trim().replace('@','');
             
-            if(!targetId) {
-                alert("Please enter a target peer ID.");
+            if(!targetId) { alert("Please enter a target peer ID."); return; }
+            if(targetId === myId) { alert("You cannot add your own peer ID."); return; }
+
+            // Check if peer is destroyed or offline to prevent TypeError
+            if(!peer || peer.disconnected || peer.destroyed) {
+                alert("ERROR: You are not connected to the signaling server. Your network is blocking the connection.");
                 return;
             }
-            if(targetId === myId) {
-                alert("You cannot add your own peer ID.");
-                return;
+
+            try {
+                const conn = peer.connect(targetId);
+                if (!conn) {
+                    alert("Failed to initialize connection. Server dropped the request.");
+                    return;
+                }
+
+                activeConnections[targetId] = conn;
+
+                conn.on('open', () => {
+                    conn.send({ type: 'friend_request', sender: myDisplayName, senderId: myId });
+                    alert(`⚡ Live friend request transmitted instantly to @${targetId}!`);
+                    inputField.value = '';
+                });
+
+                conn.on('error', () => {
+                    alert("Connection failed. Verify target peer ID is currently online and correct.");
+                });
+            } catch (err) {
+                console.error(err);
+                alert("Critical network failure. Cannot send request right now.");
             }
-
-            const conn = peer.connect(targetId);
-            activeConnections[targetId] = conn;
-
-            conn.on('open', () => {
-                conn.send({ type: 'friend_request', sender: myDisplayName, senderId: myId });
-                alert(`⚡ Live friend request transmitted instantly to @${targetId}!`);
-                inputField.value = '';
-            });
-
-            conn.on('error', () => {
-                alert("Connection failed. Verify target peer ID is currently online and correct.");
-            });
         }
 
         function setupConnection(connection, targetId) {
             if(!chats[targetId]) {
-                chats[targetId] = {
-                    name: '@' + targetId,
-                    messages: [{ sender: 'System Daemon', text: `Secure channel linked with @${targetId}` }],
-                    unread: 0,
-                    type: 'friend'
-                };
+                chats[targetId] = { name: '@' + targetId, messages: [{ sender: 'System Daemon', text: `Secure channel linked with @${targetId}` }], unread: 0, type: 'friend' };
             }
             activeConnections[targetId] = connection;
-
-            connection.on('open', () => {
-                savePersistentStorage();
-                renderTabs();
-                renderSidebarLists();
-            });
-
-            connection.on('data', (data) => {
-                handleIncomingData(targetId, connection, data);
-            });
-
-            connection.on('close', () => {
-                appendSystemMsg(targetId, `Link closed with @${targetId}`);
-                delete activeConnections[targetId];
-                renderSidebarLists();
-            });
+            connection.on('open', () => { savePersistentStorage(); renderTabs(); renderSidebarLists(); });
+            connection.on('data', (data) => { handleIncomingData(targetId, connection, data); });
+            connection.on('close', () => { appendSystemMsg(targetId, `Link closed with @${targetId}`); delete activeConnections[targetId]; renderSidebarLists(); });
         }
 
         function setupIncomingConnection(connection) {
             const remoteId = connection.peer;
             activeConnections[remoteId] = connection;
-
-            connection.on('data', (data) => {
-                handleIncomingData(remoteId, connection, data);
-            });
-
-            connection.on('close', () => {
-                delete activeConnections[remoteId];
-                renderSidebarLists();
-            });
+            connection.on('data', (data) => { handleIncomingData(remoteId, connection, data); });
+            connection.on('close', () => { delete activeConnections[remoteId]; renderSidebarLists(); });
         }
 
         function handleIncomingData(remoteId, connection, data) {
             if(data.type === 'friend_request') {
                 friendRequests[remoteId] = { name: data.sender || remoteId, id: remoteId };
-                savePersistentStorage();
-                renderRequests();
-                alert(`⚡ Live friend request received from ${data.sender} (@${remoteId})! Check your Inbox.`);
+                savePersistentStorage(); renderRequests();
+                alert(`⚡ Live friend request received from ${data.sender} (@${remoteId})!`);
             } 
             else if(data.type === 'friend_accept') {
                 friendsList[remoteId] = { name: data.sender || remoteId };
                 if(!chats[remoteId]) {
                     chats[remoteId] = { name: '@' + remoteId, messages: [{ sender: 'System Daemon', text: `Friend handshake accepted with @${remoteId}` }], unread: 0, type: 'friend' };
                 }
-                savePersistentStorage();
-                renderSidebarLists();
-                renderTabs();
-                alert(`✅ ${data.sender} accepted your friend request in real-time! Chat channel open.`);
+                savePersistentStorage(); renderSidebarLists(); renderTabs();
+                alert(`✅ ${data.sender} accepted your friend request!`);
             }
-            else {
-                receiveData(remoteId, data.sender || remoteId, data);
-            }
+            else { receiveData(remoteId, data.sender || remoteId, data); }
         }
 
         function acceptRequest(peerId) {
             const req = friendRequests[peerId];
             if(!req) return;
-
             friendsList[peerId] = { name: req.name };
             delete friendRequests[peerId];
 
-            if(!chats[peerId]) {
-                chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Friend connection established with @${peerId}` }], unread: 0, type: 'friend' };
-            }
-            savePersistentStorage();
-            renderRequests();
-            renderSidebarLists();
-            renderTabs();
+            if(!chats[peerId]) { chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Connection established.` }], unread: 0, type: 'friend' }; }
+            savePersistentStorage(); renderRequests(); renderSidebarLists(); renderTabs();
+
+            if(!peer || peer.disconnected) { alert("You are currently offline. Cannot send accept notice."); return; }
 
             let conn = activeConnections[peerId];
             if(!conn || !conn.open) {
                 conn = peer.connect(peerId);
-                activeConnections[peerId] = conn;
-            }
-            conn.on('open', () => {
-                conn.send({ type: 'friend_accept', sender: myDisplayName });
-            });
+                if(conn) { activeConnections[peerId] = conn; conn.on('open', () => { conn.send({ type: 'friend_accept', sender: myDisplayName }); }); }
+            } else { conn.send({ type: 'friend_accept', sender: myDisplayName }); }
 
             switchChat(peerId);
         }
 
-        function rejectRequest(peerId) {
-            delete friendRequests[peerId];
-            savePersistentStorage();
-            renderRequests();
-        }
+        function rejectRequest(peerId) { delete friendRequests[peerId]; savePersistentStorage(); renderRequests(); }
 
         function receiveData(chatKey, sender, data) {
-            if(!chats[chatKey]) {
-                chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0, type: 'friend' };
-            }
+            if(!chats[chatKey]) { chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0, type: 'friend' }; }
             chats[chatKey].messages.push({ sender: sender, text: data.text || '', image: data.image || null, type: 'received' });
             savePersistentStorage();
-            
-            if(activeChatKey === chatKey) {
-                renderMessages();
-            } else {
-                chats[chatKey].unread++;
-                renderTabs();
-                renderSidebarLists();
-            }
+            if(activeChatKey === chatKey) { renderMessages(); } else { chats[chatKey].unread++; renderTabs(); renderSidebarLists(); }
         }
 
         function sendMessage() {
@@ -888,34 +837,27 @@
             savePersistentStorage();
 
             if(currentChat.type === 'friend') {
-                let conn = activeConnections[activeChatKey];
-                if(!conn || !conn.open) {
-                    conn = peer.connect(activeChatKey);
-                    activeConnections[activeChatKey] = conn;
+                if(!peer || peer.disconnected) { appendSystemMsg(activeChatKey, "Error: Network offline. Message not sent over internet."); }
+                else {
+                    let conn = activeConnections[activeChatKey];
+                    if(!conn || !conn.open) {
+                        conn = peer.connect(activeChatKey);
+                        if(conn) { activeConnections[activeChatKey] = conn; conn.on('open', () => { conn.send(payload); }); }
+                    } else { conn.send(payload); }
                 }
-                conn.on('open', () => {
-                    conn.send(payload);
-                });
             }
-
             renderMessages();
         }
 
         function switchChat(key) {
             if(!chats[key]) return;
-            activeChatKey = key;
-            chats[key].unread = 0;
-            savePersistentStorage();
-            
-            renderTabs();
-            renderSidebarLists();
-            renderMessages();
+            activeChatKey = key; chats[key].unread = 0; savePersistentStorage();
+            renderTabs(); renderSidebarLists(); renderMessages();
         }
 
         function renderTabs() {
             const container = document.getElementById('chatTabsContainer');
             container.innerHTML = '';
-            
             for(let key in chats) {
                 let chat = chats[key];
                 let tab = document.createElement('div');
@@ -930,8 +872,7 @@
         function renderSidebarLists() {
             const lobbyList = document.getElementById('lobbyList');
             const friendsListContainer = document.getElementById('friendsListContainer');
-            lobbyList.innerHTML = '';
-            friendsListContainer.innerHTML = '';
+            lobbyList.innerHTML = ''; friendsListContainer.innerHTML = '';
 
             for(let key in chats) {
                 let chat = chats[key];
@@ -946,10 +887,7 @@
                     let isOnline = activeConnections[key] && activeConnections[key].open;
                     li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline ? '#00f0ff' : '#7b68ee'}">${isOnline ? 'ONLINE' : 'SAVED'}</span>`;
                     li.onclick = () => {
-                        if(!isOnline) {
-                            const conn = peer.connect(key);
-                            setupConnection(conn, key);
-                        }
+                        if(!isOnline && peer && !peer.disconnected) { const conn = peer.connect(key); if(conn) setupConnection(conn, key); }
                         switchChat(key);
                     };
                     friendsListContainer.appendChild(li);
@@ -961,36 +899,19 @@
             const list = document.getElementById('requestsList');
             const badge = document.getElementById('requestCountBadge');
             list.innerHTML = '';
-
             let count = 0;
             for(let peerId in friendRequests) {
-                count++;
-                let req = friendRequests[peerId];
-                let li = document.createElement('li');
-                li.className = 'list-item';
-                li.innerHTML = `
-                    <span>${req.name}</span>
-                    <div class="request-actions">
-                        <button type="button" class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button>
-                        <button type="button" class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button>
-                    </div>
-                `;
+                count++; let req = friendRequests[peerId]; let li = document.createElement('li'); li.className = 'list-item';
+                li.innerHTML = `<span>${req.name}</span><div class="request-actions"><button type="button" class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button><button type="button" class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button></div>`;
                 list.appendChild(li);
             }
-
-            if(count > 0) {
-                badge.style.display = 'inline-block';
-                badge.innerText = count;
-            } else {
-                badge.style.display = 'none';
-                list.innerHTML = `<li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>`;
-            }
+            if(count > 0) { badge.style.display = 'inline-block'; badge.innerText = count; } 
+            else { badge.style.display = 'none'; list.innerHTML = `<li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>`; }
         }
 
         function renderMessages() {
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
-
             const currentChat = chats[activeChatKey];
             if(!currentChat || !currentChat.messages) return;
 
@@ -1017,19 +938,9 @@
             }
         }
 
-        function copyMyId() {
-            navigator.clipboard.writeText(myId);
-            alert(`Your secure ID (${myId}) is copied! Send this to your friend.`);
-        }
-
-        function checkEnter(e) {
-            if(e.key === 'Enter') sendMessage();
-        }
-
-        function escapeHtml(text) {
-            if(!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
+        function copyMyId() { navigator.clipboard.writeText(myId); alert(`Your secure ID (${myId}) is copied!`); }
+        function checkEnter(e) { if(e.key === 'Enter') sendMessage(); }
+        function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
     </script>
 </body>
 </html>
