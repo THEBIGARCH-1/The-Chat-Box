@@ -676,6 +676,15 @@
             justify-content: flex-end;
         }
 
+        .msg img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border: 1px solid var(--primary-glow);
+            display: block;
+        }
+
         .spoiler-hidden {
             background: var(--bg-input);
             color: transparent;
@@ -944,7 +953,6 @@
     </style>
 </head>
 <body class="theme-cyber crt-enabled">
-
     <canvas id="bg-canvas"></canvas>
 
     <div id="auth-overlay">
@@ -1094,7 +1102,7 @@
                 <button type="button" class="tool-btn" onclick="toggleGlitchText()" title="Glitch Text Converter">⚡Glitch</button>
                 <button type="button" class="tool-btn" onclick="toggleSpoilerInput()" id="spoiler-btn" title="Secret Spoiler Cipher">🔒Spoiler</button>
                 <button type="button" class="tool-btn" onclick="toggleVoiceRecorder()" id="mic-btn" title="Record Voice Synth">🎙️Mic</button>
-                <input type="text" id="message-input" placeholder="Transmit message or command (e.g. /roll 1d20)..." autocomplete="off" oninput="handleTypingInput(); handleKeyStrokeSound();" onkeypress="if(event.key==='Enter') send()" onpaste="handleImagePaste(event)">
+                <input type="text" id="message-input" placeholder="Transmit message, command (/roll 1d20), or paste image (Ctrl+V)..." autocomplete="off" oninput="handleTypingInput(); handleKeyStrokeSound();" onkeypress="if(event.key==='Enter') send()" onpaste="handleClipboardPaste(event)">
                 <button type="button" onclick="send()">Send</button>
             </div>
         </div>
@@ -1141,9 +1149,9 @@
         let wallpaperMode = "rain";
         let rainDensity = 55;
         let isWhiteboardActive = false;
+        
         const myId = "usr_" + Math.random().toString(36).substr(2, 9);
         const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
-        
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let ambientOsc = null;
         let ambientGain = null;
@@ -1207,17 +1215,10 @@
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
                 osc.start(now);
                 osc.stop(now + 0.12);
-            } else if (type === 'click') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(300, now);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                osc.start(now);
-                osc.stop(now + 0.04);
             } else if (type === 'key') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150 + Math.random() * 100, now);
-                gain.gain.setValueAtTime(0.02, now);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220 + Math.random() * 150, now);
+                gain.gain.setValueAtTime(0.03, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
                 osc.start(now);
                 osc.stop(now + 0.03);
@@ -1228,196 +1229,144 @@
             playSciFiSound('key');
         }
 
-        // Image Paste Handler Integration
-        function handleImagePaste(event) {
+        // --- UNIVERSAL CLIPBOARD PASTE IMAGE SUPPORT ---
+        function handleClipboardPaste(event) {
             const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-            for (let index in items) {
-                let item = items[index];
-                if (item.kind === 'file' && item.type.startsWith('image/')) {
-                    event.preventDefault();
-                    let blob = item.getAsFile();
-                    let reader = new FileReader();
-                    
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    event.preventDefault(); // Stop text paste if it's an image
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
                     reader.onload = function(e) {
-                        let base64Image = e.target.result;
-                        if (!activeRoomCode) return;
-                        
-                        pubnub.publish({
-                            channel: "room_code_" + activeRoomCode,
-                            message: {
-                                id: "msg_" + Math.random().toString(36).substr(2, 9),
-                                senderId: myId,
-                                sender: myName,
-                                username: myUsername,
-                                image: base64Image,
-                                looking: isUserLooking
-                            }
-                        });
-                        playSciFiSound('send');
+                        const base64Image = e.target.result;
+                        dispatchImageMessage(base64Image);
                     };
-                    
                     reader.readAsDataURL(blob);
                     break;
                 }
             }
         }
 
-        // Background Wallpaper Animation
-        const bgCanvas = document.getElementById('bg-canvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        let drops = [];
-        let gridOffset = 0;
-
-        function resizeBg() {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-            initRain();
+        function dispatchImageMessage(imgDataUrl) {
+            if (!activeRoomCode) return;
+            const msgId = 'msg_' + Math.random().toString(36).substr(2, 9);
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: {
+                    id: msgId,
+                    senderId: myId,
+                    sender: myName,
+                    username: myUsername,
+                    image: imgDataUrl,
+                    looking: isUserLooking
+                }
+            });
+            playSciFiSound('send');
         }
-        window.addEventListener('resize', resizeBg);
+
+        // Background Wallpaper Animation
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let drops = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
         function initRain() {
             drops = [];
-            let count = Math.floor((bgCanvas.width / 25) * (rainDensity / 50));
+            const count = Math.floor((canvas.width / 25) * (rainDensity / 50));
             for (let i = 0; i < count; i++) {
                 drops.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
                     length: Math.random() * 25 + 10,
-                    speed: Math.random() * 4 + 3
+                    speed: Math.random() * 6 + 4
                 });
             }
         }
+        initRain();
 
-        function drawBackground() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            let computedPrimary = getComputedStyle(document.body).getPropertyValue('--primary').trim();
-
-            if (wallpaperMode === 'rain') {
-                bgCtx.strokeStyle = computedPrimary;
-                bgCtx.lineWidth = 1.5;
-                bgCtx.globalAlpha = 0.35;
-                for (let d of drops) {
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(d.x, d.y);
-                    bgCtx.lineTo(d.x, d.y + d.length);
-                    bgCtx.stroke();
-                    d.y += d.speed;
-                    if (d.y > bgCanvas.height) {
-                        d.y = -d.length;
-                        d.x = Math.random() * bgCanvas.width;
-                    }
-                }
-            } else if (wallpaperMode === 'grid') {
-                bgCtx.strokeStyle = computedPrimary;
-                bgCtx.lineWidth = 1;
-                bgCtx.globalAlpha = 0.2;
-                let horizon = bgCanvas.height * 0.6;
-                
-                bgCtx.beginPath();
-                for (let x = 0; x <= bgCanvas.width; x += 40) {
-                    bgCtx.moveTo(bgCanvas.width / 2, horizon);
-                    bgCtx.lineTo(x, bgCanvas.height);
-                }
-                bgCtx.stroke();
-
-                gridOffset = (gridOffset + 0.5) % 30;
-                for (let y = horizon; y <= bgCanvas.height; y += 20) {
-                    let curY = y + gridOffset;
-                    if (curY <= bgCanvas.height) {
-                        bgCtx.beginPath();
-                        bgCtx.moveTo(0, curY);
-                        bgCtx.lineTo(bgCanvas.width, curY);
-                        bgCtx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(drawBackground);
+        function updateRainSettings(val) {
+            rainDensity = parseInt(val);
+            initRain();
         }
-
-        resizeBg();
-        drawBackground();
 
         function changeWallpaper(mode) {
             wallpaperMode = mode;
         }
 
-        function updateRainSettings(val) {
-            rainDensity = val;
-            initRain();
-        }
+        function renderWallpaper() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const computedPrimary = getComputedStyle(document.body).getPropertyValue('--primary').trim();
 
-        function toggleCRT(enabled) {
-            if (enabled) {
-                document.body.classList.add('crt-enabled');
-            } else {
-                document.body.classList.remove('crt-enabled');
+            if (wallpaperMode === 'rain') {
+                ctx.strokeStyle = computedPrimary;
+                ctx.lineWidth = 1.5;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = computedPrimary;
+                for (let d of drops) {
+                    ctx.beginPath();
+                    ctx.moveTo(d.x, d.y);
+                    ctx.lineTo(d.x, d.y + d.length);
+                    ctx.stroke();
+                    d.y += d.speed;
+                    if (d.y > canvas.height) {
+                        d.y = -d.length;
+                        d.x = Math.random() * canvas.width;
+                    }
+                }
+            } else if (wallpaperMode === 'grid') {
+                ctx.strokeStyle = computedPrimary;
+                ctx.lineWidth = 0.5;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = computedPrimary;
+                const gridSize = 40;
+                const timeOffset = (Date.now() * 0.02) % gridSize;
+                
+                ctx.beginPath();
+                for (let x = 0; x <= canvas.width; x += gridSize) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                }
+                for (let y = timeOffset; y <= canvas.height; y += gridSize) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
             }
+            requestAnimationFrame(renderWallpaper);
         }
+        requestAnimationFrame(renderWallpaper);
 
-        function changeTheme(themeName) {
-            document.body.className = `theme-${themeName}` + (document.getElementById('crt-toggle').checked ? ' crt-enabled' : '');
-        }
-
-        // Whiteboard Logic
+        // Whiteboard drawing variables
         const wbCanvas = document.getElementById('wb-canvas');
         const wbCtx = wbCanvas.getContext('2d');
         let isDrawing = false;
-        let currentWbColor = '#3b82f6';
+        let wbColor = '#3b82f6';
+        let lastX = 0;
+        let lastY = 0;
 
-        function resizeWb() {
-            const rect = wbCanvas.parentElement.getBoundingClientRect();
-            wbCanvas.width = rect.width - 24;
-            wbCanvas.height = rect.height - 70;
-            wbCtx.fillStyle = '#080e1c';
-            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+        function resizeWbCanvas() {
+            const container = document.getElementById('messages-view-port');
+            wbCanvas.width = container.clientWidth - 24;
+            wbCanvas.height = container.clientHeight - 60;
         }
 
-        window.addEventListener('resize', () => {
-            if (isWhiteboardActive) resizeWb();
-        });
-
         function setWbColor(color) {
-            currentWbColor = color;
+            wbColor = color;
         }
 
         function clearWhiteboard() {
-            wbCtx.fillStyle = '#080e1c';
-            wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: { type: 'whiteboard_clear' }
+            });
         }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            drawWb(e);
-        }
-
-        function stopDrawing() {
-            isDrawing = false;
-            wbCtx.beginPath();
-        }
-
-        function drawWb(e) {
-            if (!isDrawing) return;
-            const rect = wbCanvas.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            if (!clientX || !clientY) return;
-
-            wbCtx.lineWidth = 3;
-            wbCtx.lineCap = 'round';
-            wbCtx.strokeStyle = currentWbColor;
-
-            wbCtx.lineTo(clientX - rect.left, clientY - rect.top);
-            wbCtx.stroke();
-            wbCtx.beginPath();
-            wbCtx.moveTo(clientX - rect.left, clientY - rect.top);
-        }
-
-        wbCanvas.addEventListener('mousedown', startDrawing);
-        wbCanvas.addEventListener('mouseup', stopDrawing);
-        wbCanvas.addEventListener('mousemove', drawWb);
-        wbCanvas.addEventListener('touchstart', startDrawing);
-        wbCanvas.addEventListener('touchend', stopDrawing);
-        wbCanvas.addEventListener('touchmove', drawWb);
 
         function triggerImageUpload() {
             document.getElementById('image-upload-input').click();
@@ -1427,309 +1376,396 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function(evt) {
                 const img = new Image();
                 img.onload = function() {
-                    wbCtx.drawImage(img, 20, 20, wbCanvas.width - 40, wbCanvas.height - 40);
+                    wbCtx.drawImage(img, 20, 20, 200, (200 * img.height) / img.width);
+                    syncWhiteboardDraw();
                 };
-                img.src = event.target.result;
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
 
         function sendDrawingToChat() {
             const dataUrl = wbCanvas.toDataURL();
-            if (!activeRoomCode) return;
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: {
-                    id: "msg_" + Math.random().toString(36).substr(2, 9),
-                    senderId: myId,
-                    sender: myName,
-                    username: myUsername,
-                    image: dataUrl,
-                    looking: isUserLooking
-                }
-            });
-            playSciFiSound('send');
+            dispatchImageMessage(dataUrl);
             openChatTab();
         }
 
-        function openWhiteboardTab() {
-            isWhiteboardActive = true;
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-whiteboard').classList.add('active');
-            document.getElementById('messages').style.display = 'none';
-            document.getElementById('whiteboard-view').style.display = 'flex';
-            resizeWb();
-            playSciFiSound('click');
+        wbCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        });
+
+        wbCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            wbCtx.beginPath();
+            wbCtx.moveTo(lastX, lastY);
+            wbCtx.lineTo(e.offsetX, e.offsetY);
+            wbCtx.strokeStyle = wbColor;
+            wbCtx.lineWidth = 3;
+            wbCtx.lineCap = 'round';
+            wbCtx.stroke();
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+            syncWhiteboardDraw();
+        });
+
+        wbCanvas.addEventListener('mouseup', () => isDrawing = false);
+        wbCanvas.addEventListener('mouseout', () => isDrawing = false);
+
+        wbCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = wbCanvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            isDrawing = true;
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+        });
+
+        wbCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            const rect = wbCanvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const currentX = touch.clientX - rect.left;
+            const currentY = touch.clientY - rect.top;
+
+            wbCtx.beginPath();
+            wbCtx.moveTo(lastX, lastY);
+            wbCtx.lineTo(currentX, currentY);
+            wbCtx.strokeStyle = wbColor;
+            wbCtx.lineWidth = 3;
+            wbCtx.lineCap = 'round';
+            wbCtx.stroke();
+            lastX = currentX;
+            lastY = currentY;
+            syncWhiteboardDraw();
+        });
+
+        wbCanvas.addEventListener('touchend', () => isDrawing = false);
+
+        function syncWhiteboardDraw() {
+            if (!activeRoomCode) return;
+            const dataUrl = wbCanvas.toDataURL();
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: { type: 'whiteboard_draw', image: dataUrl }
+            });
         }
 
-        function openChatTab() {
-            isWhiteboardActive = false;
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-            const activeTabElem = document.getElementById('tab_' + activeRoomCode);
-            if (activeTabElem) activeTabElem.classList.add('active');
-            document.getElementById('whiteboard-view').style.display = 'none';
-            document.getElementById('messages').style.display = 'flex';
-            playSciFiSound('click');
-        }
-
-        // Authentication & PubNub Setup
+        // Core Auth & Connection Logic
         function handleAuth() {
-            const dName = document.getElementById('auth-displayname').value.trim();
-            const uName = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-pass').value.trim();
+            const dispNameInput = document.getElementById('auth-displayname').value.trim();
+            const usrNameInput = document.getElementById('auth-username').value.trim();
+            const passInput = document.getElementById('auth-pass').value.trim();
 
-            if (!dName || !uName || !pass) {
-                alert('Please fill out all link credentials.');
+            if (!dispNameInput || !usrNameInput || !passInput) {
+                alert("Please fill in all security fields.");
                 return;
             }
 
-            myName = dName;
-            myUsername = uName.startsWith('@') ? uName : '@' + uName;
-            userChannel = "user_private_" + pass;
+            myName = dispNameInput;
+            myUsername = usrNameInput.startsWith('@') ? usrNameInput : '@' + usrNameInput;
+            userChannel = "user_inbox_" + passInput;
 
             document.getElementById('display-user').innerText = myName;
             document.getElementById('display-handle').innerText = myUsername;
             document.getElementById('auth-overlay').style.display = 'none';
 
-            initPubNub(pass);
+            initPubNubSession();
             startAmbientHum();
-            playSciFiSound('receive');
-            setOnline();
         }
 
-        function initPubNub(pass) {
+        function promptSwitchAccount() {
+            document.getElementById('confirm-switch-overlay').style.display = 'flex';
+        }
+
+        function confirmSwitchAccount() {
+            location.reload();
+        }
+
+        function cancelSwitchAccount() {
+            document.getElementById('confirm-switch-overlay').style.display = 'none';
+        }
+
+        function initPubNubSession() {
             pubnub = new PubNub({
                 publishKey: 'pub-c-demo-publish-key',
                 subscribeKey: 'pub-c-demo-subscribe-key',
-                uuid: myId
+                uuid: myId,
+                heartbeatInterval: 10
             });
-
-            authPubNub = new PubNub({
-                publishKey: 'pub-c-demo-publish-key',
-                subscribeKey: 'pub-c-demo-subscribe-key',
-                uuid: myId
-            });
-
-            authPubNub.subscribe({
-                channels: [userChannel, GLOBAL_REGISTRY_CHANNEL]
-            });
-
-            authPubNub.addListener({
-                message: function(event) {
-                    const msg = event.message;
-                    if (msg.type === 'friend_request' && msg.recipient === myUsername) {
-                        if (!friends.some(f => f.username === msg.senderUsername) && !incomingRequests.some(r => r.username === msg.senderUsername)) {
-                            incomingRequests.push({
-                                name: msg.senderName,
-                                username: msg.senderUsername
-                            });
-                            updateInboxBadge();
-                            playSciFiSound('receive');
-                        }
-                    } else if (msg.type === 'friend_accept' && msg.recipient === myUsername) {
-                        if (!friends.some(f => f.username === msg.senderUsername)) {
-                            friends.push({
-                                name: msg.senderName,
-                                username: msg.senderUsername,
-                                status: 'Online'
-                            });
-                            renderFriends();
-                            playSciFiSound('receive');
-                        }
-                    } else if (msg.type === 'room_invite' && msg.recipient === myUsername) {
-                        pendingInviteRoomCode = msg.roomCode;
-                        document.getElementById('popup-invite-text').innerText = `${msg.senderName} (${msg.senderUsername}) invited you to channel: #${msg.roomName}`;
-                        document.getElementById('invite-popup-overlay').style.display = 'flex';
-                        playSciFiSound('receive');
-                    }
-                }
-            });
-
-            // Join default welcome room
-            joinRoom("CYBERNET", "CYBER99");
-        }
-
-        function setOnline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "System Online";
-            badge.classList.add('online');
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            playSciFiSound('click');
-        }
-
-        function promptJoinRoom() {
-            const roomName = prompt("Enter Channel Designation Name:");
-            if (!roomName) return;
-            const code = prompt("Enter Secure Channel Frequency Code (for multi-device sync):", Math.random().toString(36).substr(2, 6).toUpperCase());
-            if (!code) return;
-            joinRoom(roomName, code);
-        }
-
-        function joinRoom(roomName, code) {
-            if (openRooms.includes(code)) {
-                switchRoom(code);
-                return;
-            }
-
-            openRooms.push(code);
-            roomAliases[code] = roomName;
-            roomMessages[code] = [];
-            userFocusStates[code] = {};
-            userMoods[code] = {};
 
             pubnub.subscribe({
-                channels: ["room_code_" + code, "room_presence_" + code],
-                withPresence: true
+                channels: [userChannel, GLOBAL_REGISTRY_CHANNEL]
             });
 
             pubnub.addListener({
                 message: function(event) {
-                    const msg = event.message;
-                    const ch = event.channel;
-                    if (ch.startsWith("room_code_")) {
-                        const rCode = ch.replace("room_code_", "");
-                        if (!roomMessages[rCode]) roomMessages[rCode] = [];
-
-                        if (msg.type === 'typing') {
-                            activeTypers[rCode] = activeTypers[rCode] || {};
-                            if (msg.isTyping) {
-                                activeTypers[rCode][msg.username] = true;
-                            } else {
-                                delete activeTypers[rCode][msg.username];
-                            }
-                            if (rCode === activeRoomCode) updateTypingIndicatorDisplay();
-                            return;
-                        }
-
-                        if (msg.type === 'reaction') {
-                            const targetMsg = roomMessages[rCode].find(m => m.id === msg.messageId);
-                            if (targetMsg) {
-                                targetMsg.reactions = targetMsg.reactions || {};
-                                targetMsg.reactions[msg.emoji] = targetMsg.reactions[msg.emoji] || [];
-                                if (!targetMsg.reactions[msg.emoji].includes(msg.username)) {
-                                    targetMsg.reactions[msg.emoji].push(msg.username);
-                                }
-                                if (rCode === activeRoomCode) renderMessages();
-                            }
-                            return;
-                        }
-
-                        roomMessages[rCode].push(msg);
-                        if (msg.senderId !== myId) playSciFiSound('receive');
-                        if (rCode === activeRoomCode) {
-                            renderMessages();
-                            scrollToBottom();
-                        }
-                    }
+                    handleIncomingPubNubMessage(event);
                 },
-                presence: function(pEvent) {
-                    const ch = pEvent.channel;
-                    if (ch.startsWith("room_presence_") || ch.startsWith("room_code_")) {
-                        const rCode = ch.replace("room_presence_", "").replace("room_code_", "");
-                        pubnub.hereNow({ channel: ch }, function(status, response) {
-                            if (!status && response && response.total_occupancy) {
-                                activeUsers.add(rCode);
-                            }
-                        });
-                    }
+                presence: function(event) {
+                    handlePresenceEvent(event);
                 }
             });
 
-            renderTabs();
-            switchRoom(code);
-            addSystemMsgToRoom(code, `Successfully jacked into channel #${roomName}`);
+            setOnline();
+            broadcastPresence();
+            setInterval(broadcastPresence, 15000);
         }
 
-        function switchRoom(code) {
-            activeRoomCode = code;
-            document.getElementById('room-display').innerText = `Channel: #${roomAliases[code]} (${code})`;
+        function broadcastPresence() {
+            if (!pubnub) return;
+            pubnub.publish({
+                channel: GLOBAL_REGISTRY_CHANNEL,
+                message: {
+                    type: 'presence_heartbeat',
+                    username: myUsername,
+                    name: myName,
+                    mood: customMood
+                }
+            });
+        }
+
+        function handleIncomingPubNubMessage(event) {
+            const msg = event.message;
+            const channel = event.channel;
+
+            if (channel === GLOBAL_REGISTRY_CHANNEL) {
+                if (msg.type === 'presence_heartbeat' && msg.username !== myUsername) {
+                    userMoods[msg.username] = msg.mood || "⚡ Jacked In";
+                    activeUsers.add(msg.username);
+                    updateFriendsListUI();
+                }
+                return;
+            }
+
+            if (channel === userChannel) {
+                if (msg.type === 'friend_request') {
+                    incomingRequests.push(msg);
+                    document.getElementById('mail-badge').classList.add('active');
+                    addSystemMsg(`Incoming link request from ${msg.senderName} (${msg.senderUsername})`);
+                    playSciFiSound('receive');
+                } else if (msg.type === 'friend_accepted') {
+                    if (!friends.some(f => f.username === msg.senderUsername)) {
+                        friends.push({ name: msg.senderName, username: msg.senderUsername, channel: msg.senderChannel });
+                        updateFriendsListUI();
+                    }
+                    addSystemMsg(`${msg.senderName} accepted your link request.`);
+                    playSciFiSound('receive');
+                } else if (msg.type === 'room_invite') {
+                    pendingInviteRoomCode = msg.roomCode;
+                    document.getElementById('popup-invite-text').innerText = `${msg.senderName} invited you to secure channel #${msg.roomCode}`;
+                    document.getElementById('invite-popup-overlay').style.display = 'flex';
+                    playSciFiSound('receive');
+                }
+                return;
+            }
+
+            if (channel.startsWith("room_code_")) {
+                const roomCode = channel.replace("room_code_", "");
+                if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
+
+                if (msg.type === 'typing') {
+                    if (msg.username !== myUsername) {
+                        if (msg.isTyping) {
+                            activeTypers[msg.username] = true;
+                        } else {
+                            delete activeTypers[msg.username];
+                        }
+                        updateTypingIndicatorUI();
+                    }
+                    return;
+                }
+
+                if (msg.type === 'focus_sync') {
+                    userFocusStates[msg.senderId] = msg.looking;
+                    if (roomCode === activeRoomCode) renderMessages();
+                    return;
+                }
+
+                if (msg.type === 'reaction') {
+                    const targetMsg = roomMessages[roomCode].find(m => m.id === msg.msgId);
+                    if (targetMsg) {
+                        if (!targetMsg.reactions) targetMsg.reactions = {};
+                        if (!targetMsg.reactions[msg.emoji]) targetMsg.reactions[msg.emoji] = [];
+                        if (!targetMsg.reactions[msg.emoji].includes(msg.username)) {
+                            targetMsg.reactions[msg.emoji].push(msg.username);
+                        }
+                        if (roomCode === activeRoomCode) renderMessages();
+                    }
+                    return;
+                }
+
+                if (msg.type === 'whiteboard_clear') {
+                    if (roomCode === activeRoomCode) {
+                        wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                    }
+                    return;
+                }
+
+                if (msg.type === 'whiteboard_draw') {
+                    if (roomCode === activeRoomCode && !isWhiteboardActive) {
+                        const img = new Image();
+                        img.onload = () => {
+                            wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+                            wbCtx.drawImage(img, 0, 0);
+                        };
+                        img.src = msg.image;
+                    }
+                    return;
+                }
+
+                roomMessages[roomCode].push(msg);
+                if (roomCode === activeRoomCode) {
+                    renderMessages();
+                    if (msg.senderId !== myId) playSciFiSound('receive');
+                }
+            }
+        }
+
+        function handlePresenceEvent(event) {
+            // Presence tracking handler
+        }
+
+        // Room management
+        function promptJoinRoom() {
+            const code = prompt("Enter or Create Room Code (e.g., ALPHA-7):");
+            if (!code) return;
+            const cleanCode = code.trim().toUpperCase();
+            joinRoom(cleanCode);
+        }
+
+        function joinRoom(roomCode) {
+            if (!openRooms.includes(roomCode)) {
+                openRooms.push(roomCode);
+                roomAliases[roomCode] = roomCode;
+                if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
+            }
+            switchRoom(roomCode);
+            pubnub.subscribe({ channels: ["room_code_" + roomCode] });
+            addSystemMsgToRoom(roomCode, `Connected to channel #${roomCode}`);
             renderTabs();
-            openChatTab();
+        }
+
+        function switchRoom(roomCode) {
+            activeRoomCode = roomCode;
+            isWhiteboardActive = false;
+            document.getElementById('whiteboard-view').style.display = 'none';
+            document.getElementById('messages').style.display = 'flex';
+            document.getElementById('room-display').innerText = `Channel: #${roomAliases[roomCode] || roomCode}`;
+            renderTabs();
             renderMessages();
-            scrollToBottom();
-            updateTypingIndicatorDisplay();
-            playSciFiSound('click');
         }
 
         function leaveCurrentRoom() {
-            if (openRooms.length <= 1) {
-                alert("Cannot disconnect from your final active frequency channel.");
-                return;
+            if (!activeRoomCode) return;
+            const leaving = activeRoomCode;
+            pubnub.unsubscribe({ channels: ["room_code_" + leaving] });
+            openRooms = openRooms.filter(r => r !== leaving);
+            delete roomMessages[leaving];
+
+            if (openRooms.length > 0) {
+                switchRoom(openRooms[0]);
+            } else {
+                activeRoomCode = "";
+                document.getElementById('room-display').innerText = "Channel: Offline";
+                document.getElementById('messages').innerHTML = "";
+                renderTabs();
             }
-            const codeToRemove = activeRoomCode;
-            pubnub.unsubscribe({ channels: ["room_code_" + codeToRemove, "room_presence_" + codeToRemove] });
-            openRooms = openRooms.filter(c => c !== codeToRemove);
-            delete roomMessages[codeToRemove];
-            delete roomAliases[codeToRemove];
-            switchRoom(openRooms[0]);
-            renderTabs();
-            playSciFiSound('click');
+            addSystemMsg(`Disconnected from channel #${leaving}`);
         }
 
         function renderTabs() {
             const list = document.getElementById('tabs-list');
             list.innerHTML = '';
-            openRooms.forEach(code => {
+            openRooms.forEach(roomCode => {
+                const isSelected = (roomCode === activeRoomCode && !isWhiteboardActive);
                 const tab = document.createElement('div');
-                tab.className = `chat-tab ${code === activeRoomCode && !isWhiteboardActive ? 'active' : ''}`;
-                tab.id = 'tab_' + code;
-                tab.onclick = () => switchRoom(code);
+                tab.className = `chat-tab ${isSelected ? 'active' : ''}`;
                 tab.innerHTML = `
-                    <span class="tab-title">#${roomAliases[code]}</span>
-                    <span class="tab-close-btn" onclick="event.stopPropagation(); leaveSpecificRoom('${code}')">&times;</span>
+                    <span class="tab-title" onclick="switchRoom('${roomCode}')">#${roomAliases[roomCode] || roomCode}</span>
+                    <span class="edit-tab-btn" onclick="renameTab('${roomCode}')" title="Rename Channel">✏️</span>
+                    <span class="tab-close-btn" onclick="closeRoomTab(event, '${roomCode}')">&times;</span>
                 `;
                 list.appendChild(tab);
             });
+
+            const wbTab = document.getElementById('tab-whiteboard');
+            if (isWhiteboardActive) {
+                wbTab.classList.add('active');
+            } else {
+                wbTab.classList.remove('active');
+            }
         }
 
-        function leaveSpecificRoom(code) {
-            if (openRooms.length <= 1) {
-                alert("Cannot disconnect from final channel.");
+        function renameTab(roomCode) {
+            const newName = prompt("Enter new channel alias:", roomAliases[roomCode] || roomCode);
+            if (newName) {
+                roomAliases[roomCode] = newName.trim();
+                renderTabs();
+                if (roomCode === activeRoomCode) {
+                    document.getElementById('room-display').innerText = `Channel: #${roomAliases[roomCode]}`;
+                }
+            }
+        }
+
+        function closeRoomTab(e, roomCode) {
+            e.stopPropagation();
+            activeRoomCode = roomCode;
+            leaveCurrentRoom();
+        }
+
+        function openWhiteboardTab() {
+            if (!activeRoomCode) {
+                alert("Join a channel first before opening the whiteboard!");
                 return;
             }
-            pubnub.unsubscribe({ channels: ["room_code_" + code, "room_presence_" + code] });
-            openRooms = openRooms.filter(c => c !== code);
-            delete roomMessages[code];
-            delete roomAliases[code];
-            if (activeRoomCode === code) {
-                switchRoom(openRooms[0]);
-            } else {
-                renderTabs();
-            }
+            isWhiteboardActive = true;
+            document.getElementById('messages').style.display = 'none';
+            document.getElementById('whiteboard-view').style.display = 'flex';
+            document.getElementById('room-display').innerText = `Channel: #${roomAliases[activeRoomCode]} [Whiteboard]`;
+            renderTabs();
+            setTimeout(resizeWbCanvas, 50);
         }
 
+        function openChatTab() {
+            isWhiteboardActive = false;
+            document.getElementById('whiteboard-view').style.display = 'none';
+            document.getElementById('messages').style.display = 'flex';
+            document.getElementById('room-display').innerText = `Channel: #${roomAliases[activeRoomCode]}`;
+            renderTabs();
+        }
+
+        // Messaging Engine & Commands
         function send() {
+            if (!activeRoomCode) {
+                alert("Please join a channel first.");
+                return;
+            }
             const input = document.getElementById('message-input');
             let text = input.value.trim();
-            if (!text || !activeRoomCode) return;
+            if (!text) return;
 
+            // Command handler: /roll
             if (text.startsWith('/roll')) {
                 const parts = text.split(' ');
-                let dice = parts[1] || '1d20';
-                let rollRes = executeDiceRoll(dice);
-                text = `🎲 Rolled ${dice}: ${rollRes}`;
+                let diceExpr = parts[1] || '1d20';
+                let result = rollDice(diceExpr);
+                text = `🎲 rolled ${diceExpr}: [ ${result} ]`;
             }
 
-            if (isGlitchModeActive) {
-                text = text.split('').map(c => c + '\u033c\u034f').join('');
-            }
-
+            const msgId = 'msg_' + Math.random().toString(36).substr(2, 9);
             const isSpoiler = isSpoilerModeActive;
-            const msgId = "msg_" + Math.random().toString(36).substr(2, 9);
 
-            input.value = '';
             isGlitchModeActive = false;
             isSpoilerModeActive = false;
             document.querySelector('.tool-btn').style.borderColor = "";
             document.querySelector('.tool-btn').style.boxShadow = "";
             document.getElementById('spoiler-btn').classList.remove('active-tool');
 
+            input.value = "";
             isCurrentlyTyping = false;
             pubnub.publish({
                 channel: "room_code_" + activeRoomCode,
@@ -1751,117 +1787,109 @@
             playSciFiSound('send');
         }
 
-        function executeDiceRoll(diceStr) {
+        function rollDice(expr) {
             try {
-                const parts = diceStr.toLowerCase().split('d');
-                const count = parseInt(parts[0]) || 1;
-                const sides = parseInt(parts[1]) || 20;
+                const [count, sides] = expr.split('d').map(Number);
                 let total = 0;
                 let rolls = [];
-                for (let i = 0; i < count; i++) {
-                    let r = Math.floor(Math.random() * sides) + 1;
+                for (let i = 0; i < (count || 1); i++) {
+                    const r = Math.floor(Math.random() * (sides || 20)) + 1;
                     rolls.push(r);
                     total += r;
                 }
                 return `${total} (${rolls.join(', ')})`;
-            } catch(e) {
-                return "Invalid Format";
+            } catch (e) {
+                return "Invalid dice syntax (e.g. 2d6)";
             }
         }
 
         function renderMessages() {
             const container = document.getElementById('messages');
             container.innerHTML = '';
-            const msgs = roomMessages[activeRoomCode] || [];
+            if (!activeRoomCode || !roomMessages[activeRoomCode]) return;
 
-            msgs.forEach(msg => {
+            roomMessages[activeRoomCode].forEach(msg => {
+                const isSelf = msg.senderId === myId;
                 const div = document.createElement('div');
-                div.className = `msg ${msg.senderId === myId ? 'self' : ''}`;
+                div.className = `msg ${isSelf ? 'self' : ''}`;
 
                 let contentHtml = '';
                 if (msg.image) {
-                    contentHtml = `<img src="${msg.image}" style="max-width:100%; border-radius:6px; margin-top:4px; border:1px solid var(--primary);" />`;
+                    contentHtml = `<img src="${msg.image}" alt="Transmitted Image">`;
                 } else if (msg.audio) {
-                    contentHtml = `<audio controls src="${msg.audio}" style="height:32px; max-width:220px; margin-top:4px;"></audio>`;
+                    contentHtml = `<audio controls src="${msg.audio}" style="height:32px; max-width:220px;"></audio>`;
                 } else if (msg.isSpoiler) {
-                    contentHtml = `<span class="spoiler-hidden" onclick="revealSpoiler(this)">CLASSIFIED CIPHER &bull; CLICK TO DECRYPT</span>`;
+                    contentHtml = `<span class="spoiler-hidden" onclick="revealSpoiler(this)">[CLASSIFIED] ${escape(msg.text)}</span>`;
                 } else {
-                    contentHtml = `<span>${escape(msg.text)}</span>`;
+                    contentHtml = escape(msg.text);
                 }
 
                 let reactionsHtml = '';
                 if (msg.reactions) {
                     reactionsHtml = `<div class="msg-reactions">`;
-                    for (let emoji in msg.reactions) {
-                        let users = msg.reactions[emoji];
-                        reactionsHtml += `<span class="reaction-pill" onclick="addReaction('${msg.id}', '${emoji}')">${emoji} ${users.length}</span>`;
+                    for (let [emoji, users] of Object.entries(msg.reactions)) {
+                        reactionsHtml += `<span class="reaction-pill">${emoji} ${users.length}</span>`;
                     }
                     reactionsHtml += `</div>`;
                 }
 
-                let eyeClass = msg.looking !== false ? 'looking' : 'away';
-                let eyeSymbol = msg.looking !== false ? '👁️' : '🕶️';
-
                 div.innerHTML = `
                     <div class="sender-header">
-                        <span class="user-eye ${eyeClass}" title="${msg.looking !== false ? 'User looking at terminal' : 'User away'}">${eyeSymbol}</span>
                         <span>${escape(msg.sender)} (${escape(msg.username)})</span>
+                        <span class="user-eye ${msg.looking !== false ? 'looking' : 'away'}" title="${msg.looking !== false ? 'Looking at screen' : 'Looking away'}">👁️</span>
                     </div>
-                    ${contentHtml}
+                    <div class="msg-body">${contentHtml}</div>
                     ${reactionsHtml}
                     <button type="button" class="add-reaction-btn" onclick="toggleReactionPicker(this)">+</button>
                     <div class="reaction-picker">
+                        <span class="reaction-option" onclick="addReaction('${msg.id}', '❤️')">❤️</span>
                         <span class="reaction-option" onclick="addReaction('${msg.id}', '🔥')">🔥</span>
                         <span class="reaction-option" onclick="addReaction('${msg.id}', '⚡')">⚡</span>
                         <span class="reaction-option" onclick="addReaction('${msg.id}', '💀')">💀</span>
-                        <span class="reaction-option" onclick="addReaction('${msg.id}', '💎')">💎</span>
                     </div>
                 `;
                 container.appendChild(div);
             });
-        }
-
-        function scrollToBottom() {
-            const container = document.getElementById('messages');
             container.scrollTop = container.scrollHeight;
         }
 
-        function revealSpoiler(elem) {
-            elem.className = 'spoiler-revealed';
-            playSciFiSound('click');
+        function revealSpoiler(el) {
+            el.classList.remove('spoiler-hidden');
+            el.classList.add('spoiler-revealed');
         }
 
         function toggleReactionPicker(btn) {
             const picker = btn.nextElementSibling;
+            document.querySelectorAll('.reaction-picker.open').forEach(p => {
+                if (p !== picker) p.classList.remove('open');
+            });
             picker.classList.toggle('open');
-            playSciFiSound('click');
         }
 
         function addReaction(msgId, emoji) {
+            document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open'));
             pubnub.publish({
                 channel: "room_code_" + activeRoomCode,
                 message: {
                     type: 'reaction',
-                    messageId: msgId,
+                    msgId: msgId,
                     emoji: emoji,
                     username: myUsername
                 }
             });
-            document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('open'));
-            playSciFiSound('click');
         }
 
         function toggleGlitchText() {
             isGlitchModeActive = !isGlitchModeActive;
-            const btn = event.target;
+            const input = document.getElementById('message-input');
             if (isGlitchModeActive) {
-                btn.style.borderColor = "var(--primary)";
-                btn.style.boxShadow = "0 0 12px var(--primary)";
-            } else {
-                btn.style.borderColor = "";
-                btn.style.boxShadow = "";
+                input.value = glitchedText(input.value || "TRANSMITTING GLITCH STREAM");
             }
-            playSciFiSound('click');
+        }
+
+        function glitchedText(str) {
+            const zalgo = ['̸','̢','̶','̴','̵','̾','̽','̾'];
+            return str.split('').map(c => c + zalgo[Math.floor(Math.random() * zalgo.length)]).join('');
         }
 
         function toggleSpoilerInput() {
@@ -1872,48 +1900,53 @@
             } else {
                 btn.classList.remove('active-tool');
             }
-            playSciFiSound('click');
         }
 
+        // Voice recorder simulation
         function toggleVoiceRecorder() {
-            const btn = document.getElementById('mic-btn');
             if (!isRecordingAudio) {
                 navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
-                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         const reader = new FileReader();
                         reader.onload = function(e) {
-                            pubnub.publish({
-                                channel: "room_code_" + activeRoomCode,
-                                message: {
-                                    id: "msg_" + Math.random().toString(36).substr(2, 9),
-                                    senderId: myId,
-                                    sender: myName,
-                                    username: myUsername,
-                                    audio: e.target.result,
-                                    looking: isUserLooking
-                                }
-                            });
-                            playSciFiSound('send');
+                            dispatchAudioMessage(e.target.result);
                         };
-                        reader.readAsDataURL(blob);
+                        reader.readAsDataURL(audioBlob);
                     };
                     mediaRecorder.start();
                     isRecordingAudio = true;
-                    btn.classList.add('active-tool');
-                    btn.innerText = "⏹️Stop";
+                    document.getElementById('mic-btn').classList.add('active-tool');
+                    document.getElementById('mic-btn').innerText = "⏹️Stop";
                 }).catch(err => {
-                    alert("Microphone access denied or unsupported.");
+                    alert("Microphone access denied or unavailable.");
                 });
             } else {
                 mediaRecorder.stop();
                 isRecordingAudio = false;
-                btn.classList.remove('active-tool');
-                btn.innerText = "🎙️Mic";
+                document.getElementById('mic-btn').classList.remove('active-tool');
+                document.getElementById('mic-btn').innerText = "🎙️Mic";
             }
+        }
+
+        function dispatchAudioMessage(audioDataUrl) {
+            if (!activeRoomCode) return;
+            const msgId = 'msg_' + Math.random().toString(36).substr(2, 9);
+            pubnub.publish({
+                channel: "room_code_" + activeRoomCode,
+                message: {
+                    id: msgId,
+                    senderId: myId,
+                    sender: myName,
+                    username: myUsername,
+                    audio: audioDataUrl,
+                    looking: isUserLooking
+                }
+            });
+            playSciFiSound('send');
         }
 
         function handleTypingInput() {
@@ -1935,142 +1968,135 @@
             }, 1500);
         }
 
-        function updateTypingIndicatorDisplay() {
-            const ind = document.getElementById('typing-indicator');
-            const typers = activeTypers[activeRoomCode] ? Object.keys(activeTypers[activeRoomCode]) : [];
+        function updateTypingIndicatorUI() {
+            const typers = Object.keys(activeTypers);
+            const indicator = document.getElementById('typing-indicator');
             if (typers.length > 0) {
-                ind.innerText = `${typers.join(', ')} is transmitting data...`;
+                indicator.innerText = `${typers.join(', ')} is transmitting data...`;
             } else {
-                ind.innerText = '';
+                indicator.innerText = '';
             }
         }
 
-        function addSystemMsgToRoom(rCode, text) {
-            roomMessages[rCode] = roomMessages[rCode] || [];
-            roomMessages[rCode].push({
-                id: "sys_" + Math.random(),
-                senderId: "system",
-                sender: "SYSTEM",
-                username: "KERNEL",
-                text: text
-            });
-            if (rCode === activeRoomCode) {
-                renderMessages();
-                scrollToBottom();
-            }
-        }
-
-        // Friends & Invite System
+        // Friends & Link Requests
         function sendFriendRequest() {
-            const input = document.getElementById('friend-input');
-            const target = input.value.trim();
+            const target = document.getElementById('friend-input').value.trim();
             if (!target) return;
             const cleanTarget = target.startsWith('@') ? target : '@' + target;
 
-            if (cleanTarget === myUsername) {
-                alert("Cannot link with yourself.");
-                return;
-            }
-
-            authPubNub.publish({
-                channel: userChannel,
+            pubnub.publish({
+                channel: "user_inbox_" + cleanTarget.replace('@', ''),
                 message: {
                     type: 'friend_request',
                     senderName: myName,
                     senderUsername: myUsername,
-                    recipient: cleanTarget
+                    senderChannel: userChannel
                 }
             });
-
-            input.value = '';
-            alert(`Link signal dispatched to ${cleanTarget}`);
-            playSciFiSound('send');
+            alert(`Link request transmitted to ${cleanTarget}`);
+            document.getElementById('friend-input').value = '';
         }
 
-        function renderFriends() {
+        function updateFriendsListUI() {
             const list = document.getElementById('friends-list');
             list.innerHTML = '';
             friends.forEach(f => {
-                const card = document.createElement('div');
-                card.className = 'friend-card';
-                card.innerHTML = `
-                    <div class="friend-info" onclick="directMessageFriend('${f.username}')">
-                        <div class="status-dot online"></div>
+                const isOnline = activeUsers.has(f.username);
+                const mood = userMoods[f.username] || "⚡ Jacked In";
+                const div = document.createElement('div');
+                div.className = 'friend-card';
+                div.innerHTML = `
+                    <div class="friend-info" onclick="startDirectChat('${f.username}', '${f.channel}')">
+                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
                         <div class="friend-details">
                             <span class="friend-name">${escape(f.name)}</span>
-                            <span class="friend-handle">${escape(f.username)}</span>
+                            <span class="friend-handle">${escape(f.username)} &bull; ${escape(mood)}</span>
                         </div>
                     </div>
                     <div class="friend-actions">
-                        <button type="button" class="btn-invite-friend" onclick="inviteSpecificFriend('${f.username}')">Invite</button>
+                        <button type="button" class="btn-invite-friend" onclick="inviteFriendToActiveRoom('${f.channel}')">Invite</button>
                         <span class="remove-friend" onclick="removeFriend('${f.username}')">&times;</span>
                     </div>
                 `;
-                list.appendChild(card);
+                list.appendChild(div);
             });
         }
 
-        function removeFriend(uname) {
-            friends = friends.filter(f => f.username !== uname);
-            renderFriends();
-            playSciFiSound('click');
+        function startDirectChat(username, channel) {
+            const roomCode = "DM_" + [myUsername, username].sort().join('_').replace(/[@]/g, '');
+            joinRoom(roomCode);
         }
 
-        function inviteSpecificFriend(uname) {
-            authPubNub.publish({
-                channel: userChannel,
-                message: {
-                    type: 'room_invite',
-                    senderName: myName,
-                    senderUsername: myUsername,
-                    recipient: uname,
-                    roomCode: activeRoomCode,
-                    roomName: roomAliases[activeRoomCode]
-                }
-            });
-            alert(`Frequency invitation sent to ${uname}`);
-            playSciFiSound('send');
+        function removeFriend(username) {
+            friends = friends.filter(f => f.username !== username);
+            updateFriendsListUI();
         }
 
         function inviteFriend() {
-            const target = prompt("Enter contact @HANDLE to invite to channel #" + roomAliases[activeRoomCode] + ":");
-            if (!target) return;
-            const cleanTarget = target.startsWith('@') ? target : '@' + target;
-            inviteSpecificFriend(cleanTarget);
+            if (!activeRoomCode) {
+                alert("Join a channel first to invite contacts!");
+                return;
+            }
+            const targetHandle = prompt("Enter contact @username to invite to channel #" + activeRoomCode + ":");
+            if (!targetHandle) return;
+            const clean = targetHandle.startsWith('@') ? targetHandle : '@' + targetHandle;
+
+            pubnub.publish({
+                channel: "user_inbox_" + clean.replace('@', ''),
+                message: {
+                    type: 'room_invite',
+                    senderName: myName,
+                    roomCode: activeRoomCode
+                }
+            });
+            alert(`Secure invitation transmitted to ${clean}`);
+        }
+
+        function inviteFriendToActiveRoom(targetChannel) {
+            if (!activeRoomCode) {
+                alert("No active channel selected!");
+                return;
+            }
+            pubnub.publish({
+                channel: targetChannel,
+                message: {
+                    type: 'room_invite',
+                    senderName: myName,
+                    roomCode: activeRoomCode
+                }
+            });
+            alert("Secure invitation sent!");
         }
 
         function acceptRoomInvite() {
-            if (!pendingInviteRoomCode) return;
             document.getElementById('invite-popup-overlay').style.display = 'none';
-            joinRoom("SECURE-LINK", pendingInviteRoomCode);
-            pendingInviteRoomCode = "";
-            playSciFiSound('click');
+            if (pendingInviteRoomCode) {
+                joinRoom(pendingInviteRoomCode);
+                pendingInviteRoomCode = "";
+            }
         }
 
         function declineRoomInvite() {
             document.getElementById('invite-popup-overlay').style.display = 'none';
             pendingInviteRoomCode = "";
-            playSciFiSound('click');
         }
 
+        // Inbox & Notifications Modal
         function toggleInbox() {
             const modal = document.getElementById('inbox-modal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-            document.getElementById('mail-badge').classList.remove('active');
-            renderInboxContent();
-            playSciFiSound('click');
-        }
-
-        function updateInboxBadge() {
-            document.getElementById('mail-badge').classList.add('active');
+            const isVisible = modal.style.display === 'flex';
+            modal.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) {
+                document.getElementById('mail-badge').classList.remove('active');
+                renderInboxContent();
+            }
         }
 
         function switchInboxTab(tab) {
             currentTab = tab;
-            document.getElementById('tab-requests').className = `inbox-tab ${tab === 'requests' ? 'active' : ''}`;
-            document.getElementById('tab-system').className = `inbox-tab ${tab === 'system' ? 'active' : ''}`;
+            document.getElementById('tab-requests').classList.toggle('active', tab === 'requests');
+            document.getElementById('tab-system').classList.toggle('active', tab === 'system');
             renderInboxContent();
-            playSciFiSound('click');
         }
 
         function renderInboxContent() {
@@ -2079,79 +2105,127 @@
 
             if (currentTab === 'requests') {
                 if (incomingRequests.length === 0) {
-                    content.innerHTML = `<p style="font-size:11px; color:var(--text-accent); text-align:center;">No pending link requests.</p>`;
+                    content.innerHTML = `<p style="font-size:11px; color:var(--text-accent); text-align:center; padding:10px;">No pending signals.</p>`;
                     return;
                 }
                 incomingRequests.forEach((req, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'req-card';
-                    card.innerHTML = `
-                        <div>
-                            <div style="font-size:12px; font-weight:600; color:#fff;">${escape(req.name)}</div>
-                            <div style="font-size:10px; color:var(--text-accent);">${escape(req.username)}</div>
+                    const div = document.createElement('div');
+                    div.className = 'req-card';
+                    div.innerHTML = `
+                        <div style="font-size:11px;">
+                            <strong>${escape(req.senderName)}</strong><br>
+                            <span style="color:var(--text-accent);">${escape(req.senderUsername)}</span>
                         </div>
                         <div class="req-actions">
-                            <button type="button" class="btn-accept" onclick="acceptLinkReq(${idx})">Accept</button>
-                            <button type="button" class="btn-decline" onclick="declineLinkReq(${idx})">Decline</button>
+                            <button type="button" class="btn-accept" onclick="acceptFriendRequest(${idx})">Accept</button>
+                            <button type="button" class="btn-decline" onclick="declineFriendRequest(${idx})">Decline</button>
                         </div>
                     `;
-                    content.appendChild(card);
+                    content.appendChild(div);
                 });
             } else {
-                content.innerHTML = `<p style="font-size:11px; color:var(--text-accent); text-align:center;">All systems operating at peak nominal parameters.</p>`;
+                if (systemMessages.length === 0) {
+                    content.innerHTML = `<p style="font-size:11px; color:var(--text-accent); text-align:center; padding:10px;">No system logs recorded.</p>`;
+                    return;
+                }
+                systemMessages.slice().reverse().forEach(log => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "font-size:10px; color:var(--text-accent); background:var(--bg-input); padding:6px; border-radius:6px; border:1px solid var(--primary-glow);";
+                    div.innerText = log;
+                    content.appendChild(div);
+                });
             }
         }
 
-        function acceptLinkReq(idx) {
+        function acceptFriendRequest(idx) {
             const req = incomingRequests[idx];
-            friends.push({ name: req.name, username: req.username, status: 'Online' });
-            authPubNub.publish({
-                channel: userChannel,
+            friends.push({ name: req.senderName, username: req.senderUsername, channel: req.senderChannel });
+            pubnub.publish({
+                channel: req.senderChannel,
                 message: {
-                    type: 'friend_accept',
+                    type: 'friend_accepted',
                     senderName: myName,
                     senderUsername: myUsername,
-                    recipient: req.username
+                    senderChannel: userChannel
                 }
             });
             incomingRequests.splice(idx, 1);
-            renderFriends();
+            updateFriendsListUI();
             renderInboxContent();
-            playSciFiSound('click');
         }
 
-        function declineLinkReq(idx) {
+        function declineFriendRequest(idx) {
             incomingRequests.splice(idx, 1);
             renderInboxContent();
-            playSciFiSound('click');
+        }
+
+        function addSystemMsg(text) {
+            systemMessages.push(`[${new Date().toLocaleTimeString()}] ${text}`);
+            renderInboxContent();
+        }
+
+        function addSystemMsgToRoom(roomCode, text) {
+            if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
+            roomMessages[roomCode].push({
+                id: 'sys_' + Math.random(),
+                senderId: 'SYSTEM',
+                sender: 'SYSTEM',
+                username: '@terminal',
+                text: text
+            });
+            if (roomCode === activeRoomCode) renderMessages();
+        }
+
+        // Settings & Theme Customization
+        function changeTheme(themeName) {
+            document.body.className = `theme-${themeName} ${document.getElementById('crt-toggle').checked ? 'crt-enabled' : ''}`;
+        }
+
+        function toggleCRT(enabled) {
+            if (enabled) {
+                document.body.classList.add('crt-enabled');
+            } else {
+                document.body.classList.remove('crt-enabled');
+            }
         }
 
         function promptCustomStatus() {
-            const st = prompt("Set Custom Terminal Mood Status:", customMood);
-            if (!st) return;
-            customMood = st;
-            document.getElementById('user-status-mood').innerText = st;
-            playSciFiSound('click');
+            const mood = prompt("Enter custom status/mood:", customMood);
+            if (mood !== null) {
+                customMood = mood.trim() || "⚡ Jacked In";
+                document.getElementById('user-status-mood').innerText = customMood;
+                broadcastPresence();
+            }
         }
 
-        function promptSwitchAccount() {
-            document.getElementById('confirm-switch-overlay').style.display = 'flex';
+        function setOnline() {
+            const badge = document.getElementById('status-badge');
+            badge.innerText = "System Online";
+            badge.classList.add('online');
         }
 
-        function confirmSwitchAccount() {
-            location.reload();
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
-
-        function cancelSwitchAccount() {
-            document.getElementById('confirm-switch-overlay').style.display = 'none';
-        }
-
-        // Focus Tracking
-        window.addEventListener('blur', () => { isUserLooking = false; });
-        window.addEventListener('focus', () => { isUserLooking = true; });
 
         function escape(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
+
+        // Visibility Focus API Tracking
+        document.addEventListener('visibilitychange', () => {
+            isUserLooking = !document.hidden;
+            if (activeRoomCode) {
+                pubnub.publish({
+                    channel: "room_code_" + activeRoomCode,
+                    message: {
+                        type: 'focus_sync',
+                        senderId: myId,
+                        looking: isUserLooking
+                    }
+                });
+            }
+        });
     </script>
 </body>
+</html>
