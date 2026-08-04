@@ -1055,7 +1055,7 @@
             </div>
 
             <div id="messages-view-port">
-                <div id="messages"></div>
+                <div id="messages" style="display: flex;"></div>
                 <div id="whiteboard-view">
                     <canvas id="wb-canvas"></canvas>
                     <div class="wb-tools">
@@ -1145,7 +1145,6 @@
         let ambientOsc = null;
         let ambientGain = null;
 
-        // Auto-login check on page load & fetch saved channels if any
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('cybernet_name');
             const savedUsername = localStorage.getItem('cybernet_username');
@@ -1164,7 +1163,6 @@
             }
         });
 
-        // Global Paste Event Listener
         window.addEventListener('paste', (event) => {
             const items = (event.clipboardData || event.originalEvent.clipboardData).items;
             for (let index in items) {
@@ -1664,7 +1662,7 @@
             isWhiteboardActive = false;
             document.getElementById('messages-view-port').style.display = 'flex';
             document.getElementById('whiteboard-view').style.display = 'none';
-            document.getElementById('messages').style.display = 'flex'; // <--- FIX: Ensure message view is explicitly visible when switching rooms!
+            document.getElementById('messages').style.display = 'flex';
             document.getElementById('room-display').innerText = `Channel: #${roomAliases[channelName] || 'secure'}`;
             renderTabs();
             renderMessages();
@@ -1845,7 +1843,6 @@
             }, (status) => {
                 if (!status.error) {
                     playSciFiSound('send');
-                    // INSTANT LOCAL RENDER FIX: Appends sent message locally and updates chat DOM immediately
                     if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
                     if (!roomMessages[activeRoomCode].some(m => m.id === msgObj.id)) {
                         roomMessages[activeRoomCode].push(msgObj);
