@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Fixed Canvas P2P</title>
+    <title>Cyber Terminal Chat - Live Peer Add & Instant Handshake</title>
     <style>
         * {
             box-sizing: border-box;
@@ -139,15 +139,15 @@
 
         /* Sections */
         .section-box {
-            margin-top: 15px;
-            max-height: 180px;
+            margin-top: 12px;
+            max-height: 140px;
             overflow-y: auto;
         }
 
         .section-title {
             font-size: 11px;
             color: #aaa;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -230,7 +230,7 @@
         /* Settings Panel */
         .settings-panel {
             border-top: 1px solid #1a103c;
-            padding-top: 15px;
+            padding-top: 12px;
             font-size: 11px;
         }
 
@@ -331,7 +331,7 @@
         }
 
         .chat-msg-img {
-            max-width: 200px;
+            max-width: 220px;
             border: 1px solid #00f0ff;
             border-radius: 4px;
             margin-top: 5px;
@@ -435,7 +435,14 @@
                     <div class="status-badge">⚡ Jacked In</div>
                 </div>
 
-                <button class="action-btn" onclick="openCreateLobbyPrompt()">// Create Lobby Room</button>
+                <div class="section-box" style="margin-top: 10px;">
+                    <div class="section-title">
+                        <span>Lobby Rooms</span>
+                        <button class="mini-btn" style="padding: 1px 6px; font-size: 10px;" onclick="openCreateLobbyPrompt()">+ New</button>
+                    </div>
+                    <ul class="item-list" id="lobbyList">
+                        </ul>
+                </div>
 
                 <div class="section-box">
                     <div class="section-title">
@@ -447,14 +454,14 @@
                     </ul>
                 </div>
 
-                <div class="section-box" style="max-height: 150px;">
-                    <div class="section-title">Send Friend Request</div>
+                <div class="section-box">
+                    <div class="section-title">Live Peer Handshake</div>
                     <div class="link-input-group" style="margin-bottom: 5px;">
                         <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
-                        <button class="action-btn" style="margin-top:0; width: 40%; padding: 6px;" onclick="sendFriendRequest()">Add</button>
+                        <button class="action-btn" style="margin-top:0; width: 45%; padding: 6px;" onclick="sendLiveFriendRequest()">// ADD</button>
                     </div>
-                    <div class="section-title" style="margin-top:10px;">Friends & Lobbies</div>
-                    <ul class="item-list" id="contactList">
+                    <div class="section-title" style="margin-top:8px;">Friends Direct</div>
+                    <ul class="item-list" id="friendsListContainer">
                         </ul>
                 </div>
             </div>
@@ -478,13 +485,13 @@
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Fully synchronized P2P terminal online. Send friend requests via peer ID, approve incoming handshakes in real-time, and share sketches!
+                    Fully synchronized P2P terminal online. Enter a peer's ID and hit **// ADD** to transmit a live real-time request directly to their inbox!
                 </div>
             </div>
 
             <div class="chat-input-footer">
                 <button class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
-                <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message..." onkeypress="checkEnter(event)">
+                <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message or paste any copied image (Ctrl+V)..." onkeypress="checkEnter(event)" onpaste="handleImagePaste(event)">
                 <button class="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
@@ -498,14 +505,14 @@
         let myId = "";
 
         let chats = {
-            'lobby': { name: '#lobby', messages: [], unread: 0 }
+            'lobby': { name: '#lobby', messages: [], unread: 0, type: 'lobby' }
         };
         let friendRequests = {}; 
         let friendsList = {};    
         let activeChatKey = 'lobby';
         let activeConnections = {};
 
-        // Canvas Drawing Setup with Pointer Events (Fixes touch/mouse rendering bug)
+        // Canvas Drawing Setup with Pointer Events
         const canvas = document.getElementById('drawCanvas');
         const ctx = canvas.getContext('2d');
         let painting = false;
@@ -550,6 +557,24 @@
             sendPayload({ type: 'image', image: dataUrl });
         }
 
+        // Direct Clipboard Image Paste Handler (Ctrl+V)
+        function handleImagePaste(event) {
+            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+            for(let index in items) {
+                let item = items[index];
+                if(item.kind === 'file' && item.type.indexOf('image/') !== -1) {
+                    event.preventDefault();
+                    let blob = item.getAsFile();
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        sendPayload({ type: 'image', image: e.target.result });
+                    };
+                    reader.readAsDataURL(blob);
+                    break;
+                }
+            }
+        }
+
         // On Load Check Persistent Account
         window.onload = function() {
             const savedProfile = localStorage.getItem('cyber_profile');
@@ -589,7 +614,7 @@
                 document.getElementById('mainContainer').style.display = 'flex';
                 
                 renderTabs();
-                renderContacts();
+                renderSidebarLists();
                 renderRequests();
                 switchChat(activeChatKey);
             });
@@ -605,7 +630,7 @@
                     document.getElementById('mainContainer').style.display = 'flex';
                     
                     renderTabs();
-                    renderContacts();
+                    renderSidebarLists();
                     renderRequests();
                     switchChat(activeChatKey);
                 });
@@ -621,14 +646,14 @@
             if(savedData) {
                 try {
                     const parsed = JSON.parse(savedData);
-                    chats = parsed.chats || { 'lobby': { name: '#lobby', messages: [], unread: 0 } };
+                    chats = parsed.chats || { 'lobby': { name: '#lobby', messages: [], unread: 0, type: 'lobby' } };
                     friendRequests = parsed.friendRequests || {};
                     friendsList = parsed.friendsList || {};
                 } catch(e) {
                     console.error(e);
                 }
             } else {
-                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Secure terminal online.', type: 'received' }], unread: 0 } };
+                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Secure terminal online.', type: 'received' }], unread: 0, type: 'lobby' } };
                 friendRequests = {};
                 friendsList = {};
             }
@@ -658,14 +683,16 @@
             if(!key.startsWith('#')) key = '#' + key;
 
             if(!chats[key]) {
-                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Room ${key} initialized.` }], unread: 0 };
+                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Room ${key} initialized.` }], unread: 0, type: 'lobby' };
                 savePersistentStorage();
                 renderTabs();
+                renderSidebarLists();
             }
             switchChat(key);
         }
 
-        function sendFriendRequest() {
+        // Live Add Button Action - Transmits live handshake request instantly over P2P
+        function sendLiveFriendRequest() {
             const targetId = document.getElementById('peerIdInput').value.trim().replace('@','');
             if(!targetId || targetId === myId) {
                 alert("Enter a valid unique peer target ID.");
@@ -674,13 +701,15 @@
 
             const conn = peer.connect(targetId);
             activeConnections[targetId] = conn;
+
             conn.on('open', () => {
                 conn.send({ type: 'friend_request', sender: myDisplayName, senderId: myId });
-                alert(`Friend request sent successfully to @${targetId}! Awaiting their real-time acceptance.`);
+                alert(`⚡ Live friend request transmitted instantly to @${targetId}!`);
                 document.getElementById('peerIdInput').value = '';
             });
+
             conn.on('error', () => {
-                alert("Could not reach peer node. Verify their ID code.");
+                alert("Connection failed. Verify target peer ID is currently online.");
             });
         }
 
@@ -689,7 +718,8 @@
                 chats[targetId] = {
                     name: '@' + targetId,
                     messages: [{ sender: 'System Daemon', text: `Secure channel linked with @${targetId}` }],
-                    unread: 0
+                    unread: 0,
+                    type: 'friend'
                 };
             }
             activeConnections[targetId] = connection;
@@ -697,7 +727,7 @@
             connection.on('open', () => {
                 savePersistentStorage();
                 renderTabs();
-                renderContacts();
+                renderSidebarLists();
             });
 
             connection.on('data', (data) => {
@@ -707,7 +737,7 @@
             connection.on('close', () => {
                 appendSystemMsg(targetId, `Link closed with @${targetId}`);
                 delete activeConnections[targetId];
-                renderContacts();
+                renderSidebarLists();
             });
         }
 
@@ -721,7 +751,7 @@
 
             connection.on('close', () => {
                 delete activeConnections[remoteId];
-                renderContacts();
+                renderSidebarLists();
             });
         }
 
@@ -730,17 +760,17 @@
                 friendRequests[remoteId] = { name: data.sender || remoteId, id: remoteId };
                 savePersistentStorage();
                 renderRequests();
-                alert(`New friend request received from ${data.sender} (@${remoteId})! Check your Inbox.`);
+                alert(`⚡ Live friend request received from ${data.sender} (@${remoteId})! Check your Inbox.`);
             } 
             else if(data.type === 'friend_accept') {
                 friendsList[remoteId] = { name: data.sender || remoteId };
                 if(!chats[remoteId]) {
-                    chats[remoteId] = { name: '@' + remoteId, messages: [{ sender: 'System Daemon', text: `Friend handshake accepted with @${remoteId}` }], unread: 0 };
+                    chats[remoteId] = { name: '@' + remoteId, messages: [{ sender: 'System Daemon', text: `Friend handshake accepted with @${remoteId}` }], unread: 0, type: 'friend' };
                 }
                 savePersistentStorage();
-                renderContacts();
+                renderSidebarLists();
                 renderTabs();
-                alert(`${data.sender} accepted your friend request! You can now chat directly.`);
+                alert(`✅ ${data.sender} accepted your friend request in real-time! Chat channel open.`);
             }
             else {
                 receiveData(remoteId, data.sender || remoteId, data);
@@ -755,11 +785,11 @@
             delete friendRequests[peerId];
 
             if(!chats[peerId]) {
-                chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Friend connection established with @${peerId}` }], unread: 0 };
+                chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Friend connection established with @${peerId}` }], unread: 0, type: 'friend' };
             }
             savePersistentStorage();
             renderRequests();
-            renderContacts();
+            renderSidebarLists();
             renderTabs();
 
             let conn = activeConnections[peerId];
@@ -782,7 +812,7 @@
 
         function receiveData(chatKey, sender, data) {
             if(!chats[chatKey]) {
-                chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0 };
+                chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0, type: 'friend' };
             }
             chats[chatKey].messages.push({ sender: sender, text: data.text || '', image: data.image || null, type: 'received' });
             savePersistentStorage();
@@ -792,7 +822,7 @@
             } else {
                 chats[chatKey].unread++;
                 renderTabs();
-                renderContacts();
+                renderSidebarLists();
             }
         }
 
@@ -812,7 +842,7 @@
             currentChat.messages.push({ sender: myDisplayName, text: payload.text || '', image: payload.image || null, type: 'sent' });
             savePersistentStorage();
 
-            if(!activeChatKey.startsWith('#')) {
+            if(currentChat.type === 'friend') {
                 let conn = activeConnections[activeChatKey];
                 if(!conn || !conn.open) {
                     conn = peer.connect(activeChatKey);
@@ -833,7 +863,7 @@
             savePersistentStorage();
             
             renderTabs();
-            renderContacts();
+            renderSidebarLists();
             renderMessages();
         }
 
@@ -852,26 +882,33 @@
             }
         }
 
-        function renderContacts() {
-            const list = document.getElementById('contactList');
-            list.innerHTML = '';
+        function renderSidebarLists() {
+            const lobbyList = document.getElementById('lobbyList');
+            const friendsListContainer = document.getElementById('friendsListContainer');
+            lobbyList.innerHTML = '';
+            friendsListContainer.innerHTML = '';
 
             for(let key in chats) {
-                if(key === 'lobby') continue;
                 let chat = chats[key];
-                let isOnline = activeConnections[key] && activeConnections[key].open;
-                
                 let li = document.createElement('li');
                 li.className = `list-item ${activeChatKey === key ? 'active' : ''}`;
-                li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline || key.startsWith('#') ? '#00f0ff' : '#7b68ee'}">${key.startsWith('#') ? 'ROOM' : (isOnline ? 'ONLINE' : 'SAVED')}</span>`;
-                li.onclick = () => {
-                    if(!isOnline && !key.startsWith('#')) {
-                        const conn = peer.connect(key);
-                        setupConnection(conn, key);
-                    }
-                    switchChat(key);
-                };
-                list.appendChild(li);
+
+                if(chat.type === 'lobby') {
+                    li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:#00f0ff">ROOM</span>`;
+                    li.onclick = () => switchChat(key);
+                    lobbyList.appendChild(li);
+                } else {
+                    let isOnline = activeConnections[key] && activeConnections[key].open;
+                    li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline ? '#00f0ff' : '#7b68ee'}">${isOnline ? 'ONLINE' : 'SAVED'}</span>`;
+                    li.onclick = () => {
+                        if(!isOnline) {
+                            const conn = peer.connect(key);
+                            setupConnection(conn, key);
+                        }
+                        switchChat(key);
+                    };
+                    friendsListContainer.appendChild(li);
+                }
             }
         }
 
@@ -919,7 +956,7 @@
                 
                 let innerContent = `<div class="msg-user">${escapeHtml(msg.sender)}</div>`;
                 if(msg.text) innerContent += `<div>${escapeHtml(msg.text)}</div>`;
-                if(msg.image) innerContent += `<img src="${msg.image}" class="chat-msg-img" alt="Sketch">`;
+                if(msg.image) innerContent += `<img src="${msg.image}" class="chat-msg-img" alt="Shared Asset">`;
                 
                 msgDiv.innerHTML = innerContent;
                 container.appendChild(msgDiv);
