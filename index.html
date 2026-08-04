@@ -1664,6 +1664,7 @@
             isWhiteboardActive = false;
             document.getElementById('messages-view-port').style.display = 'flex';
             document.getElementById('whiteboard-view').style.display = 'none';
+            document.getElementById('messages').style.display = 'flex'; // <--- FIX: Ensure message view is explicitly visible when switching rooms!
             document.getElementById('room-display').innerText = `Channel: #${roomAliases[channelName] || 'secure'}`;
             renderTabs();
             renderMessages();
@@ -1844,7 +1845,7 @@
             }, (status) => {
                 if (!status.error) {
                     playSciFiSound('send');
-                    // INSTANT LOCAL RENDER FIX: Appends sent message locally and updates chat DOM
+                    // INSTANT LOCAL RENDER FIX: Appends sent message locally and updates chat DOM immediately
                     if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
                     if (!roomMessages[activeRoomCode].some(m => m.id === msgObj.id)) {
                         roomMessages[activeRoomCode].push(msgObj);
