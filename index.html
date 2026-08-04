@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat</title>
+    <title>Cyber Terminal Chat - P2P</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,7 +20,6 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            /* CRT Monitor Glow Effect */
             box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.1);
             border: 4px solid #101026;
         }
@@ -35,6 +34,37 @@
             z-index: 99999;
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
+        }
+
+        /* Modal Overlay for Sign-Up / Auth */
+        #authModal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 3, 8, 0.95);
+            z-index: 100000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-box {
+            background: #070714;
+            border: 2px solid #7b68ee;
+            padding: 30px;
+            width: 350px;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(123, 104, 238, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-box h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 20px;
+            letter-spacing: 2px;
         }
 
         .container {
@@ -132,6 +162,7 @@
             font-size: 12px;
             outline: none;
             border-radius: 4px;
+            width: 100%;
         }
 
         .cyber-input:focus {
@@ -150,6 +181,10 @@
             cursor: pointer;
             border-left: 2px solid transparent;
             transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #aaa;
         }
 
         .contact-item:hover, .contact-item.active {
@@ -192,6 +227,7 @@
         .tabs {
             display: flex;
             gap: 10px;
+            overflow-x: auto;
         }
 
         .tab {
@@ -202,6 +238,7 @@
             color: #7b68ee;
             border-radius: 4px;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .tab.active {
@@ -275,10 +312,6 @@
             background: #05050f;
         }
 
-        .chat-input-footer input {
-            flex-grow: 1;
-        }
-
         .send-btn {
             background: linear-gradient(135deg, #1a103c, #00f0ff);
             color: #030308;
@@ -297,23 +330,34 @@
 </head>
 <body>
 
+    <div id="authModal">
+        <div class="auth-box">
+            <h2>CYBER TERMINAL</h2>
+            <div class="terminal-label">Initialize Credentials</div>
+            <input type="text" id="regUser" class="cyber-input" placeholder="Username (e.g. cyberjack)">
+            <input type="text" id="regDisplay" class="cyber-input" placeholder="Display Name (e.g. Jack)">
+            <input type="password" id="regPass" class="cyber-input" placeholder="Security Password">
+            <button class="action-btn" onclick="initializeAccount()">// Jack Into Network</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="sidebar">
             <div>
                 <div class="user-panel">
                     <span class="terminal-label">Terminal User</span>
                     <div class="username" id="displayUsername">jack</div>
-                    <span style="font-size: 11px; color: #7b68ee;" id="displayId">@up</span>
+                    <span style="font-size: 11px; color: #7b68ee;" id="displayId">@loading...</span>
                     <div class="status-badge">⚡ Jacked In</div>
                 </div>
 
-                <button class="action-btn" onclick="changeUsername()">// Edit Profile</button>
+                <button class="action-btn" onclick="openCreateOrJoinModal()">// Create / Join Channel</button>
 
                 <div class="contacts-section">
-                    <div class="contacts-title">Linked Contacts</div>
-                    <div class="link-input-group">
-                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID" style="width: 70%;">
-                        <button class="action-btn" style="margin-top:0; width: 30%; padding: 8px;" onclick="connectToPeer()">Link</button>
+                    <div class="contacts-title">Linked Contacts / Chats</div>
+                    <div class="link-input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
+                        <button class="action-btn" style="margin-top:0; width: 35%; padding: 8px;" onclick="connectToPeer()">Link</button>
                     </div>
                     <ul class="contact-list" id="contactList">
                         </ul>
@@ -335,8 +379,8 @@
 
         <div class="chat-area">
             <div class="chat-header">
-                <div class="tabs">
-                    <div class="tab active" id="currentChannelTab">#lobby</div>
+                <div class="tabs" id="chatTabsContainer">
+                    <div class="tab active" onclick="switchChat('lobby')" id="tab_lobby">#lobby</div>
                 </div>
                 <div class="header-controls">
                     <button class="mini-btn" onclick="copyMyId()">Share Link / ID</button>
@@ -347,7 +391,7 @@
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Welcome to the local network terminal. Share your unique ID with a friend on the same network or web server to link up directly via Peer-to-Peer (WebRTC)! No API keys required.
+                    Welcome to your decentralized terminal interface. Use your ID code to link with friends directly over P2P infrastructure without any server API keys! Open multiple chats from the sidebar to multitask.
                 </div>
             </div>
 
@@ -360,68 +404,155 @@
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        // Generate a random default identifier if none exists
-        let myId = 'user_' + Math.floor(Math.random() * 9000 + 1000);
-        let username = "jack";
+        let peer = null;
+        let myUsername = "jack";
+        let myDisplayName = "Jack";
+        let myId = "";
         
-        document.getElementById('displayUsername').innerText = username;
-        document.getElementById('displayId').innerText = "@" + myId;
+        let chats = {
+            'lobby': { name: '#lobby', messages: [], connection: null, unread: 0 }
+        };
+        let activeChatKey = 'lobby';
 
-        // Initialize PeerJS (Free public broker infrastructure, zero API keys required)
-        const peer = new Peer(myId);
-        let activeConnection = null;
-        let connectedPeers = {};
+        function initializeAccount() {
+            const u = document.getElementById('regUser').value.trim();
+            const d = document.getElementById('regDisplay').value.trim();
+            const p = document.getElementById('regPass').value.trim();
 
-        peer.on('open', (id) => {
-            myId = id;
-            document.getElementById('displayId').innerText = "@" + myId;
-        });
-
-        // Listen for incoming peer connections from friends
-        peer.on('connection', (connection) => {
-            setupConnection(connection);
-            appendSystemMessage(`Incoming cyber link established from: @${connection.peer}`);
-        });
-
-        function connectToPeer() {
-            const peerIdInput = document.getElementById('peerIdInput').value.trim();
-            if(!peerIdInput || peerIdInput === myId) {
-                alert("Enter a valid target peer ID.");
+            if(!u || !d || !p) {
+                alert("Please fill in all security fields to jack in.");
                 return;
             }
-            
-            const connection = peer.connect(peerIdInput);
-            setupConnection(connection);
+
+            myUsername = u;
+            myDisplayName = d;
+
+            // Generate clean peer identity hash based on username
+            const uniqueSeed = u.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Math.floor(Math.random() * 900 + 100);
+
+            // Initialize PeerJS network connection
+            peer = new Peer(uniqueSeed);
+
+            peer.on('open', (id) => {
+                myId = id;
+                document.getElementById('displayUsername').innerText = myDisplayName;
+                document.getElementById('displayId').innerText = "@" + myId;
+                document.getElementById('authModal').style.display = 'none';
+            });
+
+            peer.on('error', (err) => {
+                // Fallback if ID collision occurs
+                const fallbackId = 'node_' + Math.random().toString(36.substring(2, 7));
+                peer = new Peer(fallbackId);
+                peer.on('open', (id) => {
+                    myId = id;
+                    document.getElementById('displayUsername').innerText = myDisplayName;
+                    document.getElementById('displayId').innerText = "@" + myId;
+                    document.getElementById('authModal').style.display = 'none';
+                });
+            });
+
+            // Listen for incoming connection handshakes from friends
+            peer.on('connection', (connection) => {
+                setupIncomingConnection(connection);
+            });
         }
 
-        function setupConnection(connection) {
-            activeConnection = connection;
+        function openCreateOrJoinModal() {
+            const choice = prompt("Enter action:\n1. Type a Peer ID to Link directly\n2. Type a new channel/room name to open", "@peer_id_here");
+            if(!choice) return;
             
+            if(choice.startsWith('@') || choice.length > 3) {
+                document.getElementById('peerIdInput').value = choice.replace('@','');
+                connectToPeer();
+            } else {
+                createOrJoinChannel(choice);
+            }
+        }
+
+        function createOrJoinChannel(channelName) {
+            let key = channelName.toLowerCase().replace(/\s+/g, '_');
+            if(!key.startsWith('#')) key = '#' + key;
+
+            if(!chats[key]) {
+                chats[key] = { name: key, messages: [], connection: null, unread: 0 };
+                renderTabs();
+            }
+            switchChat(key);
+        }
+
+        function connectToPeer() {
+            const peerIdInput = document.getElementById('peerIdInput').value.trim().replace('@','');
+            if(!peerIdInput || peerIdInput === myId) {
+                alert("Enter a valid external peer target ID.");
+                return;
+            }
+
+            if(chats[peerIdInput] && chats[peerIdInput].connection) {
+                switchChat(peerIdInput);
+                return;
+            }
+
+            const connection = peer.connect(peerIdInput);
+            setupConnection(connection, peerIdInput);
+        }
+
+        function setupConnection(connection, targetId) {
+            chats[targetId] = {
+                name: '@' + targetId,
+                messages: [{ sender: 'System Daemon', text: `Secure handshake initiated with @${targetId}` }],
+                connection: connection,
+                unread: 0
+            };
+
             connection.on('open', () => {
-                connectedPeers[connection.peer] = connection;
-                updateContactUI(connection.peer);
-                appendSystemMessage(`Successfully jacked into channel with @${connection.peer}`);
+                renderTabs();
+                renderContacts();
+                if(activeChatKey === 'lobby') switchChat(targetId);
             });
 
             connection.on('data', (data) => {
-                appendMessage(data.sender || connection.peer, data.text, 'received');
+                receiveMessage(targetId, data.sender || targetId, data.text);
             });
 
             connection.on('close', () => {
-                appendSystemMessage(`Link dropped with @${connection.peer}`);
+                appendSystemMsg(targetId, `Link dropped with @${targetId}`);
             });
         }
 
-        function updateContactUI(peerId) {
-            const list = document.getElementById('contactList');
-            // Check if already in list
-            if(document.getElementById('contact_' + peerId)) return;
+        function setupIncomingConnection(connection) {
+            const remoteId = connection.peer;
             
-            const li = document.createElement('li');
-            li.className = 'contact-item active';
-            li.id = 'contact_' + peerId;
-            li.innerText = `@${peerId} [ONLINE]`;
-            list.appendChild(li);
+            chats[remoteId] = {
+                name: '@' + remoteId,
+                messages: [{ sender: 'System Daemon', text: `Incoming connection accepted from @${remoteId}` }],
+                connection: connection,
+                unread: 0
+            };
+
+            connection.on('data', (data) => {
+                receiveMessage(remoteId, data.sender || remoteId, data.text);
+            });
+
+            connection.on('close', () => {
+                appendSystemMsg(remoteId, `Link dropped with @${remoteId}`);
+            });
+
+            renderTabs();
+            renderContacts();
+        }
+
+        function receiveMessage(chatKey, sender, text) {
+            if(!chats[chatKey]) return;
+            chats[chatKey].messages.push({ sender: sender, text: text, type: 'received' });
+            
+            if(activeChatKey === chatKey) {
+                renderMessages();
+            } else {
+                chats[chatKey].unread++;
+                renderTabs();
+                renderContacts();
+            }
         }
 
         function sendMessage() {
@@ -429,48 +560,98 @@
             const text = input.value.trim();
             if(!text) return;
 
-            if(activeConnection && activeConnection.open) {
-                activeConnection.send({
-                    sender: username,
+            const currentChat = chats[activeChatKey];
+            if(!currentChat) return;
+
+            // Push message locally
+            currentChat.messages.push({ sender: myDisplayName, text: text, type: 'sent' });
+
+            // Send across P2P socket if a connection exists for this tab
+            if(currentChat.connection && currentChat.connection.open) {
+                currentChat.connection.send({
+                    sender: myDisplayName,
                     text: text
                 });
-                appendMessage(username, text, 'sent');
-                input.value = '';
-            } else {
-                alert("No active peer link! Enter a friend's ID on the left and click 'Link' first.");
+            }
+
+            input.value = '';
+            renderMessages();
+        }
+
+        function switchChat(key) {
+            activeChatKey = key;
+            chats[key].unread = 0;
+            
+            // Update Tab active states
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const activeTab = document.getElementById('tab_' + key);
+            if(activeTab) activeTab.classList.add('active');
+
+            renderMessages();
+            renderTabs();
+            renderContacts();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('chatTabsContainer');
+            container.innerHTML = '';
+            
+            for(let key in chats) {
+                let chat = chats[key];
+                let tab = document.createElement('div');
+                tab.className = `tab ${activeChatKey === key ? 'active' : ''}`;
+                tab.id = 'tab_' + key;
+                tab.innerHTML = chat.name + (chat.unread > 0 ? ` <span style="color:#ff3366">(${chat.unread})</span>` : '');
+                tab.onclick = () => switchChat(key);
+                container.appendChild(tab);
             }
         }
 
-        function appendMessage(sender, text, type) {
+        function renderContacts() {
+            const list = document.getElementById('contactList');
+            list.innerHTML = '';
+
+            for(let key in chats) {
+                if(key === 'lobby') continue;
+                let chat = chats[key];
+                let li = document.createElement('li');
+                li.className = `contact-item ${activeChatKey === key ? 'active' : ''}`;
+                li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${chat.connection && chat.connection.open ? '#00f0ff' : '#ff3366'}">${chat.connection && chat.connection.open ? 'ONLINE' : 'LINKED'}</span>`;
+                li.onclick = () => switchChat(key);
+                list.appendChild(li);
+            }
+        }
+
+        function renderMessages() {
             const container = document.getElementById('messagesContainer');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${type}`;
-            msgDiv.innerHTML = `<div class="msg-user">${sender}</div>${escapeHtml(text)}`;
-            container.appendChild(msgDiv);
+            container.innerHTML = '';
+
+            const currentChat = chats[activeChatKey];
+            if(!currentChat) return;
+
+            // Update Header Name Indicator
+            document.getElementById('currentChannelTabId') || activeChatKey;
+
+            currentChat.messages.forEach(msg => {
+                let msgDiv = document.createElement('div');
+                let isSent = msg.sender === myDisplayName;
+                msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+                msgDiv.innerHTML = `<div class="msg-user">${escapeHtml(msg.sender)}</div>${escapeHtml(msg.text)}`;
+                container.appendChild(msgDiv);
+            });
             container.scrollTop = container.scrollHeight;
         }
 
-        function appendSystemMessage(text) {
-            const container = document.getElementById('messagesContainer');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message received';
-            msgDiv.style.borderColor = '#7b68ee';
-            msgDiv.innerHTML = `<div class="msg-user">System Daemon</div>${escapeHtml(text)}`;
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
+        function appendSystemMsg(key, text) {
+            if(chats[key]) {
+                chats[key].messages.push({ sender: 'System Daemon', text: text, type: 'received' });
+                if(activeChatKey === key) renderMessages();
+            }
         }
 
         function copyMyId() {
             navigator.clipboard.writeText(myId);
-            alert(`Your terminal ID (${myId}) has been copied to clipboard! Send this code to your friend so they can link up with you.`);
-        }
-
-        function changeUsername() {
-            const newName = prompt("Enter new terminal user name:", username);
-            if(newName) {
-                username = newName.trim();
-                document.getElementById('displayUsername').innerText = username;
-            }
+            alert(`Your secure terminal ID (${myId}) is copied! Send this to a friend to connect directly.`);
         }
 
         function checkEnter(e) {
