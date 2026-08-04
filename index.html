@@ -1549,7 +1549,10 @@
                     }
                 } else {
                     if (!roomMessages[channel]) roomMessages[channel] = [];
-                    roomMessages[channel].push(msg);
+                    // Avoid duplicating messages if already pushed locally on send
+                    if (!roomMessages[channel].some(m => m.id === msg.id)) {
+                        roomMessages[channel].push(msg);
+                    }
                     if (channel === activeRoomCode) {
                         renderMessages();
                         playSciFiSound('receive');
@@ -1843,6 +1846,12 @@
             }, (status) => {
                 if (!status.error) {
                     playSciFiSound('send');
+                    // INSTANT LOCAL DISPLAY FIX: Push message and render immediately
+                    if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
+                    if (!roomMessages[activeRoomCode].some(m => m.id === msgObj.id)) {
+                        roomMessages[activeRoomCode].push(msgObj);
+                    }
+                    renderMessages();
                 }
             });
         }
