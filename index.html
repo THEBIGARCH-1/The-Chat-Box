@@ -446,12 +446,6 @@
             white-space: nowrap;
         }
 
-        .edit-tab-btn {
-            font-size: 10px;
-            opacity: 0.6;
-            cursor: pointer;
-        }
-
         .tab-close-btn {
             font-size: 12px;
             color: var(--secondary);
@@ -701,59 +695,6 @@
             border: 1px dashed var(--secondary);
         }
 
-        .msg-reactions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 6px;
-        }
-
-        .reaction-pill {
-            background: var(--bg-panel);
-            border: 1px solid var(--primary-glow);
-            border-radius: 12px;
-            padding: 2px 6px;
-            font-size: 10px;
-            color: var(--text-accent);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .add-reaction-btn {
-            background: transparent;
-            border: 1px dashed var(--primary-glow);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            color: var(--text-accent);
-            cursor: pointer;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 6px;
-            padding: 0;
-        }
-
-        .reaction-picker {
-            position: absolute;
-            bottom: -32px;
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 4px 6px;
-            display: none;
-            gap: 6px;
-            z-index: 50;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .reaction-picker.open { display: flex; }
-        .reaction-option { cursor: pointer; font-size: 14px; }
-
         .user-eye {
             font-size: 12px;
             display: inline-flex;
@@ -783,7 +724,6 @@
             background: var(--bg-panel);
         }
 
-        /* Image Preview Container Styles */
         #image-preview-container {
             display: none;
             padding: 8px 16px 0 16px;
@@ -1170,7 +1110,6 @@
 
     <script>
         let pubnub = null;
-        let authPubNub = null;
         let myName = "";
         let myUsername = "";
         let userChannel = "";
@@ -1179,7 +1118,6 @@
         let openRooms = [];
         let roomAliases = {};
         let roomMessages = {};
-        let userFocusStates = {};
         let userMoods = {};
         let friends = [];
         let incomingRequests = [];
@@ -1199,14 +1137,32 @@
         let isWhiteboardActive = false;
         let pastedImageFile = null;
 
-        const myId = "usr_" + Math.random().toString(36).substr(2, 9);
+        let myId = localStorage.getItem('cybernet_my_id') || "usr_" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('cybernet_my_id', myId);
+
         const GLOBAL_REGISTRY_CHANNEL = "global_user_registry_sync";
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let ambientOsc = null;
         let ambientGain = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecordingAudio = false;
+
+        // Auto-login check on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('cybernet_name');
+            const savedUsername = localStorage.getItem('cybernet_username');
+            const savedPass = localStorage.getItem('cybernet_pass');
+
+            if (savedName && savedUsername && savedPass) {
+                myName = savedName;
+                myUsername = savedUsername;
+                userChannel = "user_channel_" + myUsername.replace(/[^a-z0-9]/g, '');
+
+                document.getElementById('display-user').innerText = myName;
+                document.getElementById('display-handle').innerText = myUsername;
+                document.getElementById('auth-overlay').style.display = 'none';
+
+                initPubNub(savedPass);
+            }
+        });
 
         // Global Paste Event Listener
         window.addEventListener('paste', (event) => {
@@ -1315,7 +1271,6 @@
             playSciFiSound('key');
         }
 
-        // Background Wallpaper Animation Canvas Setup
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let drops = [];
@@ -1473,7 +1428,6 @@
             }
         }
 
-        // Authentication & PubNub Setup
         function handleAuth() {
             const dName = document.getElementById('auth-displayname').value.trim();
             const uName = document.getElementById('auth-username').value.trim().toLowerCase();
@@ -1491,6 +1445,11 @@
             myName = dName;
             myUsername = uName;
             userChannel = "user_channel_" + myUsername.replace(/[^a-z0-9]/g, '');
+
+            // Save credentials to localStorage
+            localStorage.setItem('cybernet_name', myName);
+            localStorage.setItem('cybernet_username', myUsername);
+            localStorage.setItem('cybernet_pass', pass);
 
             document.getElementById('display-user').innerText = myName;
             document.getElementById('display-handle').innerText = myUsername;
@@ -1514,9 +1473,6 @@
             pubnub.addListener({
                 message: function(event) {
                     handleIncomingPubNubMessage(event);
-                },
-                presence: function(event) {
-                    handlePresenceEvent(event);
                 }
             });
 
@@ -1545,10 +1501,6 @@
                     timestamp: Date.now()
                 }
             });
-        }
-
-        function handlePresenceEvent(event) {
-            // Presence tracking logic
         }
 
         function handleIncomingPubNubMessage(event) {
@@ -1606,7 +1558,6 @@
             }
         }
 
-        // Friends & Linking
         function sendFriendRequest() {
             const handle = document.getElementById('friend-input').value.trim().toLowerCase();
             if (!handle || handle === myUsername) {
@@ -1689,7 +1640,6 @@
             playSciFiSound('click');
         }
 
-        // Room Management
         function promptJoinRoom() {
             const code = prompt("Enter secure channel code (e.g. net_alpha_7):");
             if (!code) return;
@@ -1814,7 +1764,6 @@
             joinRoom("dm_" + code);
         }
 
-        // Messaging & Media Transmission
         function send() {
             if (!activeRoomCode) {
                 alert("Not connected to any active channel.");
@@ -1826,7 +1775,6 @@
 
             if (!text && !pastedImageFile) return;
 
-            // Handle Slash Commands
             if (text.startsWith('/roll')) {
                 const parts = text.split(' ');
                 let dice = parts[1] || '1d6';
@@ -2003,6 +1951,9 @@
         }
 
         function confirmSwitchAccount() {
+            localStorage.removeItem('cybernet_name');
+            localStorage.removeItem('cybernet_username');
+            localStorage.removeItem('cybernet_pass');
             location.reload();
         }
 
@@ -2010,7 +1961,6 @@
             document.getElementById('confirm-switch-overlay').style.display = 'none';
         }
 
-        // Whiteboard Functions
         function openWhiteboardTab() {
             isWhiteboardActive = true;
             document.getElementById('messages-view-port').style.display = 'flex';
