@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Persistent P2P</title>
+    <title>Cyber Terminal Chat - Canvas P2P</title>
     <style>
         * {
             box-sizing: border-box;
@@ -74,7 +74,7 @@
             border: 2px solid #2e1a47;
             box-shadow: 0 0 20px rgba(46, 26, 71, 0.6);
             background: #05050f;
-            display: none; /* Hidden until auth is complete */
+            display: none;
         }
 
         /* Sidebar Styling */
@@ -304,6 +304,14 @@
             margin-bottom: 3px;
         }
 
+        .chat-msg-img {
+            max-width: 200px;
+            border: 1px solid #00f0ff;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: block;
+        }
+
         /* Chat Input Footer */
         .chat-input-footer {
             padding: 15px 20px;
@@ -311,13 +319,14 @@
             display: flex;
             gap: 10px;
             background: #05050f;
+            align-items: center;
         }
 
         .send-btn {
             background: linear-gradient(135deg, #1a103c, #00f0ff);
             color: #030308;
             border: none;
-            padding: 0 20px;
+            padding: 10px 20px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
@@ -326,6 +335,42 @@
 
         .send-btn:hover {
             box-shadow: 0 0 10px #00f0ff;
+        }
+
+        /* Drawing Canvas Panel */
+        #drawingModal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 3, 8, 0.9);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drawing-box {
+            background: #070714;
+            border: 2px solid #00f0ff;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+
+        #drawCanvas {
+            background: #020207;
+            border: 1px solid #7b68ee;
+            cursor: crosshair;
+        }
+
+        .drawing-tools {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -342,6 +387,18 @@
         </div>
     </div>
 
+    <div id="drawingModal">
+        <div class="drawing-box">
+            <div class="terminal-label">Cyber Sketch Pad</div>
+            <canvas id="drawCanvas" width="300" height="200"></canvas>
+            <div class="drawing-tools">
+                <button class="mini-btn" onclick="clearCanvas()">Clear</button>
+                <button class="mini-btn" style="border-color:#ff3366; color:#ff3366;" onclick="closeDrawingModal()">Cancel</button>
+                <button class="mini-btn" style="border-color:#00f0ff; color:#00f0ff;" onclick="sendDrawingToChat()">Send Drawing</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container" id="mainContainer">
         <div class="sidebar">
             <div>
@@ -352,10 +409,10 @@
                     <div class="status-badge">⚡ Jacked In</div>
                 </div>
 
-                <button class="action-btn" onclick="openCreateOrJoinModal()">// Create / Join Channel</button>
+                <button class="action-btn" onclick="openCreateOrJoinModal()">// Create / Join Lobby</button>
 
                 <div class="contacts-section">
-                    <div class="contacts-title">Linked Contacts / Chats</div>
+                    <div class="contacts-title">Linked Contacts & Lobbies</div>
                     <div class="link-input-group" style="margin-bottom: 10px;">
                         <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
                         <button class="action-btn" style="margin-top:0; width: 35%; padding: 8px;" onclick="connectToPeer()">Link</button>
@@ -371,11 +428,7 @@
                     <span>Theme Palette</span>
                     <span style="color:#00f0ff">Cyber Blue</span>
                 </div>
-                <div class="settings-row">
-                    <span>CRT Monitor Overlay</span>
-                    <input type="checkbox" checked disabled>
-                </div>
-                <button class="action-btn" style="background:#1a103c; border-color:#ff3366; color:#ff3366; margin-top:10px;" onclick="wipeData()">// Wipe Local Data</button>
+                <button class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:10px;" onclick="switchAccountPrompt()">// Switch Account</button>
             </div>
         </div>
 
@@ -385,19 +438,19 @@
                     <div class="tab active" onclick="switchChat('lobby')" id="tab_lobby">#lobby</div>
                 </div>
                 <div class="header-controls">
-                    <button class="mini-btn" onclick="copyMyId()">Share Link / ID</button>
-                    <button class="mini-btn" style="border-color: #ff3366; color: #ff3366;" onclick="location.reload()">Disconnect</button>
+                    <button class="mini-btn" onclick="copyMyId()">Share ID</button>
                 </div>
             </div>
 
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Welcome back! All chat records, your account, and your contacts are saved locally. Enter a friend's Peer ID above to link up.
+                    Fully synchronized terminal online. All your chats, custom lobbies, friends, and accounts are automatically preserved locally!
                 </div>
             </div>
 
             <div class="chat-input-footer">
+                <button class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
                 <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message..." onkeypress="checkEnter(event)">
                 <button class="send-btn" onclick="sendMessage()">Send</button>
             </div>
@@ -411,14 +464,58 @@
         let myDisplayName = "";
         let myId = "";
 
-        // Structure for storing chat states persistently in localStorage
         let chats = {
             'lobby': { name: '#lobby', messages: [], unread: 0 }
         };
         let activeChatKey = 'lobby';
-        let activeConnections = {}; // Stores live WebRTC data connections by chatKey
+        let activeConnections = {};
 
-        // Check if an account already exists in browser storage on load
+        // Canvas Drawing Setup
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+        function draw(e) {
+            if(!painting) return;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#00f0ff';
+
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        function openDrawingModal() {
+            document.getElementById('drawingModal').style.display = 'flex';
+            clearCanvas();
+        }
+        function closeDrawingModal() {
+            document.getElementById('drawingModal').style.display = 'none';
+        }
+        function sendDrawingToChat() {
+            const dataUrl = canvas.toDataURL();
+            closeDrawingModal();
+            sendPayload({ type: 'image', data: dataUrl });
+        }
+
+        // On Load Check Persistent Account
         window.onload = function() {
             const savedProfile = localStorage.getItem('cyber_profile');
             if(savedProfile) {
@@ -426,8 +523,6 @@
                 document.getElementById('regUser').value = profile.username;
                 document.getElementById('regDisplay').value = profile.displayName;
                 document.getElementById('regPass').value = profile.password;
-                
-                // Auto login if profile exists
                 initializeAccount(true);
             }
         };
@@ -438,22 +533,17 @@
             const p = document.getElementById('regPass').value.trim();
 
             if(!u || !d || !p) {
-                if(!isAuto) alert("Please complete all profile criteria to jack in.");
+                if(!isAuto) alert("Complete all required fields.");
                 return;
             }
 
             myUsername = u;
             myDisplayName = d;
 
-            // Save account data to LocalStorage
             localStorage.setItem('cyber_profile', JSON.stringify({ username: u, displayName: d, password: p }));
-
-            // Load saved messages/chats from local storage if any exist
             loadPersistentStorage();
 
-            // Create distinct Peer ID tied to the user's handle
             const uniqueSeed = u.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Math.floor(Math.random() * 900 + 100);
-
             peer = new Peer(uniqueSeed);
 
             peer.on('open', (id) => {
@@ -468,7 +558,7 @@
                 switchChat(activeChatKey);
             });
 
-            peer.on('error', (err) => {
+            peer.on('error', () => {
                 const fallbackId = 'node_' + Math.random().toString(36).substring(2, 7);
                 peer = new Peer(fallbackId);
                 peer.on('open', (id) => {
@@ -484,7 +574,6 @@
                 });
             });
 
-            // Listen for incoming friend links
             peer.on('connection', (connection) => {
                 setupIncomingConnection(connection);
             });
@@ -496,10 +585,10 @@
                 try {
                     chats = JSON.parse(savedChats);
                 } catch(e) {
-                    console.error("Failed to parse saved chats", e);
+                    console.error(e);
                 }
             } else {
-                chats['lobby'] = { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Terminal initialized. Ready for P2P connection.', type: 'received' }], unread: 0 };
+                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Secure terminal online.', type: 'received' }], unread: 0 } };
             }
         }
 
@@ -508,24 +597,31 @@
             localStorage.setItem('cyber_chats_' + myUsername, JSON.stringify(chats));
         }
 
+        function switchAccountPrompt() {
+            if(confirm("Are you sure you want to switch accounts?")) {
+                localStorage.removeItem('cyber_profile');
+                location.reload();
+            }
+        }
+
         function openCreateOrJoinModal() {
-            const choice = prompt("Enter Target Peer ID to link, or new channel room name:", "@peer_id");
+            const choice = prompt("Enter Peer ID to link friend, or new lobby name:", "#my_lobby");
             if(!choice) return;
             
             if(choice.length > 3 || choice.includes('_')) {
                 document.getElementById('peerIdInput').value = choice.replace('@','');
                 connectToPeer();
             } else {
-                createOrJoinChannel(choice);
+                createOrJoinLobby(choice);
             }
         }
 
-        function createOrJoinChannel(channelName) {
-            let key = channelName.toLowerCase().replace(/\s+/g, '_');
+        function createOrJoinLobby(lobbyName) {
+            let key = lobbyName.toLowerCase().replace(/\s+/g, '_');
             if(!key.startsWith('#')) key = '#' + key;
 
             if(!chats[key]) {
-                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Channel ${key} initialized.` }], unread: 0 };
+                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Lobby ${key} created successfully.` }], unread: 0 };
                 savePersistentStorage();
                 renderTabs();
             }
@@ -552,7 +648,7 @@
             if(!chats[targetId]) {
                 chats[targetId] = {
                     name: '@' + targetId,
-                    messages: [{ sender: 'System Daemon', text: `Secure connection handshaken with @${targetId}` }],
+                    messages: [{ sender: 'System Daemon', text: `Secure channel linked with @${targetId}` }],
                     unread: 0
                 };
             }
@@ -566,7 +662,7 @@
             });
 
             connection.on('data', (data) => {
-                receiveMessage(targetId, data.sender || targetId, data.text);
+                receiveData(targetId, data.sender || targetId, data);
             });
 
             connection.on('close', () => {
@@ -583,13 +679,13 @@
             if(!chats[remoteId]) {
                 chats[remoteId] = {
                     name: '@' + remoteId,
-                    messages: [{ sender: 'System Daemon', text: `Incoming connection established from @${remoteId}` }],
+                    messages: [{ sender: 'System Daemon', text: `Incoming connection accepted from @${remoteId}` }],
                     unread: 0
                 };
             }
 
             connection.on('data', (data) => {
-                receiveMessage(remoteId, data.sender || remoteId, data.text);
+                receiveData(remoteId, data.sender || remoteId, data);
             });
 
             connection.on('close', () => {
@@ -603,11 +699,11 @@
             renderContacts();
         }
 
-        function receiveMessage(chatKey, sender, text) {
+        function receiveData(chatKey, sender, data) {
             if(!chats[chatKey]) {
                 chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0 };
             }
-            chats[chatKey].messages.push({ sender: sender, text: text, type: 'received' });
+            chats[chatKey].messages.push({ sender: sender, text: data.text || '', image: data.image || null, type: 'received' });
             savePersistentStorage();
             
             if(activeChatKey === chatKey) {
@@ -623,22 +719,21 @@
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if(!text) return;
+            sendPayload({ text: text });
+            input.value = '';
+        }
 
+        function sendPayload(payload) {
             const currentChat = chats[activeChatKey];
             if(!currentChat) return;
 
-            currentChat.messages.push({ sender: myDisplayName, text: text, type: 'sent' });
+            payload.sender = myDisplayName;
+            currentChat.messages.push({ sender: myDisplayName, text: payload.text || '', image: payload.image || null, type: 'sent' });
             savePersistentStorage();
 
-            // Transmit over P2P if active connection exists
             if(activeConnections[activeChatKey] && activeConnections[activeChatKey].open) {
-                activeConnections[activeChatKey].send({
-                    sender: myDisplayName,
-                    text: text
-                });
+                activeConnections[activeChatKey].send(payload);
             }
-
-            input.value = '';
             renderMessages();
         }
 
@@ -681,7 +776,6 @@
                 li.className = `contact-item ${activeChatKey === key ? 'active' : ''}`;
                 li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline ? '#00f0ff' : '#7b68ee'}">${isOnline ? 'ONLINE' : 'SAVED'}</span>`;
                 li.onclick = () => {
-                    // Try to reconnect if not active
                     if(!isOnline && key.length > 3 && !key.startsWith('#')) {
                         const conn = peer.connect(key);
                         setupConnection(conn, key);
@@ -703,7 +797,12 @@
                 let msgDiv = document.createElement('div');
                 let isSent = msg.sender === myDisplayName;
                 msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-                msgDiv.innerHTML = `<div class="msg-user">${escapeHtml(msg.sender)}</div>${escapeHtml(msg.text)}`;
+                
+                let innerContent = `<div class="msg-user">${escapeHtml(msg.sender)}</div>`;
+                if(msg.text) innerContent += `<div>${escapeHtml(msg.text)}</div>`;
+                if(msg.image) innerContent += `<img src="${msg.image}" class="chat-msg-img" alt="Sketch">`;
+                
+                msgDiv.innerHTML = innerContent;
                 container.appendChild(msgDiv);
             });
             container.scrollTop = container.scrollHeight;
@@ -719,14 +818,7 @@
 
         function copyMyId() {
             navigator.clipboard.writeText(myId);
-            alert(`Your ID (${myId}) is copied! Send this to your friend so they can connect.`);
-        }
-
-        function wipeData() {
-            if(confirm("Wipe all local accounts, saved contacts, and chat histories?")) {
-                localStorage.clear();
-                location.reload();
-            }
+            alert(`Your secure ID (${myId}) is copied! Send this to your friend.`);
         }
 
         function checkEnter(e) {
@@ -734,6 +826,7 @@
         }
 
         function escapeHtml(text) {
+            if(!text) return '';
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
