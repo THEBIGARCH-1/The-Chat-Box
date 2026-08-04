@@ -2,1068 +2,479 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CyberChat // Retro-Futuristic Terminal</title>
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Terminal Chat</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-        :root {
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --secondary: #a855f7;
-            --secondary-glow: rgba(168, 85, 247, 0.4);
-            --bg-base: #02040a;
-            --bg-panel: #040814;
-            --bg-card: #080e1c;
-            --bg-input: #0c1426;
-            --text-main: #f3f4f6;
-            --text-accent: #60a5fa;
-            --accent-glow: #3b82f6;
-        }
-
-        body.theme-matrix {
-            --primary: #00ffcc;
-            --primary-glow: rgba(0, 255, 204, 0.5);
-            --secondary: #22c55e;
-            --secondary-glow: rgba(34, 197, 94, 0.4);
-            --bg-base: #020804;
-            --bg-panel: #040c06;
-            --bg-card: #07150a;
-            --bg-input: #0a1f0e;
-            --text-main: #e2fef0;
-            --text-accent: #4ade80;
-            --accent-glow: #00ffcc;
-        }
-
-        body.theme-cyber {
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.5);
-            --secondary: #a855f7;
-            --secondary-glow: rgba(168, 85, 247, 0.4);
-            --bg-base: #02040a;
-            --bg-panel: #040814;
-            --bg-card: #080e1c;
-            --bg-input: #0c1426;
-            --text-main: #f3f4f6;
-            --text-accent: #60a5fa;
-            --accent-glow: #3b82f6;
-        }
-
-        body.theme-synthwave {
-            --primary: #ec4899;
-            --primary-glow: rgba(236, 72, 153, 0.5);
-            --secondary: #f43f5e;
-            --secondary-glow: rgba(244, 63, 94, 0.4);
-            --bg-base: #090206;
-            --bg-panel: #11030d;
-            --bg-card: #1c0515;
-            --bg-input: #29081e;
-            --text-main: #fdf2f8;
-            --text-accent: #f472b6;
-            --accent-glow: #ec4899;
-        }
-
-        body.theme-acid {
-            --primary: #eab308;
-            --primary-glow: rgba(234, 179, 8, 0.5);
-            --secondary: #f97316;
-            --secondary-glow: rgba(249, 115, 22, 0.4);
-            --bg-base: #080502;
-            --bg-panel: #0f0903;
-            --bg-card: #1c1005;
-            --bg-input: #291807;
-            --text-main: #fefce8;
-            --text-accent: #fbbf24;
-            --accent-glow: #eab308;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         body {
-            background: var(--bg-base);
-            color: var(--text-main);
+            background-color: #030308;
+            color: #00f0ff;
             height: 100vh;
-            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            position: relative;
-            transition: background 0.3s ease;
+            /* CRT Monitor Glow Effect */
+            box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.1);
+            border: 4px solid #101026;
         }
 
-        body.crt-enabled::after {
+        /* CRT Scanline Overlay */
+        body::before {
             content: " ";
             display: block;
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 999;
-            background-size: 100% 3px, 3px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 99999;
+            background-size: 100% 4px, 6px 100%;
             pointer-events: none;
         }
 
-        #app-container {
+        .container {
+            display: flex;
             width: 95vw;
-            max-width: 1150px;
-            height: 88vh;
-            height: 88dvh;
-            background: var(--bg-panel);
-            border-radius: 12px;
-            display: flex;
-            overflow: hidden;
-            z-index: 10;
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 25px var(--primary), inset 0 0 25px var(--secondary-glow), 0 0 50px var(--secondary-glow);
-            position: relative;
+            height: 90vh;
+            border: 2px solid #2e1a47;
+            box-shadow: 0 0 20px rgba(46, 26, 71, 0.6);
+            background: #05050f;
         }
 
-        #auth-overlay, #confirm-switch-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-base);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            padding: 16px;
-        }
-
-        #confirm-switch-overlay { display: none; z-index: 300; }
-
-        .auth-card, .popup-card {
-            background: var(--bg-card);
-            padding: 28px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            width: 100%;
-            max-width: 360px;
-            border: 2px solid var(--secondary);
-            box-shadow: 0 0 25px var(--secondary), inset 0 0 15px var(--primary-glow);
-            text-align: center;
-        }
-
-        .auth-card h2, .popup-card h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--secondary);
-        }
-
-        .auth-card p, .popup-card p {
-            font-size: 12px;
-            color: var(--secondary);
-        }
-
-        .popup-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        #sidebar {
-            width: 280px;
-            background: var(--bg-panel);
-            border-right: 2px solid var(--primary);
-            box-shadow: 4px 0 15px var(--primary-glow);
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            border-right: 2px solid #1a103c;
             display: flex;
             flex-direction: column;
             padding: 20px;
-            gap: 16px;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-            position: relative;
-            z-index: 90;
-        }
-
-        .sidebar-close-btn {
-            display: none;
-            position: absolute;
-            top: 14px; right: 16px;
-            font-size: 22px;
-            color: var(--secondary);
-            cursor: pointer;
-            line-height: 1;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: var(--secondary-glow);
-            border: 1px solid var(--secondary);
-        }
-
-        .user-profile-box {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--primary-glow);
+            background: #070714;
         }
 
-        .user-profile-info {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        .user-panel {
+            border-bottom: 1px solid #1a103c;
+            padding-bottom: 15px;
         }
 
-        .user-profile-box label {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--primary);
+        .terminal-label {
+            font-size: 10px;
+            color: #7b68ee;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            text-shadow: 0 0 6px var(--primary);
         }
 
-        .user-profile-box span.disp-name {
-            font-size: 14px;
-            font-weight: 700;
+        .username {
+            font-size: 18px;
+            font-weight: bold;
             color: #fff;
-            text-shadow: 0 0 8px var(--secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin: 5px 0;
         }
 
-        .user-profile-box span.usr-handle {
-            font-size: 11px;
-            color: var(--text-accent);
-        }
-
-        .status-badge-container {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 11px;
-            color: var(--text-accent);
-            cursor: pointer;
-        }
-
-        .room-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--primary-glow);
-        }
-
-        .sidebar-title {
-            font-family: 'Orbitron', sans-serif;
+        .status-badge {
+            display: inline-block;
+            background: #101a2c;
+            border: 1px solid #00f0ff;
+            padding: 5px 10px;
+            border-radius: 4px;
             font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            margin-top: 10px;
+            color: #00f0ff;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #2e1a47, #4b0082);
             color: #fff;
-            text-shadow: 0 0 8px var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .add-friend-box {
-            display: flex;
-            gap: 6px;
-        }
-
-        .add-friend-box input, .auth-card input {
-            padding: 10px 14px;
-            font-size: 12px;
-        }
-
-        #friends-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-
-        .friend-card {
-            background: var(--bg-card);
-            border: 1px solid var(--primary-glow);
-            padding: 10px 12px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .friend-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            overflow: hidden;
-            flex: 1;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-            flex-shrink: 0;
-        }
-
-        .friend-details {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .friend-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .friend-handle {
-            font-size: 10px;
-            color: var(--text-accent);
-        }
-
-        #chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            border: 1px solid #7b68ee;
+            padding: 10px;
             width: 100%;
-            background: var(--bg-panel);
+            text-align: center;
+            cursor: pointer;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: 0.2s;
         }
 
-        #tabs-bar {
-            background: var(--bg-panel);
-            border-bottom: 2px solid var(--primary);
-            display: flex;
-            align-items: center;
-            padding: 6px 12px 0 12px;
-            gap: 6px;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
+        .action-btn:hover {
+            background: linear-gradient(135deg, #4b0082, #7b68ee);
+            box-shadow: 0 0 10px #7b68ee;
         }
 
-        #tabs-list {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-shrink: 0;
+        /* Linked Contacts Section */
+        .contacts-section {
+            flex-grow: 1;
+            margin-top: 20px;
+            overflow-y: auto;
         }
 
-        .chat-tab {
-            background: var(--bg-card);
-            border: 1px solid var(--primary-glow);
-            border-bottom: none;
-            padding: 6px 12px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+        .contacts-title {
             font-size: 12px;
-            color: var(--secondary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            flex-shrink: 0;
-            max-width: 200px;
+            color: #aaa;
+            margin-bottom: 10px;
         }
 
-        .chat-tab.active {
-            background: var(--bg-panel);
+        .link-input-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .cyber-input {
+            background: #020208;
+            border: 1px solid #1a103c;
+            color: #00f0ff;
+            padding: 8px;
+            font-size: 12px;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .cyber-input:focus {
+            border-color: #00f0ff;
+            box-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
+        }
+
+        .contact-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .contact-item {
+            padding: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .contact-item:hover, .contact-item.active {
+            background: #0f0a24;
+            border-left-color: #00f0ff;
             color: #fff;
-            border-color: var(--primary);
-            border-bottom: 1px solid var(--bg-panel);
-            font-weight: 600;
-            box-shadow: 0 -4px 15px var(--primary-glow);
         }
 
-        .tab-title {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        /* Cyber Settings */
+        .settings-panel {
+            border-top: 1px solid #1a103c;
+            padding-top: 15px;
+            font-size: 11px;
         }
 
-        .add-tab-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: var(--text-accent);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 4px;
-            flex-shrink: 0;
-        }
-
-        #chat-header {
-            padding: 12px 18px;
-            background: var(--bg-panel);
-            border-bottom: 2px solid var(--primary);
+        .settings-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            margin-top: 8px;
         }
 
-        #room-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 12px var(--primary-glow);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .menu-toggle-btn {
-            display: none;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: var(--text-accent);
-            cursor: pointer;
-        }
-
-        .header-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            color: var(--text-accent);
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 0 8px var(--primary-glow);
-        }
-
-        .btn-leave-room {
-            border-color: var(--secondary);
-            color: var(--secondary);
-            box-shadow: 0 0 8px var(--secondary-glow);
-        }
-
-        .status {
-            font-size: 10px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--bg-card);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            font-weight: 600;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        #messages-view-port {
-            flex: 1;
+        /* Main Chat Area */
+        .chat-area {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            position: relative;
+            background: #020207;
         }
 
-        #messages {
-            flex: 1;
-            padding: 16px;
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 2px solid #1a103c;
+            background: #05050f;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab {
+            background: #0a0a1a;
+            border: 1px solid #1a103c;
+            padding: 5px 15px;
+            font-size: 12px;
+            color: #7b68ee;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #1a103c;
+            color: #00f0ff;
+            border-color: #00f0ff;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mini-btn {
+            background: transparent;
+            border: 1px solid #7b68ee;
+            color: #7b68ee;
+            padding: 5px 12px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .mini-btn:hover {
+            border-color: #00f0ff;
+            color: #00f0ff;
+        }
+
+        /* Messages Container */
+        .messages-container {
+            flex-grow: 1;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-            background: var(--bg-panel);
         }
 
-        #whiteboard-view {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            background: var(--bg-panel);
-            padding: 12px;
-            gap: 10px;
-            overflow: hidden;
-        }
-
-        #wb-canvas {
-            flex: 1;
-            background: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            cursor: crosshair;
-            box-shadow: inset 0 0 15px var(--primary-glow);
-            touch-action: none;
-            width: 100%;
-            height: 100%;
-        }
-
-        .wb-tools {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .wb-colors {
-            display: flex;
-            gap: 6px;
-        }
-
-        .wb-color-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            cursor: pointer;
-        }
-
-        .msg {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            padding: 10px 14px;
-            border-radius: 10px;
-            border-top-left-radius: 2px;
-            max-width: 80%;
-            width: fit-content;
-            word-break: break-word;
-            font-size: 13px;
-            line-height: 1.4;
-            color: var(--text-main);
-            box-shadow: 0 0 12px var(--primary-glow);
-        }
-
-        .msg.self {
-            align-self: flex-end;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: 1px solid var(--text-accent);
-            color: #ffffff;
-            font-weight: 600;
-            border-radius: 10px;
-            border-top-right-radius: 2px;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        .msg .sender-header {
-            font-size: 11px;
-            color: var(--text-accent);
-            margin-bottom: 2px;
-            font-weight: 600;
-        }
-
-        .msg.self .sender-header {
-            color: rgba(255, 255, 255, 0.9);
-            text-align: right;
-        }
-
-        #input-area {
-            padding: 12px 16px;
-            background: var(--bg-panel);
-            display: flex;
-            gap: 8px;
-            border-top: 2px solid var(--primary);
-            align-items: center;
-        }
-
-        input[type="text"], input[type="password"] {
-            flex: 1;
-            padding: 12px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--primary);
-            background: var(--bg-input);
-            color: #fff;
-            outline: none;
-            font-size: 13px;
-            box-shadow: inset 0 0 8px var(--primary-glow);
-        }
-
-        button {
-            padding: 10px 16px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: 1px solid var(--text-accent);
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            color: #ffffff;
-            font-size: 12px;
-            white-space: nowrap;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: var(--text-accent);
-            box-shadow: 0 0 8px var(--primary-glow);
-        }
-
-        .deck-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid var(--primary-glow);
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: var(--text-accent);
-        }
-
-        .setting-row select {
-            background: var(--bg-input);
-            color: #fff;
-            border: 1px solid var(--primary);
-            padding: 4px 8px;
+        .message {
+            background: #0a0a1a;
+            border: 1px solid #1a103c;
+            padding: 10px 15px;
             border-radius: 6px;
-            font-size: 11px;
-            outline: none;
+            max-width: 70%;
+            font-size: 13px;
         }
 
-        @media (max-width: 768px) {
-            body { padding: 0; }
-            #app-container { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; border: none; flex-direction: column; }
-            .menu-toggle-btn { display: flex; }
-            .sidebar-close-btn { display: block; }
-            #sidebar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(-100%); padding-top: 50px; }
-            #sidebar.open { transform: translateX(0); }
-            .status { display: none; }
+        .message.sent {
+            align-self: flex-end;
+            border-color: #7b68ee;
+            background: #120b24;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            border-color: #00f0ff;
+        }
+
+        .msg-user {
+            font-size: 10px;
+            color: #7b68ee;
+            margin-bottom: 3px;
+        }
+
+        /* Chat Input Footer */
+        .chat-input-footer {
+            padding: 15px 20px;
+            border-top: 2px solid #1a103c;
+            display: flex;
+            gap: 10px;
+            background: #05050f;
+        }
+
+        .chat-input-footer input {
+            flex-grow: 1;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #1a103c, #00f0ff);
+            color: #030308;
+            border: none;
+            padding: 0 20px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .send-btn:hover {
+            box-shadow: 0 0 10px #00f0ff;
         }
     </style>
 </head>
-<body class="theme-cyber crt-enabled">
+<body>
 
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2>CYBERNET LOGIN</h2>
-            <p>Enter your credentials to jack in & restore your data.</p>
-            <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Neo)" maxlength="15" autocomplete="off">
-            <input type="text" id="auth-username" placeholder="@USER (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
-            <input type="password" id="auth-pass" placeholder="Secure Password" maxlength="20">
-            <button type="button" onclick="handleAuth()">Initialize Connection</button>
-        </div>
-    </div>
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <div class="user-panel">
+                    <span class="terminal-label">Terminal User</span>
+                    <div class="username" id="displayUsername">jack</div>
+                    <span style="font-size: 11px; color: #7b68ee;" id="displayId">@up</span>
+                    <div class="status-badge">⚡ Jacked In</div>
+                </div>
 
-    <div id="confirm-switch-overlay">
-        <div class="popup-card">
-            <h2>SWITCH ACCOUNT</h2>
-            <p>Switching deck profile will re-initialize connection.</p>
-            <div class="popup-actions">
-                <button type="button" onclick="confirmSwitchAccount()">Yes, Switch</button>
-                <button type="button" class="btn-secondary" onclick="cancelSwitchAccount()">Cancel</button>
-            </div>
-        </div>
-    </div>
+                <button class="action-btn" onclick="changeUsername()">// Edit Profile</button>
 
-    <div id="app-container">
-        <div id="sidebar">
-            <span class="sidebar-close-btn" onclick="toggleSidebar()" title="Close Menu">&times;</span>
-            <div class="user-profile-box">
-                <div class="user-profile-info">
-                    <label>Terminal User</label>
-                    <span id="display-user" class="disp-name">--</span>
-                    <span id="display-handle" class="usr-handle">--</span>
-                </div>
-                <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:10px;" onclick="promptSwitchAccount()">Switch</button>
-            </div>
-            <div class="status-badge-container" onclick="promptCustomStatus()" title="Set Status Mood">
-                <span>🟢</span>
-                <span id="user-status-mood">⚡ Jacked In</span>
-            </div>
-            <div class="room-actions">
-                <button type="button" onclick="promptJoinRoom()">// Create / Join Channel</button>
-            </div>
-            <div class="sidebar-title"><span>Linked Contacts</span></div>
-            <div class="add-friend-box">
-                <input type="text" id="friend-input" placeholder="@USER" autocapitalize="none" autocomplete="off">
-                <button type="button" class="btn-secondary" onclick="sendFriendRequest()">Link</button>
-            </div>
-            <div id="friends-list"></div>
-            <div class="deck-menu">
-                <div class="sidebar-title"><span>Cyber Settings</span></div>
-                <div class="setting-row">
-                    <span>Theme Palette</span>
-                    <select id="theme-select" onchange="changeTheme(this.value)">
-                        <option value="cyber" selected>Cyber Blue</option>
-                        <option value="matrix">Matrix Green</option>
-                        <option value="synthwave">Synthwave Pink</option>
-                        <option value="acid">Acid Yellow</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <span>CRT Monitor Overlay</span>
-                    <input type="checkbox" id="crt-toggle" checked onchange="toggleCRT(this.checked)">
-                </div>
-            </div>
-        </div>
-
-        <div id="chat-container">
-            <div id="tabs-bar">
-                <div id="tabs-list"></div>
-                <div class="chat-tab" onclick="openWhiteboardTab()" id="tab-whiteboard" style="color:var(--primary);">
-                    <span class="tab-title">🎨 Whiteboard</span>
-                </div>
-                <div class="add-tab-btn" onclick="promptJoinRoom()" title="Open New Channel">+</div>
-            </div>
-            <div id="chat-header">
-                <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">⚡</button>
-                <span id="room-display">Channel: Offline</span>
-                <div class="header-actions">
-                    <button type="button" class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">Disconnect</button>
-                    <button type="button" class="header-btn" onclick="shareRoomLink()">Share Link</button>
-                    <span id="status-badge" class="status">Online</span>
-                </div>
-            </div>
-            <div id="messages-view-port">
-                <div id="messages"></div>
-                <div id="whiteboard-view">
-                    <canvas id="wb-canvas"></canvas>
-                    <div class="wb-tools">
-                        <div class="wb-colors">
-                            <div class="wb-color-dot" style="background:#ef4444;" onclick="setWbColor('#ef4444')"></div>
-                            <div class="wb-color-dot" style="background:#3b82f6;" onclick="setWbColor('#3b82f6')"></div>
-                            <div class="wb-color-dot" style="background:#ffffff;" onclick="setWbColor('#ffffff')"></div>
-                        </div>
-                        <button type="button" class="btn-secondary" onclick="clearWhiteboard()">Wipe Grid</button>
+                <div class="contacts-section">
+                    <div class="contacts-title">Linked Contacts</div>
+                    <div class="link-input-group">
+                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID" style="width: 70%;">
+                        <button class="action-btn" style="margin-top:0; width: 30%; padding: 8px;" onclick="connectToPeer()">Link</button>
                     </div>
+                    <ul class="contact-list" id="contactList">
+                        </ul>
                 </div>
             </div>
-            <div id="input-area">
-                <input type="text" id="message-input" placeholder="Transmit message or command..." autocomplete="off">
-                <button type="button" id="send-btn" onclick="send()">Send</button>
+
+            <div class="settings-panel">
+                <div class="terminal-label">Cyber Settings</div>
+                <div class="settings-row">
+                    <span>Theme Palette</span>
+                    <span style="color:#00f0ff">Cyber Blue</span>
+                </div>
+                <div class="settings-row">
+                    <span>CRT Monitor Overlay</span>
+                    <input type="checkbox" checked disabled>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="tabs">
+                    <div class="tab active" id="currentChannelTab">#lobby</div>
+                </div>
+                <div class="header-controls">
+                    <button class="mini-btn" onclick="copyMyId()">Share Link / ID</button>
+                    <button class="mini-btn" style="border-color: #ff3366; color: #ff3366;" onclick="location.reload()">Disconnect</button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="message received">
+                    <div class="msg-user">System Matrix</div>
+                    Welcome to the local network terminal. Share your unique ID with a friend on the same network or web server to link up directly via Peer-to-Peer (WebRTC)! No API keys required.
+                </div>
+            </div>
+
+            <div class="chat-input-footer">
+                <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message..." onkeypress="checkEnter(event)">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
 
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        let pubnub = null;
-        let myName = localStorage.getItem('cyber_name') || "";
-        let myUsername = localStorage.getItem('cyber_username') || "";
-        let activeRoomCode = localStorage.getItem('cyber_active_room') || "lobby";
-        let openRooms = JSON.parse(localStorage.getItem('cyber_open_rooms') || '["lobby"]');
-        let roomMessages = JSON.parse(localStorage.getItem('cyber_room_messages') || '{"lobby": []}');
-        let friends = JSON.parse(localStorage.getItem('cyber_friends') || '[]');
-        let customMood = localStorage.getItem('cyber_mood') || "⚡ Jacked In";
-        const myId = localStorage.getItem('cyber_id') || ("usr_" + Math.random().toString(36).substr(2, 9));
-        localStorage.setItem('cyber_id', myId);
+        // Generate a random default identifier if none exists
+        let myId = 'user_' + Math.floor(Math.random() * 9000 + 1000);
+        let username = "jack";
+        
+        document.getElementById('displayUsername').innerText = username;
+        document.getElementById('displayId').innerText = "@" + myId;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (myName && myUsername) {
-                document.getElementById('auth-overlay').style.display = 'none';
-                initPubNub();
-            }
-            document.getElementById('user-status-mood').innerText = customMood;
-            renderFriends();
-            renderTabs();
-            initWhiteboard();
+        // Initialize PeerJS (Free public broker infrastructure, zero API keys required)
+        const peer = new Peer(myId);
+        let activeConnection = null;
+        let connectedPeers = {};
 
-            document.getElementById('message-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') send();
-            });
+        peer.on('open', (id) => {
+            myId = id;
+            document.getElementById('displayId').innerText = "@" + myId;
         });
 
-        function saveData() {
-            localStorage.setItem('cyber_name', myName);
-            localStorage.setItem('cyber_username', myUsername);
-            localStorage.setItem('cyber_active_room', activeRoomCode);
-            localStorage.setItem('cyber_open_rooms', JSON.stringify(openRooms));
-            localStorage.setItem('cyber_room_messages', JSON.stringify(roomMessages));
-            localStorage.setItem('cyber_friends', JSON.stringify(friends));
-            localStorage.setItem('cyber_mood', customMood);
-        }
+        // Listen for incoming peer connections from friends
+        peer.on('connection', (connection) => {
+            setupConnection(connection);
+            appendSystemMessage(`Incoming cyber link established from: @${connection.peer}`);
+        });
 
-        function handleAuth() {
-            const nameInput = document.getElementById('auth-displayname').value.trim();
-            const userhandleInput = document.getElementById('auth-username').value.trim();
-            const passInput = document.getElementById('auth-pass').value.trim();
-
-            if (!nameInput || !userhandleInput || !passInput) {
-                alert("Please fill out all deck login credentials.");
+        function connectToPeer() {
+            const peerIdInput = document.getElementById('peerIdInput').value.trim();
+            if(!peerIdInput || peerIdInput === myId) {
+                alert("Enter a valid target peer ID.");
                 return;
             }
-
-            myName = nameInput;
-            myUsername = userhandleInput.startsWith('@') ? userhandleInput : '@' + userhandleInput;
-            activeRoomCode = 'lobby';
-            if(!openRooms.includes('lobby')) openRooms.push('lobby');
-            if(!roomMessages['lobby']) roomMessages['lobby'] = [];
-
-            saveData();
-            document.getElementById('auth-overlay').style.display = 'none';
-            initPubNub();
+            
+            const connection = peer.connect(peerIdInput);
+            setupConnection(connection);
         }
 
-        function initPubNub() {
-            document.getElementById('display-user').innerText = myName;
-            document.getElementById('display-handle').innerText = myUsername;
-
-            pubnub = new PubNub({
-                publishKey: 'pub-c-demo-keyset',
-                subscribeKey: 'sub-c-demo-keyset',
-                userId: myId
+        function setupConnection(connection) {
+            activeConnection = connection;
+            
+            connection.on('open', () => {
+                connectedPeers[connection.peer] = connection;
+                updateContactUI(connection.peer);
+                appendSystemMessage(`Successfully jacked into channel with @${connection.peer}`);
             });
 
-            pubnub.addListener({
-                message: function(event) {
-                    const msg = event.message;
-                    const chan = event.channel.replace('room_code_', '');
-                    if (!roomMessages[chan]) roomMessages[chan] = [];
-                    roomMessages[chan].push(msg);
-                    saveData();
-                    if (chan === activeRoomCode) {
-                        renderMessages();
-                    }
-                }
+            connection.on('data', (data) => {
+                appendMessage(data.sender || connection.peer, data.text, 'received');
             });
 
-            const channelsToSub = openRooms.map(r => 'room_code_' + r);
-            pubnub.subscribe({ channels: channelsToSub });
-            switchRoom(activeRoomCode);
+            connection.on('close', () => {
+                appendSystemMessage(`Link dropped with @${connection.peer}`);
+            });
         }
 
-        function switchRoom(code) {
-            document.getElementById('messages').style.display = 'flex';
-            document.getElementById('whiteboard-view').style.display = 'none';
+        function updateContactUI(peerId) {
+            const list = document.getElementById('contactList');
+            // Check if already in list
+            if(document.getElementById('contact_' + peerId)) return;
             
-            activeRoomCode = code;
-            if(!openRooms.includes(code)) openRooms.push(code);
-            if(!roomMessages[code]) roomMessages[code] = [];
-            saveData();
-            
-            document.getElementById('room-display').innerText = "Channel: #" + code;
-            renderTabs();
-            renderMessages();
+            const li = document.createElement('li');
+            li.className = 'contact-item active';
+            li.id = 'contact_' + peerId;
+            li.innerText = `@${peerId} [ONLINE]`;
+            list.appendChild(li);
         }
 
-        function send() {
-            const input = document.getElementById('message-input');
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if(!text || !activeRoomCode || !pubnub) return;
+            if(!text) return;
 
-            const msgObj = {
-                senderId: myId,
-                sender: myName,
-                username: myUsername,
-                text: text
-            };
-
-            pubnub.publish({
-                channel: "room_code_" + activeRoomCode,
-                message: msgObj
-            }, (status) => {
-                if(!status.error) {
-                    input.value = '';
-                } else {
-                    alert("Transmission failed. Check network.");
-                }
-            });
+            if(activeConnection && activeConnection.open) {
+                activeConnection.send({
+                    sender: username,
+                    text: text
+                });
+                appendMessage(username, text, 'sent');
+                input.value = '';
+            } else {
+                alert("No active peer link! Enter a friend's ID on the left and click 'Link' first.");
+            }
         }
 
-        function renderMessages() {
-            const container = document.getElementById('messages');
-            container.innerHTML = '';
-            const msgs = roomMessages[activeRoomCode] || [];
-
-            msgs.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'msg ' + (m.senderId === myId ? 'self' : '');
-                div.innerHTML = `<div class="sender-header">${escapeHtml(m.sender)} (${escapeHtml(m.username)})</div><div>${escapeHtml(m.text)}</div>`;
-                container.appendChild(div);
-            });
+        function appendMessage(sender, text, type) {
+            const container = document.getElementById('messagesContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            msgDiv.innerHTML = `<div class="msg-user">${sender}</div>${escapeHtml(text)}`;
+            container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
         }
 
-        function renderTabs() {
-            const list = document.getElementById('tabs-list');
-            list.innerHTML = '';
-            openRooms.forEach(room => {
-                const tab = document.createElement('div');
-                tab.className = 'chat-tab ' + (room === activeRoomCode ? 'active' : '');
-                tab.innerHTML = `<span class="tab-title">#${room}</span>`;
-                tab.onclick = () => switchRoom(room);
-                list.appendChild(tab);
-            });
+        function appendSystemMessage(text) {
+            const container = document.getElementById('messagesContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message received';
+            msgDiv.style.borderColor = '#7b68ee';
+            msgDiv.innerHTML = `<div class="msg-user">System Daemon</div>${escapeHtml(text)}`;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
         }
 
-        function promptJoinRoom() {
-            const room = prompt("Enter Channel Code / Name:");
-            if(room) {
-                const clean = room.trim().toLowerCase().replace('#','');
-                pubnub.subscribe({ channels: ['room_code_' + clean] });
-                switchRoom(clean);
+        function copyMyId() {
+            navigator.clipboard.writeText(myId);
+            alert(`Your terminal ID (${myId}) has been copied to clipboard! Send this code to your friend so they can link up with you.`);
+        }
+
+        function changeUsername() {
+            const newName = prompt("Enter new terminal user name:", username);
+            if(newName) {
+                username = newName.trim();
+                document.getElementById('displayUsername').innerText = username;
             }
         }
 
-        function leaveCurrentRoom() {
-            if(openRooms.length <= 1) {
-                alert("Must remain connected to at least one active channel.");
-                return;
-            }
-            openRooms = openRooms.filter(r => r !== activeRoomCode);
-            switchRoom(openRooms[0]);
-        }
-
-        function shareRoomLink() {
-            prompt("Copy channel transmission link:", window.location.href.split('#')[0] + "#room=" + activeRoomCode);
-        }
-
-        function sendFriendRequest() {
-            const fInput = document.getElementById('friend-input');
-            const handle = fInput.value.trim();
-            if(!handle) return;
-            friends.push({ name: handle, username: handle });
-            fInput.value = '';
-            saveData();
-            renderFriends();
-        }
-
-        function renderFriends() {
-            const list = document.getElementById('friends-list');
-            list.innerHTML = '';
-            friends.forEach(f => {
-                const card = document.createElement('div');
-                card.className = 'friend-card';
-                card.innerHTML = `
-                    <div class="friend-info">
-                        <div class="status-dot"></div>
-                        <div class="friend-details">
-                            <span class="friend-name">${escapeHtml(f.name)}</span>
-                            <span class="friend-handle">${escapeHtml(f.username)}</span>
-                        </div>
-                    </div>`;
-                list.appendChild(card);
-            });
-        }
-
-        function promptCustomStatus() {
-            const newMood = prompt("Set custom status mood:", customMood);
-            if(newMood) {
-                customMood = newMood;
-                document.getElementById('user-status-mood').innerText = customMood;
-                saveData();
-            }
-        }
-
-        function promptSwitchAccount() {
-            document.getElementById('confirm-switch-overlay').style.display = 'flex';
-        }
-
-        function confirmSwitchAccount() {
-            localStorage.clear();
-            location.reload();
-        }
-
-        function cancelSwitchAccount() {
-            document.getElementById('confirm-switch-overlay').style.display = 'none';
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        function changeTheme(theme) {
-            document.body.className = 'theme-' + theme + (document.getElementById('crt-toggle').checked ? ' crt-enabled' : '');
-        }
-
-        function toggleCRT(checked) {
-            if(checked) document.body.classList.add('crt-enabled');
-            else document.body.classList.remove('crt-enabled');
-        }
-
-        function openWhiteboardTab() {
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-whiteboard').classList.add('active');
-            document.getElementById('messages').style.display = 'none';
-            document.getElementById('whiteboard-view').style.display = 'flex';
-            resizeCanvas();
-        }
-
-        // Whiteboard Canvas Logic
-        let canvas, ctx, painting = false, brushColor = '#3b82f6';
-        function initWhiteboard() {
-            canvas = document.getElementById('wb-canvas');
-            ctx = canvas.getContext('2d');
-            resizeCanvas();
-
-            window.addEventListener('resize', resizeCanvas);
-
-            canvas.addEventListener('mousedown', startPosition);
-            canvas.addEventListener('mouseup', finishedPosition);
-            canvas.addEventListener('mousemove', draw);
-
-            canvas.addEventListener('touchstart', (e) => { startPosition(e.touches[0]); e.preventDefault(); }, {passive: false});
-            canvas.addEventListener('touchend', finishedPosition);
-            canvas.addEventListener('touchmove', (e) => { draw(e.touches[0]); e.preventDefault(); }, {passive: false});
-        }
-
-        function resizeCanvas() {
-            if(!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-        }
-
-        function startPosition(e) {
-            painting = true;
-            draw(e);
-        }
-
-        function finishedPosition() {
-            painting = false;
-            ctx.beginPath();
-        }
-
-        function draw(e) {
-            if(!painting) return;
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = brushColor;
-
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        }
-
-        function setWbColor(color) {
-            brushColor = color;
-        }
-
-        function clearWhiteboard() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function checkEnter(e) {
+            if(e.key === 'Enter') sendMessage();
         }
 
         function escapeHtml(text) {
