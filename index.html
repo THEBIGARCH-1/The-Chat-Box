@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Fixed Live Peer Add</title>
+    <title>Cyber Terminal Chat - Fully Interactive Login Fix</title>
     <style>
         * {
             box-sizing: border-box;
@@ -31,20 +31,21 @@
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 99999;
+            z-index: 1;
             background-size: 100% 4px, 6px 100%;
             pointer-events: none;
         }
 
-        /* Modal Overlay for Sign-Up / Auth */
+        /* Modal Overlay for Sign-Up / Auth - Fixed High Z-Index */
         #authModal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 3, 8, 0.98);
-            z-index: 100000;
+            z-index: 999999;
             display: flex;
             justify-content: center;
             align-items: center;
+            pointer-events: auto;
         }
 
         .auth-box {
@@ -57,6 +58,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            position: relative;
+            z-index: 1000000;
         }
 
         .auth-box h2 {
@@ -75,6 +78,8 @@
             box-shadow: 0 0 20px rgba(46, 26, 71, 0.6);
             background: #05050f;
             display: none;
+            position: relative;
+            z-index: 10;
         }
 
         /* Sidebar Styling */
@@ -131,7 +136,8 @@
             font-weight: bold;
             transition: 0.2s;
             position: relative;
-            z-index: 10;
+            z-index: 50;
+            pointer-events: auto;
         }
 
         .action-btn:hover {
@@ -167,7 +173,7 @@
             display: flex;
             gap: 5px;
             position: relative;
-            z-index: 20;
+            z-index: 50;
         }
 
         .cyber-input {
@@ -179,6 +185,9 @@
             outline: none;
             border-radius: 4px;
             width: 100%;
+            position: relative;
+            z-index: 50;
+            pointer-events: auto;
         }
 
         .cyber-input:focus {
@@ -284,15 +293,16 @@
         }
 
         .mini-btn {
-            background: transparent;
+            background: #1a103c;
             border: 1px solid #7b68ee;
-            color: #7b68ee;
+            color: #fff;
             padding: 5px 12px;
             font-size: 11px;
             border-radius: 4px;
             cursor: pointer;
             position: relative;
-            z-index: 10;
+            z-index: 50;
+            pointer-events: auto;
         }
 
         .mini-btn:hover {
@@ -363,6 +373,9 @@
             border-radius: 4px;
             cursor: pointer;
             transition: 0.2s;
+            position: relative;
+            z-index: 50;
+            pointer-events: auto;
         }
 
         .send-btn:hover {
@@ -374,10 +387,11 @@
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(3, 3, 8, 0.9);
-            z-index: 10000;
+            z-index: 1000000;
             display: none;
             justify-content: center;
             align-items: center;
+            pointer-events: auto;
         }
 
         .drawing-box {
@@ -415,7 +429,7 @@
             <input type="text" id="regUser" class="cyber-input" placeholder="Username (e.g. cyberjack)">
             <input type="text" id="regDisplay" class="cyber-input" placeholder="Display Name (e.g. Jack)">
             <input type="password" id="regPass" class="cyber-input" placeholder="Security Password">
-            <button class="action-btn" onclick="initializeAccount()">// Jack Into Network</button>
+            <button type="button" class="action-btn" onclick="initializeAccount()">// Jack Into Network</button>
         </div>
     </div>
 
@@ -424,9 +438,9 @@
             <div class="terminal-label">Cyber Sketch Pad</div>
             <canvas id="drawCanvas" width="300" height="200"></canvas>
             <div class="drawing-tools">
-                <button class="mini-btn" onclick="clearCanvas()">Clear</button>
-                <button class="mini-btn" style="border-color:#ff3366; color:#ff3366;" onclick="closeDrawingModal()">Cancel</button>
-                <button class="mini-btn" style="border-color:#00f0ff; color:#00f0ff;" onclick="sendDrawingToChat()">Send Drawing</button>
+                <button type="button" class="mini-btn" onclick="clearCanvas()">Clear</button>
+                <button type="button" class="mini-btn" style="border-color:#ff3366; color:#ff3366;" onclick="closeDrawingModal()">Cancel</button>
+                <button type="button" class="mini-btn" style="border-color:#00f0ff; color:#00f0ff;" onclick="sendDrawingToChat()">Send Drawing</button>
             </div>
         </div>
     </div>
@@ -444,7 +458,7 @@
                 <div class="section-box" style="margin-top: 10px;">
                     <div class="section-title">
                         <span>Lobby Rooms</span>
-                        <button class="mini-btn" style="padding: 1px 6px; font-size: 10px;" onclick="openCreateLobbyPrompt()">+ New</button>
+                        <button type="button" class="mini-btn" style="padding: 1px 6px; font-size: 10px;" onclick="openCreateLobbyPrompt()">+ New</button>
                     </div>
                     <ul class="item-list" id="lobbyList">
                         </ul>
@@ -464,7 +478,7 @@
                     <div class="section-title">Live Peer Handshake</div>
                     <div class="link-input-group" style="margin-bottom: 5px;">
                         <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
-                        <button type="button" class="mini-btn" style="width: 45%; padding: 6px; border-color: #7b68ee; color: #fff; background: #1a103c;" onclick="sendLiveFriendRequest()">// ADD</button>
+                        <button type="button" class="mini-btn" style="width: 45%; padding: 6px; background: #2e1a47; border-color: #00f0ff; color: #00f0ff; font-weight: bold;" onclick="sendLiveFriendRequest()">// ADD</button>
                     </div>
                     <div class="section-title" style="margin-top:8px;">Friends Direct</div>
                     <ul class="item-list" id="friendsListContainer">
@@ -474,7 +488,7 @@
 
             <div class="settings-panel">
                 <div class="terminal-label">Cyber Settings</div>
-                <button class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:5px;" onclick="switchAccountPrompt()">// Switch Account</button>
+                <button type="button" class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:5px;" onclick="switchAccountPrompt()">// Switch Account</button>
             </div>
         </div>
 
@@ -484,21 +498,21 @@
                     <div class="tab active" onclick="switchChat('lobby')" id="tab_lobby">#lobby</div>
                 </div>
                 <div class="header-controls">
-                    <button class="mini-btn" onclick="copyMyId()">Share ID</button>
+                    <button type="button" class="mini-btn" onclick="copyMyId()">Share ID</button>
                 </div>
             </div>
 
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Fully synchronized P2P terminal online. The **// ADD** button click issue has been resolved! Paste any image, draw sketches, or connect directly with peer IDs.
+                    Fully synchronized P2P terminal online. Login overlay z-index and click events fixed. Enter your username, display name, and password, then click **// Jack Into Network** to access the terminal!
                 </div>
             </div>
 
             <div class="chat-input-footer">
-                <button class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
+                <button type="button" class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
                 <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message or paste any copied image (Ctrl+V)..." onkeypress="checkEnter(event)" onpaste="handleImagePaste(event)">
-                <button class="send-btn" onclick="sendMessage()">Send</button>
+                <button type="button" class="send-btn" onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
@@ -697,7 +711,6 @@
             switchChat(key);
         }
 
-        // Live Add Button Action - Transmits live handshake request instantly over P2P
         function sendLiveFriendRequest() {
             const inputField = document.getElementById('peerIdInput');
             const targetId = inputField.value.trim().replace('@','');
@@ -938,8 +951,8 @@
                 li.innerHTML = `
                     <span>${req.name}</span>
                     <div class="request-actions">
-                        <button class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button>
-                        <button class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button>
+                        <button type="button" class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button>
+                        <button type="button" class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button>
                     </div>
                 `;
                 list.appendChild(li);
