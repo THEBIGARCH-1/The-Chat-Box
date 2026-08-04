@@ -714,39 +714,6 @@
             gap: 3px;
         }
 
-        .add-reaction-btn {
-            background: transparent;
-            border: 1px dashed var(--primary-glow);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
-            color: var(--text-accent);
-            cursor: pointer;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 6px;
-            padding: 0;
-        }
-
-        .reaction-picker {
-            position: absolute;
-            bottom: -32px;
-            left: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 4px 6px;
-            display: none;
-            gap: 6px;
-            z-index: 50;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .reaction-picker.open { display: flex; }
-        .reaction-option { cursor: pointer; font-size: 14px; }
-
         .user-eye {
             font-size: 12px;
             display: inline-flex;
@@ -954,7 +921,7 @@
             <input type="text" id="auth-displayname" placeholder="Display Name (e.g. Neo)" maxlength="15" autocomplete="off">
             <input type="text" id="auth-username" placeholder="@USER (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
             <input type="password" id="auth-pass" placeholder="Secure Password" maxlength="20">
-            <button type="button" id="auth-btn" onclick="handleAuth()">Initialize Connection</button>
+            <button type="button" id="auth-btn" onclick="handleAuthFromUI()">Initialize Connection</button>
         </div>
     </div>
 
@@ -1114,14 +1081,12 @@
 
     <script>
         let pubnub = null;
-        let authPubNub = null;
         let myName = "";
         let myUsername = "";
         let userChannel = "";
         let activeRoomCode = "";
         let pendingInviteRoomCode = "";
         let openRooms = [];
-        let roomAliases = {};
         let roomMessages = {};
         let userFocusStates = {};
         let userMoods = {};
@@ -1146,23 +1111,14 @@
         let audioCtx = null;
         let ambientOsc = null;
         let ambientGain = null;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let isRecordingAudio = false;
 
-        // --- PERSISTENCE UPGRADE: Auto-load credentials & settings on launch ---
+        // --- INSTANT AUTOLOAD UPGRADE ---
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('cyberchat_name');
             const savedUsername = localStorage.getItem('cyberchat_username');
             const savedPass = localStorage.getItem('cyberchat_pass');
             const savedTheme = localStorage.getItem('cyberchat_theme');
             const savedWallpaper = localStorage.getItem('cyberchat_wallpaper');
-
-            if (savedName && savedUsername && savedPass) {
-                document.getElementById('auth-displayname').value = savedName;
-                document.getElementById('auth-username').value = savedUsername;
-                document.getElementById('auth-pass').value = savedPass;
-            }
 
             if (savedTheme) {
                 document.getElementById('theme-select').value = savedTheme;
@@ -1172,6 +1128,20 @@
             if (savedWallpaper) {
                 document.getElementById('wallpaper-select').value = savedWallpaper;
                 changeWallpaper(savedWallpaper);
+            }
+
+            // If credentials already exist, instantly bypass login and auto-log in!
+            if (savedName && savedUsername && savedPass) {
+                myName = savedName;
+                myUsername = savedUsername;
+                userChannel = "user_inbox_" + myUsername.replace('@', '');
+
+                document.getElementById('display-user').innerText = myName;
+                document.getElementById('display-handle').innerText = myUsername;
+                document.getElementById('auth-overlay').style.display = 'none';
+
+                startAmbientHum();
+                initPubNub(savedPass);
             }
         });
 
@@ -1282,7 +1252,7 @@
             }
         }
 
-        // --- Background Canvas Animation ---
+        // Background Animation
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let drops = [];
@@ -1334,8 +1304,8 @@
         }
         requestAnimationFrame(renderBackground);
 
-        // --- Authentication & Session Storage ---
-        function handleAuth() {
+        // Manual Login from UI form
+        function handleAuthFromUI() {
             const dispInput = document.getElementById('auth-displayname').value.trim();
             const userinput = document.getElementById('auth-username').value.trim().toLowerCase();
             const passInput = document.getElementById('auth-pass').value.trim();
@@ -1349,7 +1319,6 @@
             myUsername = userinput.startsWith('@') ? userinput : '@' + userinput;
             userChannel = "user_inbox_" + myUsername.replace('@', '');
 
-            // Save credentials to localStorage so updates/refreshes don't wipe them
             localStorage.setItem('cyberchat_name', myName);
             localStorage.setItem('cyberchat_username', myUsername);
             localStorage.setItem('cyberchat_pass', passInput);
@@ -1375,14 +1344,13 @@
             location.reload();
         }
 
-        // --- PubNub Network Initialization ---
+        // PubNub connection setup
         function initPubNub(password) {
-            const cipherKey = password;
             pubnub = new PubNub({
                 publishKey: 'pub-c-4b5cb3c8-6927-4c07-b359-5f210ae3bbf9',
                 subscribeKey: 'sub-c-1a89c9d4-bc32-4753-85f2-984bbdf99db1',
                 uuid: myId,
-                cipherKey: cipherKey,
+                cipherKey: password,
                 heartbeatInterval: 10
             });
 
@@ -1487,26 +1455,6 @@
                     return;
                 }
 
-                if (msg.type === 'focus') {
-                    userFocusStates[msg.username] = msg.looking;
-                    if (roomCode === activeRoomCode) renderMessages();
-                    return;
-                }
-
-                if (msg.type === 'reaction') {
-                    if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
-                    const targetMsg = roomMessages[roomCode].find(m => m.id === msg.targetId);
-                    if (targetMsg) {
-                        if (!targetMsg.reactions) targetMsg.reactions = {};
-                        if (!targetMsg.reactions[msg.emoji]) targetMsg.reactions[msg.emoji] = [];
-                        if (!targetMsg.reactions[msg.emoji].includes(msg.username)) {
-                            targetMsg.reactions[msg.emoji].push(msg.username);
-                        }
-                    }
-                    if (roomCode === activeRoomCode) renderMessages();
-                    return;
-                }
-
                 if (!roomMessages[roomCode]) roomMessages[roomCode] = [];
                 roomMessages[roomCode].push(msg);
 
@@ -1520,7 +1468,6 @@
             }
         }
 
-        // --- Friends & Contacts System ---
         function sendFriendRequest() {
             const input = document.getElementById('friend-input');
             let handle = input.value.trim().toLowerCase();
@@ -1549,8 +1496,6 @@
                 if (!status.error) {
                     alert(`Link signal transmitted to ${handle}`);
                     input.value = "";
-                } else {
-                    alert("Transmission failed.");
                 }
             });
         }
@@ -1590,12 +1535,11 @@
             }
 
             friends.forEach(f => {
-                const isOnline = activeUsers.has(f.username) || true; // Fallback visual
                 const card = document.createElement('div');
                 card.className = 'friend-card';
                 card.innerHTML = `
                     <div class="friend-info" onclick="startDirectChat('${f.username}', '${f.name}')">
-                        <div class="status-dot ${isOnline ? 'online' : ''}"></div>
+                        <div class="status-dot online"></div>
                         <div class="friend-details">
                             <span class="friend-name">${escape(f.name)}</span>
                             <span class="friend-handle">${escape(f.username)}</span>
@@ -1609,7 +1553,6 @@
             });
         }
 
-        // --- Channel Rooms & Tabs Management ---
         function promptJoinRoom() {
             const code = prompt("Enter Channel Code or ID:");
             if (!code) return;
@@ -1639,10 +1582,7 @@
             if (!activeRoomCode) return;
             const roomCode = activeRoomCode;
 
-            pubnub.unsubscribe({
-                channels: ["room_code_" + roomCode]
-            });
-
+            pubnub.unsubscribe({ channels: ["room_code_" + roomCode] });
             openRooms = openRooms.filter(r => r !== roomCode);
             delete roomMessages[roomCode];
 
@@ -1705,7 +1645,6 @@
             joinRoom(roomCode);
         }
 
-        // --- Messaging & Interactive Features ---
         function send() {
             if (!activeRoomCode) {
                 alert("Join or create a channel first.");
@@ -1726,8 +1665,6 @@
 
             isGlitchModeActive = false;
             isSpoilerModeActive = false;
-            document.querySelector('.tool-btn').style.borderColor = "";
-            document.querySelector('.tool-btn').style.boxShadow = "";
             document.getElementById('spoiler-btn').classList.remove('active-tool');
 
             isCurrentlyTyping = false;
@@ -1788,22 +1725,12 @@
                     contentHtml = `<span class="spoiler-hidden" onclick="revealSpoiler(this)">${contentHtml}</span>`;
                 }
 
-                let reactionsHtml = '';
-                if (msg.reactions) {
-                    reactionsHtml = '<div class="msg-reactions">';
-                    for (const [emoji, users] of Object.entries(msg.reactions)) {
-                        reactionsHtml += `<span class="reaction-pill">${emoji} ${users.length}</span>`;
-                    }
-                    reactionsHtml += '</div>';
-                }
-
                 div.innerHTML = `
                     <div class="sender-header">
                         <span>${escape(msg.sender)}</span>
-                        <span class="user-eye ${msg.looking !== false ? 'looking' : 'away'}">&#128065;</span>
+                        <span class="user-eye looking">&#128065;</span>
                     </div>
                     <div>${contentHtml}</div>
-                    ${reactionsHtml}
                 `;
                 container.appendChild(div);
             });
@@ -1815,7 +1742,6 @@
             el.classList.add('spoiler-revealed');
         }
 
-        // --- Tool Buttons ---
         function toggleGlitchText() {
             isGlitchModeActive = !isGlitchModeActive;
             const input = document.getElementById('message-input');
@@ -1834,7 +1760,6 @@
             }
         }
 
-        // --- Whiteboard System ---
         function openWhiteboardTab() {
             isWhiteboardActive = true;
             document.getElementById('messages').style.display = 'none';
@@ -1896,6 +1821,7 @@
             });
             switchRoomTab(activeRoomCode);
         }
+
         function triggerImageUpload() {
             document.getElementById('image-upload-input').click();
         }
@@ -1919,12 +1845,10 @@
             reader.readAsDataURL(file);
         }
 
-        // --- Voice Recorder Placeholder / Handler ---
         function toggleVoiceRecorder() {
             alert("Voice Synth integration ready. Check microphone permissions.");
         }
 
-        // --- Inbox & Notifications ---
         function toggleInbox() {
             const modal = document.getElementById('inbox-modal');
             modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
@@ -1987,7 +1911,6 @@
             if (systemMessages.length > 20) systemMessages.pop();
         }
 
-        // --- Room Invites & Utilities ---
         function inviteFriend() {
             if (!activeRoomCode) {
                 alert("You must be inside an active channel to share a link.");
@@ -2073,6 +1996,11 @@
             } else {
                 indicator.innerText = '';
             }
+        }
+
+        function escape(str) {
+            if (!str) return "";
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
 </body>
