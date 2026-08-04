@@ -110,14 +110,6 @@
             pointer-events: none;
         }
 
-        #bg-canvas {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
-            pointer-events: none;
-            filter: drop-shadow(0 0 10px var(--primary));
-        }
-
         #app-container {
             width: 95vw;
             max-width: 1150px;
@@ -131,10 +123,9 @@
             border: 2px solid var(--primary);
             box-shadow: 0 0 25px var(--primary), inset 0 0 25px var(--secondary-glow), 0 0 50px var(--secondary-glow);
             position: relative;
-            transition: all 0.3s ease;
         }
 
-        #auth-overlay, #invite-popup-overlay, #confirm-switch-overlay {
+        #auth-overlay, #confirm-switch-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-base);
@@ -145,10 +136,7 @@
             padding: 16px;
         }
 
-        #invite-popup-overlay, #confirm-switch-overlay {
-            display: none;
-            z-index: 300;
-        }
+        #confirm-switch-overlay { display: none; z-index: 300; }
 
         .auth-card, .popup-card {
             background: var(--bg-card);
@@ -196,6 +184,7 @@
             flex-shrink: 0;
             transition: transform 0.3s ease;
             position: relative;
+            z-index: 90;
         }
 
         .sidebar-close-btn {
@@ -257,7 +246,7 @@
             background: var(--bg-card);
             border: 1px solid var(--primary);
             border-radius: 6px;
-            padding: 4px 8px;
+            padding: 6px 10px;
             font-size: 11px;
             color: var(--text-accent);
             cursor: pointer;
@@ -311,7 +300,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
         }
 
         .friend-info {
@@ -319,7 +307,6 @@
             align-items: center;
             gap: 10px;
             overflow: hidden;
-            cursor: pointer;
             flex: 1;
         }
 
@@ -327,14 +314,9 @@
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background: #4b5563;
-            box-shadow: 0 0 4px rgba(75, 85, 99, 0.5);
-            flex-shrink: 0;
-        }
-
-        .status-dot.online {
             background: var(--primary);
-            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            flex-shrink: 0;
         }
 
         .friend-details {
@@ -355,30 +337,6 @@
         .friend-handle {
             font-size: 10px;
             color: var(--text-accent);
-        }
-
-        .friend-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .btn-invite-friend {
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            color: var(--text-accent);
-            padding: 4px 8px;
-            font-size: 10px;
-            border-radius: 6px;
-        }
-
-        .remove-friend {
-            color: var(--secondary);
-            cursor: pointer;
-            font-size: 14px;
-            opacity: 0.7;
-            padding: 4px;
         }
 
         #chat-container {
@@ -442,13 +400,6 @@
             white-space: nowrap;
         }
 
-        .tab-close-btn {
-            font-size: 12px;
-            color: var(--secondary);
-            opacity: 0.7;
-            cursor: pointer;
-        }
-
         .add-tab-btn {
             background: var(--bg-card);
             border: 1px solid var(--primary);
@@ -494,8 +445,8 @@
             gap: 8px;
         }
 
-        .inbox-btn, .menu-toggle-btn {
-            position: relative;
+        .menu-toggle-btn {
+            display: none;
             background: var(--bg-card);
             border: 1px solid var(--primary);
             padding: 6px 10px;
@@ -503,26 +454,7 @@
             font-size: 13px;
             color: var(--text-accent);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 8px var(--primary-glow);
         }
-
-        .menu-toggle-btn { display: none; }
-
-        .green-badge {
-            position: absolute;
-            top: -3px; right: -3px;
-            width: 9px; height: 9px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            border: 2px solid var(--bg-panel);
-            box-shadow: 0 0 8px var(--primary);
-            display: none;
-        }
-
-        .green-badge.active { display: block; }
 
         .header-btn {
             background: var(--bg-card);
@@ -537,8 +469,7 @@
         }
 
         .btn-leave-room {
-            background: var(--bg-card);
-            border: 1px solid var(--secondary);
+            border-color: var(--secondary);
             color: var(--secondary);
             box-shadow: 0 0 8px var(--secondary-glow);
         }
@@ -548,17 +479,9 @@
             padding: 4px 10px;
             border-radius: 20px;
             background: var(--bg-card);
-            color: var(--secondary);
-            border: 1px solid var(--secondary);
-            font-weight: 600;
-            white-space: nowrap;
-            box-shadow: 0 0 8px var(--secondary-glow);
-        }
-
-        .status.online {
-            background: var(--bg-card);
             color: var(--primary);
-            border-color: var(--primary);
+            border: 1px solid var(--primary);
+            font-weight: 600;
             box-shadow: 0 0 10px var(--primary-glow);
         }
 
@@ -600,6 +523,8 @@
             cursor: crosshair;
             box-shadow: inset 0 0 15px var(--primary-glow);
             touch-action: none;
+            width: 100%;
+            height: 100%;
         }
 
         .wb-tools {
@@ -635,7 +560,6 @@
             line-height: 1.4;
             color: var(--text-main);
             box-shadow: 0 0 12px var(--primary-glow);
-            position: relative;
         }
 
         .msg.self {
@@ -653,44 +577,12 @@
             font-size: 11px;
             color: var(--text-accent);
             margin-bottom: 2px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
             font-weight: 600;
         }
 
         .msg.self .sender-header {
             color: rgba(255, 255, 255, 0.9);
-            justify-content: flex-end;
-        }
-
-        .spoiler-hidden {
-            background: var(--bg-input);
-            color: transparent;
-            text-shadow: 0 0 8px var(--text-accent);
-            cursor: pointer;
-            border-radius: 4px;
-            padding: 0 6px;
-            user-select: none;
-        }
-
-        .spoiler-revealed {
-            background: var(--bg-card);
-            color: #fff;
-            padding: 0 6px;
-            border-radius: 4px;
-            border: 1px dashed var(--secondary);
-        }
-
-        #typing-indicator {
-            font-size: 11px;
-            color: var(--secondary);
-            padding: 2px 16px;
-            font-style: italic;
-            height: 18px;
-            font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 0 6px var(--secondary-glow);
-            background: var(--bg-panel);
+            text-align: right;
         }
 
         #input-area {
@@ -734,38 +626,6 @@
             box-shadow: 0 0 8px var(--primary-glow);
         }
 
-        .tool-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--secondary);
-            color: var(--secondary);
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            box-shadow: 0 0 8px var(--secondary-glow);
-        }
-        .tool-btn.active-tool {
-            background: var(--secondary);
-            color: #fff;
-            box-shadow: 0 0 12px var(--secondary);
-        }
-
-        #inbox-modal {
-            display: none;
-            position: absolute;
-            top: 55px; right: 12px;
-            width: calc(100% - 24px);
-            max-width: 320px;
-            background: var(--bg-card);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            box-shadow: 0 0 25px var(--primary), inset 0 0 15px var(--secondary-glow);
-            padding: 14px;
-            z-index: 100;
-            flex-direction: column;
-            gap: 10px;
-        }
-
         .deck-menu {
             display: flex;
             flex-direction: column;
@@ -782,7 +642,7 @@
             color: var(--text-accent);
         }
 
-        .setting-row select, .setting-row input[type="range"] {
+        .setting-row select {
             background: var(--bg-input);
             color: #fff;
             border: 1px solid var(--primary);
@@ -797,15 +657,13 @@
             #app-container { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; border: none; flex-direction: column; }
             .menu-toggle-btn { display: flex; }
             .sidebar-close-btn { display: block; }
-            #sidebar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 90; background: var(--bg-panel); transform: translateX(-100%); padding-top: 50px; }
+            #sidebar { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(-100%); padding-top: 50px; }
             #sidebar.open { transform: translateX(0); }
             .status { display: none; }
-            #chat-header { height: 50px; }
         }
     </style>
 </head>
 <body class="theme-cyber crt-enabled">
-    <canvas id="bg-canvas"></canvas>
 
     <div id="auth-overlay">
         <div class="auth-card">
@@ -815,17 +673,6 @@
             <input type="text" id="auth-username" placeholder="@USER (e.g. glitch_99)" maxlength="15" autocapitalize="none" autocomplete="off">
             <input type="password" id="auth-pass" placeholder="Secure Password" maxlength="20">
             <button type="button" onclick="handleAuth()">Initialize Connection</button>
-        </div>
-    </div>
-
-    <div id="invite-popup-overlay">
-        <div class="popup-card">
-            <h2>ROOM INVITE</h2>
-            <p id="popup-invite-text">Secure connection link incoming.</p>
-            <div class="popup-actions">
-                <button type="button" onclick="acceptRoomInvite()">Accept Link</button>
-                <button type="button" class="btn-secondary" onclick="declineRoomInvite()">Decline</button>
-            </div>
         </div>
     </div>
 
@@ -894,12 +741,9 @@
                 <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">⚡</button>
                 <span id="room-display">Channel: Offline</span>
                 <div class="header-actions">
-                    <button type="button" class="inbox-btn" onclick="toggleInbox()" title="Inbox">
-                        📬 <span id="mail-badge" class="green-badge"></span>
-                    </button>
                     <button type="button" class="header-btn btn-leave-room" onclick="leaveCurrentRoom()">Disconnect</button>
-                    <button type="button" class="header-btn" onclick="inviteFriend()">Share Link</button>
-                    <span id="status-badge" class="status">Offline</span>
+                    <button type="button" class="header-btn" onclick="shareRoomLink()">Share Link</button>
+                    <span id="status-badge" class="status">Online</span>
                 </div>
             </div>
             <div id="messages-view-port">
@@ -916,20 +760,10 @@
                     </div>
                 </div>
             </div>
-            <div id="typing-indicator"></div>
             <div id="input-area">
-                <button type="button" class="tool-btn" onclick="toggleGlitchText()" title="Glitch">⚡Glitch</button>
-                <input type="text" id="message-input" placeholder="Transmit message or command..." autocomplete="off" onkeypress="if(event.key==='Enter') send()">
-                <button type="button" onclick="send()">Send</button>
+                <input type="text" id="message-input" placeholder="Transmit message or command..." autocomplete="off">
+                <button type="button" id="send-btn" onclick="send()">Send</button>
             </div>
-        </div>
-
-        <div id="inbox-modal">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="font-family:'Orbitron',sans-serif; font-size:12px; color:var(--text-accent);">Incoming Signals</h3>
-                <span style="cursor:pointer; font-weight:bold; color:var(--secondary);" onclick="toggleInbox()">&times;</span>
-            </div>
-            <div id="inbox-content" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
     </div>
 
@@ -937,8 +771,7 @@
         let pubnub = null;
         let myName = localStorage.getItem('cyber_name') || "";
         let myUsername = localStorage.getItem('cyber_username') || "";
-        let myPass = localStorage.getItem('cyber_pass') || "";
-        let activeRoomCode = localStorage.getItem('cyber_active_room') || "";
+        let activeRoomCode = localStorage.getItem('cyber_active_room') || "lobby";
         let openRooms = JSON.parse(localStorage.getItem('cyber_open_rooms') || '["lobby"]');
         let roomMessages = JSON.parse(localStorage.getItem('cyber_room_messages') || '{"lobby": []}');
         let friends = JSON.parse(localStorage.getItem('cyber_friends') || '[]');
@@ -954,12 +787,16 @@
             document.getElementById('user-status-mood').innerText = customMood;
             renderFriends();
             renderTabs();
+            initWhiteboard();
+
+            document.getElementById('message-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') send();
+            });
         });
 
         function saveData() {
             localStorage.setItem('cyber_name', myName);
             localStorage.setItem('cyber_username', myUsername);
-            localStorage.setItem('cyber_pass', myPass);
             localStorage.setItem('cyber_active_room', activeRoomCode);
             localStorage.setItem('cyber_open_rooms', JSON.stringify(openRooms));
             localStorage.setItem('cyber_room_messages', JSON.stringify(roomMessages));
@@ -979,7 +816,6 @@
 
             myName = nameInput;
             myUsername = userhandleInput.startsWith('@') ? userhandleInput : '@' + userhandleInput;
-            myPass = passInput;
             activeRoomCode = 'lobby';
             if(!openRooms.includes('lobby')) openRooms.push('lobby');
             if(!roomMessages['lobby']) roomMessages['lobby'] = [];
@@ -996,8 +832,7 @@
             pubnub = new PubNub({
                 publishKey: 'pub-c-demo-keyset',
                 subscribeKey: 'sub-c-demo-keyset',
-                userId: myId,
-                restore: true
+                userId: myId
             });
 
             pubnub.addListener({
@@ -1015,18 +850,13 @@
 
             const channelsToSub = openRooms.map(r => 'room_code_' + r);
             pubnub.subscribe({ channels: channelsToSub });
-
-            setOnline();
-            switchRoom(activeRoomCode || 'lobby');
-        }
-
-        function setOnline() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = "Online";
-            badge.classList.add('online');
+            switchRoom(activeRoomCode);
         }
 
         function switchRoom(code) {
+            document.getElementById('messages').style.display = 'flex';
+            document.getElementById('whiteboard-view').style.display = 'none';
+            
             activeRoomCode = code;
             if(!openRooms.includes(code)) openRooms.push(code);
             if(!roomMessages[code]) roomMessages[code] = [];
@@ -1043,7 +873,6 @@
             if(!text || !activeRoomCode || !pubnub) return;
 
             const msgObj = {
-                id: "msg_" + Math.random().toString(36).substr(2, 6),
                 senderId: myId,
                 sender: myName,
                 username: myUsername,
@@ -1056,6 +885,8 @@
             }, (status) => {
                 if(!status.error) {
                     input.value = '';
+                } else {
+                    alert("Transmission failed. Check network.");
                 }
             });
         }
@@ -1068,7 +899,7 @@
             msgs.forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'msg ' + (m.senderId === myId ? 'self' : '');
-                div.innerHTML = `<div class="sender-header">${m.sender} (${m.username})</div><div>${escapeHtml(m.text)}</div>`;
+                div.innerHTML = `<div class="sender-header">${escapeHtml(m.sender)} (${escapeHtml(m.username)})</div><div>${escapeHtml(m.text)}</div>`;
                 container.appendChild(div);
             });
             container.scrollTop = container.scrollHeight;
@@ -1104,11 +935,15 @@
             switchRoom(openRooms[0]);
         }
 
+        function shareRoomLink() {
+            prompt("Copy channel transmission link:", window.location.href.split('#')[0] + "#room=" + activeRoomCode);
+        }
+
         function sendFriendRequest() {
             const fInput = document.getElementById('friend-input');
             const handle = fInput.value.trim();
             if(!handle) return;
-            friends.push({ name: handle, username: handle, online: true });
+            friends.push({ name: handle, username: handle });
             fInput.value = '';
             saveData();
             renderFriends();
@@ -1122,10 +957,10 @@
                 card.className = 'friend-card';
                 card.innerHTML = `
                     <div class="friend-info">
-                        <div class="status-dot online"></div>
+                        <div class="status-dot"></div>
                         <div class="friend-details">
-                            <span class="friend-name">${f.name}</span>
-                            <span class="friend-handle">${f.username}</span>
+                            <span class="friend-name">${escapeHtml(f.name)}</span>
+                            <span class="friend-handle">${escapeHtml(f.username)}</span>
                         </div>
                     </div>`;
                 list.appendChild(card);
@@ -1158,11 +993,6 @@
             document.getElementById('sidebar').classList.toggle('open');
         }
 
-        function toggleInbox() {
-            const modal = document.getElementById('inbox-modal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        }
-
         function changeTheme(theme) {
             document.body.className = 'theme-' + theme + (document.getElementById('crt-toggle').checked ? ' crt-enabled' : '');
         }
@@ -1173,8 +1003,67 @@
         }
 
         function openWhiteboardTab() {
+            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-whiteboard').classList.add('active');
             document.getElementById('messages').style.display = 'none';
             document.getElementById('whiteboard-view').style.display = 'flex';
+            resizeCanvas();
+        }
+
+        // Whiteboard Canvas Logic
+        let canvas, ctx, painting = false, brushColor = '#3b82f6';
+        function initWhiteboard() {
+            canvas = document.getElementById('wb-canvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+
+            window.addEventListener('resize', resizeCanvas);
+
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mouseup', finishedPosition);
+            canvas.addEventListener('mousemove', draw);
+
+            canvas.addEventListener('touchstart', (e) => { startPosition(e.touches[0]); e.preventDefault(); }, {passive: false});
+            canvas.addEventListener('touchend', finishedPosition);
+            canvas.addEventListener('touchmove', (e) => { draw(e.touches[0]); e.preventDefault(); }, {passive: false});
+        }
+
+        function resizeCanvas() {
+            if(!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if(!painting) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = brushColor;
+
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function setWbColor(color) {
+            brushColor = color;
+        }
+
+        function clearWhiteboard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function escapeHtml(text) {
