@@ -3,944 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Network Crash Fix</title>
+    <title>Cyber Terminal - Max Connect</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Courier New', Courier, monospace;
+        body { 
+            background-color: #030308; 
+            color: #00f0ff; 
+            font-family: 'Courier New', Courier, monospace; 
+            padding: 20px; 
         }
-
-        body {
-            background-color: #030308;
-            color: #00f0ff;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            border: 4px solid #101026;
+        .box { 
+            border: 2px solid #7b68ee; 
+            padding: 20px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #070714; 
         }
-
-        /* CRT Scanline Overlay */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 9999;
-            background-size: 100% 4px, 6px 100%;
-            pointer-events: none;
+        input, button { 
+            padding: 10px; 
+            margin: 5px 0; 
+            width: 100%; 
+            box-sizing: border-box; 
+            background: #020208; 
+            color: #00f0ff; 
+            border: 1px solid #1a103c; 
         }
-
-        /* Modal Overlay for Sign-Up / Auth */
-        #authModal {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(3, 3, 8, 0.98);
-            z-index: 100000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
+        button { 
+            background: #2e1a47; 
+            cursor: pointer; 
+            font-weight: bold; 
         }
-
-        .auth-box {
-            background: #070714;
-            border: 2px solid #7b68ee;
-            padding: 30px;
-            width: 380px;
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(123, 104, 238, 0.4);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            position: relative;
-            z-index: 100001;
-            pointer-events: auto;
+        button:hover { 
+            background: #4b0082; 
         }
-
-        .auth-box h2 {
-            color: #fff;
-            text-align: center;
-            margin-bottom: 5px;
-            font-size: 20px;
-            letter-spacing: 2px;
+        #status { 
+            color: #ff3366; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
         }
-
-        .container {
-            display: flex;
-            width: 95vw;
-            height: 90vh;
-            border: 2px solid #2e1a47;
-            box-shadow: 0 0 20px rgba(46, 26, 71, 0.6);
-            background: #05050f;
-            display: none;
-        }
-
-        /* Sidebar Styling */
-        .sidebar {
-            width: 320px;
-            border-right: 2px solid #1a103c;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            justify-content: space-between;
-            background: #070714;
-        }
-
-        .user-panel {
-            border-bottom: 1px solid #1a103c;
-            padding-bottom: 15px;
-        }
-
-        .terminal-label {
-            font-size: 10px;
-            color: #7b68ee;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .username {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            margin: 5px 0;
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: #101a2c;
-            border: 1px solid #00f0ff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-top: 10px;
-            color: #00f0ff;
-        }
-
-        .status-badge.offline {
-            border-color: #ff3366;
-            color: #ff3366;
-        }
-
-        .action-btn {
-            background: linear-gradient(135deg, #2e1a47, #4b0082);
-            color: #fff;
-            border: 1px solid #7b68ee;
-            padding: 10px;
-            width: 100%;
-            text-align: center;
-            cursor: pointer;
-            margin-top: 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: 0.2s;
-            position: relative;
-            z-index: 50;
-            pointer-events: auto;
-        }
-
-        .action-btn:hover {
-            background: linear-gradient(135deg, #4b0082, #7b68ee);
-            box-shadow: 0 0 10px #7b68ee;
-        }
-
-        /* Sections */
-        .section-box {
-            margin-top: 12px;
-            max-height: 140px;
-            overflow-y: auto;
-        }
-
-        .section-title {
-            font-size: 11px;
-            color: #aaa;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .badge-count {
-            background: #ff3366;
-            color: #fff;
-            padding: 1px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-        }
-
-        .link-input-group {
-            display: flex;
-            gap: 5px;
-            position: relative;
-            z-index: 50;
-        }
-
-        .cyber-input {
-            background: #020208;
-            border: 1px solid #1a103c;
-            color: #00f0ff;
-            padding: 8px;
-            font-size: 12px;
-            outline: none;
-            border-radius: 4px;
-            width: 100%;
-            position: relative;
-            z-index: 50;
-            pointer-events: auto;
-        }
-
-        .cyber-input:focus {
-            border-color: #00f0ff;
-            box-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
-        }
-
-        .item-list {
-            list-style: none;
-            margin-top: 5px;
-        }
-
-        .list-item {
-            padding: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            border-left: 2px solid transparent;
-            transition: 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #ccc;
-            background: #05050f;
-            margin-bottom: 4px;
-            border-radius: 2px;
-        }
-
-        .list-item:hover, .list-item.active {
-            background: #0f0a24;
-            border-left-color: #00f0ff;
-            color: #fff;
-        }
-
-        .request-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .req-btn {
-            background: transparent;
-            border: 1px solid #00f0ff;
-            color: #00f0ff;
-            padding: 2px 6px;
-            font-size: 10px;
-            cursor: pointer;
-            border-radius: 2px;
-        }
-        .req-btn.reject {
-            border-color: #ff3366;
-            color: #ff3366;
-        }
-
-        /* Settings Panel */
-        .settings-panel {
-            border-top: 1px solid #1a103c;
-            padding-top: 12px;
-            font-size: 11px;
-        }
-
-        /* Main Chat Area */
-        .chat-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background: #020207;
-        }
-
-        .chat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 2px solid #1a103c;
-            background: #05050f;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-        }
-
-        .tab {
-            background: #0a0a1a;
-            border: 1px solid #1a103c;
-            padding: 5px 15px;
-            font-size: 12px;
-            color: #7b68ee;
-            border-radius: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .tab.active {
-            background: #1a103c;
-            color: #00f0ff;
-            border-color: #00f0ff;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .mini-btn {
-            background: #1a103c;
-            border: 1px solid #7b68ee;
-            color: #fff;
-            padding: 5px 12px;
-            font-size: 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            position: relative;
-            z-index: 50;
-            pointer-events: auto;
-        }
-
-        .mini-btn:hover {
-            border-color: #00f0ff;
-            color: #00f0ff;
-        }
-
-        /* Messages Container */
-        .messages-container {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            background: #0a0a1a;
-            border: 1px solid #1a103c;
-            padding: 10px 15px;
-            border-radius: 6px;
-            max-width: 70%;
-            font-size: 13px;
-        }
-
-        .message.sent {
-            align-self: flex-end;
-            border-color: #7b68ee;
-            background: #120b24;
-        }
-
-        .message.received {
-            align-self: flex-start;
-            border-color: #00f0ff;
-        }
-
-        .msg-user {
-            font-size: 10px;
-            color: #7b68ee;
-            margin-bottom: 3px;
-        }
-
-        .chat-msg-img {
-            max-width: 220px;
-            border: 1px solid #00f0ff;
-            border-radius: 4px;
-            margin-top: 5px;
-            display: block;
-        }
-
-        /* Chat Input Footer */
-        .chat-input-footer {
-            padding: 15px 20px;
-            border-top: 2px solid #1a103c;
-            display: flex;
-            gap: 10px;
-            background: #05050f;
-            align-items: center;
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, #1a103c, #00f0ff);
-            color: #030308;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-            position: relative;
-            z-index: 50;
-            pointer-events: auto;
-        }
-
-        .send-btn:hover {
-            box-shadow: 0 0 10px #00f0ff;
-        }
-
-        /* Drawing Canvas Modal */
-        #drawingModal {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(3, 3, 8, 0.9);
-            z-index: 200000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        .drawing-box {
-            background: #070714;
-            border: 2px solid #00f0ff;
-            padding: 20px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-        }
-
-        #drawCanvas {
-            background: #020207;
-            border: 1px solid #7b68ee;
-            cursor: crosshair;
-        }
-
-        .drawing-tools {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            justify-content: space-between;
+        .log { 
+            height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #1a103c; 
+            padding: 10px; 
+            margin-top: 10px; 
+            background: #000; 
         }
     </style>
 </head>
 <body>
 
-    <div id="authModal">
-        <div class="auth-box">
-            <h2>CYBER TERMINAL</h2>
-            <div class="terminal-label">Create Profile & Secure Pass</div>
-            <input type="text" id="regUser" class="cyber-input" placeholder="Username (e.g. cyberjack)">
-            <input type="text" id="regDisplay" class="cyber-input" placeholder="Display Name (e.g. Jack)">
-            <input type="password" id="regPass" class="cyber-input" placeholder="Security Password">
-            <button type="button" class="action-btn" onclick="initializeAccount()">// Jack Into Network</button>
-        </div>
-    </div>
-
-    <div id="drawingModal">
-        <div class="drawing-box">
-            <div class="terminal-label">Cyber Sketch Pad</div>
-            <canvas id="drawCanvas" width="300" height="200"></canvas>
-            <div class="drawing-tools">
-                <button type="button" class="mini-btn" onclick="clearCanvas()">Clear</button>
-                <button type="button" class="mini-btn" style="border-color:#ff3366; color:#ff3366;" onclick="closeDrawingModal()">Cancel</button>
-                <button type="button" class="mini-btn" style="border-color:#00f0ff; color:#00f0ff;" onclick="sendDrawingToChat()">Send Drawing</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="container" id="mainContainer">
-        <div class="sidebar">
-            <div>
-                <div class="user-panel">
-                    <span class="terminal-label">Terminal User</span>
-                    <div class="username" id="displayUsername">jack</div>
-                    <span style="font-size: 11px; color: #7b68ee;" id="displayId">@loading...</span>
-                    <div class="status-badge" id="networkStatus">⚡ Jacked In</div>
-                </div>
-
-                <div class="section-box" style="margin-top: 10px;">
-                    <div class="section-title">
-                        <span>Lobby Rooms</span>
-                        <button type="button" class="mini-btn" style="padding: 1px 6px; font-size: 10px;" onclick="openCreateLobbyPrompt()">+ New</button>
-                    </div>
-                    <ul class="item-list" id="lobbyList">
-                        </ul>
-                </div>
-
-                <div class="section-box">
-                    <div class="section-title">
-                        <span>Inbox / Requests</span>
-                        <span class="badge-count" id="requestCountBadge" style="display:none;">0</span>
-                    </div>
-                    <ul class="item-list" id="requestsList">
-                        <li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>
-                    </ul>
-                </div>
-
-                <div class="section-box">
-                    <div class="section-title">Live Peer Handshake</div>
-                    <div class="link-input-group" style="margin-bottom: 5px;">
-                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
-                        <button type="button" class="mini-btn" style="width: 45%; padding: 6px; background: #2e1a47; border-color: #00f0ff; color: #00f0ff; font-weight: bold;" onclick="sendLiveFriendRequest()">// ADD</button>
-                    </div>
-                    <div class="section-title" style="margin-top:8px;">Friends Direct</div>
-                    <ul class="item-list" id="friendsListContainer">
-                        </ul>
-                </div>
-            </div>
-
-            <div class="settings-panel">
-                <div class="terminal-label">Cyber Settings</div>
-                <button type="button" class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:5px;" onclick="switchAccountPrompt()">// Switch Account</button>
-            </div>
-        </div>
-
-        <div class="chat-area">
-            <div class="chat-header">
-                <div class="tabs" id="chatTabsContainer">
-                    <div class="tab active" onclick="switchChat('lobby')" id="tab_lobby">#lobby</div>
-                </div>
-                <div class="header-controls">
-                    <button type="button" class="mini-btn" onclick="copyMyId()">Share ID</button>
-                </div>
-            </div>
-
-            <div class="messages-container" id="messagesContainer">
-                </div>
-
-            <div class="chat-input-footer">
-                <button type="button" class="mini-btn" style="height: 38px; padding: 0 12px;" onclick="openDrawingModal()" title="Draw & Send">🎨 Draw</button>
-                <input type="text" id="messageInput" class="cyber-input" placeholder="Type a message or paste any copied image (Ctrl+V)..." onkeypress="checkEnter(event)" onpaste="handleImagePaste(event)">
-                <button type="button" class="send-btn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
+    <div class="box">
+        <h2>TERMINAL LINK</h2>
+        <div id="status">Status: Attempting Server Connection...</div>
+        <div>Your ID: <span id="my-id">Loading...</span></div>
+        <hr style="border-color: #1a103c; margin: 15px 0;">
+        
+        <input type="text" id="target-id" placeholder="Enter Friend's ID to Connect">
+        <button onclick="connectToPeer()">// CONNECT TO FRIEND</button>
+        
+        <div class="log" id="chat-log"></div>
+        
+        <input type="text" id="msg-input" placeholder="Type message...">
+        <button onclick="sendMessage()">// SEND</button>
     </div>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('chat-log');
         let peer = null;
-        let myUsername = "";
-        let myDisplayName = "";
-        let myId = "";
+        let activeConnection = null;
 
-        let chats = {
-            'lobby': { name: '#lobby', messages: [], unread: 0, type: 'lobby' }
-        };
-        let friendRequests = {}; 
-        let friendsList = {};    
-        let activeChatKey = 'lobby';
-        let activeConnections = {};
-        let isNetworkOnline = false;
-
-        // Canvas Drawing Setup with Pointer Events
-        const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d');
-        let painting = false;
-
-        canvas.addEventListener('pointerdown', startPosition);
-        canvas.addEventListener('pointerup', endPosition);
-        canvas.addEventListener('pointermove', draw);
-
-        function startPosition(e) { painting = true; draw(e); }
-        function endPosition() { painting = false; ctx.beginPath(); }
-        function draw(e) {
-            if(!painting) return;
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#00f0ff';
-            const rect = canvas.getBoundingClientRect();
-            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        }
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-        function openDrawingModal() { document.getElementById('drawingModal').style.display = 'flex'; clearCanvas(); }
-        function closeDrawingModal() { document.getElementById('drawingModal').style.display = 'none'; }
-        function sendDrawingToChat() {
-            const dataUrl = canvas.toDataURL();
-            closeDrawingModal();
-            sendPayload({ type: 'image', image: dataUrl });
+        function log(msg, color = '#00f0ff') {
+            logEl.innerHTML += `<div style="color: ${color};">> ${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
         }
 
-        function handleImagePaste(event) {
-            const items = (event.clipboardData || event.originalEvent.clipboardData).items;
-            for(let index in items) {
-                let item = items[index];
-                if(item.kind === 'file' && item.type.indexOf('image/') !== -1) {
-                    event.preventDefault();
-                    let blob = item.getAsFile();
-                    let reader = new FileReader();
-                    reader.onload = function(e) { sendPayload({ type: 'image', image: e.target.result }); };
-                    reader.readAsDataURL(blob);
-                    break;
-                }
-            }
-        }
-
-        window.onload = function() {
-            const savedProfile = localStorage.getItem('cyber_profile');
-            if(savedProfile) {
-                const profile = JSON.parse(savedProfile);
-                document.getElementById('regUser').value = profile.username;
-                document.getElementById('regDisplay').value = profile.displayName;
-                document.getElementById('regPass').value = profile.password;
-                initializeAccount(true);
-            }
-        };
-
-        function initializeAccount(isAuto = false) {
-            const u = document.getElementById('regUser').value.trim();
-            const d = document.getElementById('regDisplay').value.trim();
-            const p = document.getElementById('regPass').value.trim();
-
-            if(!u || !d || !p) {
-                if(!isAuto) alert("Complete all required fields.");
-                return;
-            }
-
-            myUsername = u;
-            myDisplayName = d;
-
-            localStorage.setItem('cyber_profile', JSON.stringify({ username: u, displayName: d, password: p }));
-            loadPersistentStorage();
-
-            const uniqueSeed = u.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Math.floor(Math.random() * 900 + 100);
-            createPeerInstance(uniqueSeed);
-        }
-
-        function createPeerInstance(seed) {
-            // Attempt standard connection to main PeerJS server
+        // AGGRESSIVE CONNECTION CONFIGURATION
+        function initSetup() {
+            const seed = 'cyber_' + Math.floor(Math.random() * 90000 + 10000);
+            
             peer = new Peer(seed, {
                 host: '0.peerjs.com',
                 port: 443,
                 secure: true,
-                path: '/'
+                // Extra servers to help punch through strict NATs/Firewalls
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
             });
 
             peer.on('open', (id) => {
-                isNetworkOnline = true;
-                myId = id;
-                bootUI();
-                appendSystemMsg('lobby', 'Successfully connected to global internet signaling server.');
-            });
-
-            peer.on('disconnected', () => {
-                isNetworkOnline = false;
-                updateNetworkStatusUI();
-                appendSystemMsg('lobby', '⚠️ Connection to internet server lost.');
+                statusEl.innerText = "Status: ONLINE ⚡";
+                statusEl.style.color = "#00ff00";
+                document.getElementById('my-id').innerText = id;
+                log("Successfully connected to the main signaling server.", "#00ff00");
             });
 
             peer.on('error', (err) => {
-                console.warn("Peer connection error:", err);
-                if (!isNetworkOnline) {
-                    // Fallback to offline local mode so the UI still loads, avoiding crashing entirely
-                    myId = seed + '_offline';
-                    bootUI();
-                    setOfflineMode();
-                }
-            });
-
-            peer.on('connection', (connection) => {
-                setupIncomingConnection(connection);
-            });
-        }
-
-        function bootUI() {
-            document.getElementById('displayUsername').innerText = myDisplayName;
-            document.getElementById('displayId').innerText = "@" + myId;
-            document.getElementById('authModal').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'flex';
-            
-            updateNetworkStatusUI();
-            renderTabs();
-            renderSidebarLists();
-            renderRequests();
-            switchChat(activeChatKey);
-        }
-
-        function setOfflineMode() {
-            const status = document.getElementById('networkStatus');
-            status.innerText = "❌ NETWORK BLOCKED";
-            status.className = "status-badge offline";
-            appendSystemMsg('lobby', '⚠️ CRITICAL: WebSockets are blocked by your current Wi-Fi network, or servers are down. You cannot add online friends right now. Try a mobile hotspot.');
-        }
-
-        function updateNetworkStatusUI() {
-            const status = document.getElementById('networkStatus');
-            if(isNetworkOnline) {
-                status.innerText = "⚡ Jacked In (Online)";
-                status.className = "status-badge";
-            } else {
-                status.innerText = "❌ Disconnected";
-                status.className = "status-badge offline";
-            }
-        }
-
-        function loadPersistentStorage() {
-            const savedData = localStorage.getItem('cyber_data_' + myUsername);
-            if(savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    chats = parsed.chats || { 'lobby': { name: '#lobby', messages: [], unread: 0, type: 'lobby' } };
-                    friendRequests = parsed.friendRequests || {};
-                    friendsList = parsed.friendsList || {};
-                } catch(e) {}
-            } else {
-                chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Terminal booting...', type: 'received' }], unread: 0, type: 'lobby' } };
-                friendRequests = {};
-                friendsList = {};
-            }
-        }
-
-        function savePersistentStorage() {
-            if(!myUsername) return;
-            localStorage.setItem('cyber_data_' + myUsername, JSON.stringify({ chats: chats, friendRequests: friendRequests, friendsList: friendsList }));
-        }
-
-        function switchAccountPrompt() {
-            if(confirm("Are you sure you want to switch accounts?")) {
-                localStorage.removeItem('cyber_profile');
-                location.reload();
-            }
-        }
-
-        function openCreateLobbyPrompt() {
-            const lobbyName = prompt("Enter new custom room/lobby name:", "#squad_room");
-            if(!lobbyName) return;
-            let key = lobbyName.toLowerCase().replace(/\s+/g, '_');
-            if(!key.startsWith('#')) key = '#' + key;
-            if(!chats[key]) {
-                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Room ${key} initialized.` }], unread: 0, type: 'lobby' };
-                savePersistentStorage();
-                renderTabs();
-                renderSidebarLists();
-            }
-            switchChat(key);
-        }
-
-        // CRASH FIX: Checking if connection is viable before binding events
-        function sendLiveFriendRequest() {
-            const inputField = document.getElementById('peerIdInput');
-            const targetId = inputField.value.trim().replace('@','');
-            
-            if(!targetId) { alert("Please enter a target peer ID."); return; }
-            if(targetId === myId) { alert("You cannot add your own peer ID."); return; }
-
-            // Check if peer is destroyed or offline to prevent TypeError
-            if(!peer || peer.disconnected || peer.destroyed) {
-                alert("ERROR: You are not connected to the signaling server. Your network is blocking the connection.");
-                return;
-            }
-
-            try {
-                const conn = peer.connect(targetId);
-                if (!conn) {
-                    alert("Failed to initialize connection. Server dropped the request.");
-                    return;
-                }
-
-                activeConnections[targetId] = conn;
-
-                conn.on('open', () => {
-                    conn.send({ type: 'friend_request', sender: myDisplayName, senderId: myId });
-                    alert(`⚡ Live friend request transmitted instantly to @${targetId}!`);
-                    inputField.value = '';
-                });
-
-                conn.on('error', () => {
-                    alert("Connection failed. Verify target peer ID is currently online and correct.");
-                });
-            } catch (err) {
+                statusEl.innerText = "Status: NETWORK BLOCKED ❌";
+                log(`FATAL ERROR: ${err.type} - Your network is blocking the connection.`, "#ff3366");
                 console.error(err);
-                alert("Critical network failure. Cannot send request right now.");
-            }
+            });
+
+            peer.on('connection', (conn) => {
+                activeConnection = conn;
+                setupConnectionEvents();
+                log(`Incoming connection from: ${conn.peer}`, "#ffff00");
+            });
         }
 
-        function setupConnection(connection, targetId) {
-            if(!chats[targetId]) {
-                chats[targetId] = { name: '@' + targetId, messages: [{ sender: 'System Daemon', text: `Secure channel linked with @${targetId}` }], unread: 0, type: 'friend' };
-            }
-            activeConnections[targetId] = connection;
-            connection.on('open', () => { savePersistentStorage(); renderTabs(); renderSidebarLists(); });
-            connection.on('data', (data) => { handleIncomingData(targetId, connection, data); });
-            connection.on('close', () => { appendSystemMsg(targetId, `Link closed with @${targetId}`); delete activeConnections[targetId]; renderSidebarLists(); });
+        function connectToPeer() {
+            const target = document.getElementById('target-id').value.trim();
+            if (!target) return alert("Enter an ID");
+            if (!peer || peer.disconnected) return alert("You are offline. Network blocked.");
+
+            log(`Attempting connection to ${target}...`);
+            activeConnection = peer.connect(target);
+            setupConnectionEvents();
         }
 
-        function setupIncomingConnection(connection) {
-            const remoteId = connection.peer;
-            activeConnections[remoteId] = connection;
-            connection.on('data', (data) => { handleIncomingData(remoteId, connection, data); });
-            connection.on('close', () => { delete activeConnections[remoteId]; renderSidebarLists(); });
-        }
-
-        function handleIncomingData(remoteId, connection, data) {
-            if(data.type === 'friend_request') {
-                friendRequests[remoteId] = { name: data.sender || remoteId, id: remoteId };
-                savePersistentStorage(); renderRequests();
-                alert(`⚡ Live friend request received from ${data.sender} (@${remoteId})!`);
-            } 
-            else if(data.type === 'friend_accept') {
-                friendsList[remoteId] = { name: data.sender || remoteId };
-                if(!chats[remoteId]) {
-                    chats[remoteId] = { name: '@' + remoteId, messages: [{ sender: 'System Daemon', text: `Friend handshake accepted with @${remoteId}` }], unread: 0, type: 'friend' };
-                }
-                savePersistentStorage(); renderSidebarLists(); renderTabs();
-                alert(`✅ ${data.sender} accepted your friend request!`);
-            }
-            else { receiveData(remoteId, data.sender || remoteId, data); }
-        }
-
-        function acceptRequest(peerId) {
-            const req = friendRequests[peerId];
-            if(!req) return;
-            friendsList[peerId] = { name: req.name };
-            delete friendRequests[peerId];
-
-            if(!chats[peerId]) { chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Connection established.` }], unread: 0, type: 'friend' }; }
-            savePersistentStorage(); renderRequests(); renderSidebarLists(); renderTabs();
-
-            if(!peer || peer.disconnected) { alert("You are currently offline. Cannot send accept notice."); return; }
-
-            let conn = activeConnections[peerId];
-            if(!conn || !conn.open) {
-                conn = peer.connect(peerId);
-                if(conn) { activeConnections[peerId] = conn; conn.on('open', () => { conn.send({ type: 'friend_accept', sender: myDisplayName }); }); }
-            } else { conn.send({ type: 'friend_accept', sender: myDisplayName }); }
-
-            switchChat(peerId);
-        }
-
-        function rejectRequest(peerId) { delete friendRequests[peerId]; savePersistentStorage(); renderRequests(); }
-
-        function receiveData(chatKey, sender, data) {
-            if(!chats[chatKey]) { chats[chatKey] = { name: '@' + chatKey, messages: [], unread: 0, type: 'friend' }; }
-            chats[chatKey].messages.push({ sender: sender, text: data.text || '', image: data.image || null, type: 'received' });
-            savePersistentStorage();
-            if(activeChatKey === chatKey) { renderMessages(); } else { chats[chatKey].unread++; renderTabs(); renderSidebarLists(); }
+        function setupConnectionEvents() {
+            activeConnection.on('open', () => {
+                log(`Secure link established with ${activeConnection.peer}`, "#00ff00");
+            });
+            activeConnection.on('data', (data) => {
+                log(`[FRIEND]: ${data}`);
+            });
+            activeConnection.on('close', () => {
+                log("Connection lost.", "#ff3366");
+                activeConnection = null;
+            });
         }
 
         function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if(!text) return;
-            sendPayload({ text: text });
-            input.value = '';
-        }
+            const input = document.getElementById('msg-input');
+            const msg = input.value.trim();
+            if (!msg) return;
 
-        function sendPayload(payload) {
-            const currentChat = chats[activeChatKey];
-            if(!currentChat) return;
-
-            payload.sender = myDisplayName;
-            currentChat.messages.push({ sender: myDisplayName, text: payload.text || '', image: payload.image || null, type: 'sent' });
-            savePersistentStorage();
-
-            if(currentChat.type === 'friend') {
-                if(!peer || peer.disconnected) { appendSystemMsg(activeChatKey, "Error: Network offline. Message not sent over internet."); }
-                else {
-                    let conn = activeConnections[activeChatKey];
-                    if(!conn || !conn.open) {
-                        conn = peer.connect(activeChatKey);
-                        if(conn) { activeConnections[activeChatKey] = conn; conn.on('open', () => { conn.send(payload); }); }
-                    } else { conn.send(payload); }
-                }
-            }
-            renderMessages();
-        }
-
-        function switchChat(key) {
-            if(!chats[key]) return;
-            activeChatKey = key; chats[key].unread = 0; savePersistentStorage();
-            renderTabs(); renderSidebarLists(); renderMessages();
-        }
-
-        function renderTabs() {
-            const container = document.getElementById('chatTabsContainer');
-            container.innerHTML = '';
-            for(let key in chats) {
-                let chat = chats[key];
-                let tab = document.createElement('div');
-                tab.className = `tab ${activeChatKey === key ? 'active' : ''}`;
-                tab.id = 'tab_' + key;
-                tab.innerHTML = chat.name + (chat.unread > 0 ? ` <span style="color:#ff3366">(${chat.unread})</span>` : '');
-                tab.onclick = () => switchChat(key);
-                container.appendChild(tab);
+            if (activeConnection && activeConnection.open) {
+                activeConnection.send(msg);
+                log(`[YOU]: ${msg}`);
+                input.value = '';
+            } else {
+                alert("Not connected to anyone!");
             }
         }
 
-        function renderSidebarLists() {
-            const lobbyList = document.getElementById('lobbyList');
-            const friendsListContainer = document.getElementById('friendsListContainer');
-            lobbyList.innerHTML = ''; friendsListContainer.innerHTML = '';
-
-            for(let key in chats) {
-                let chat = chats[key];
-                let li = document.createElement('li');
-                li.className = `list-item ${activeChatKey === key ? 'active' : ''}`;
-
-                if(chat.type === 'lobby') {
-                    li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:#00f0ff">ROOM</span>`;
-                    li.onclick = () => switchChat(key);
-                    lobbyList.appendChild(li);
-                } else {
-                    let isOnline = activeConnections[key] && activeConnections[key].open;
-                    li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline ? '#00f0ff' : '#7b68ee'}">${isOnline ? 'ONLINE' : 'SAVED'}</span>`;
-                    li.onclick = () => {
-                        if(!isOnline && peer && !peer.disconnected) { const conn = peer.connect(key); if(conn) setupConnection(conn, key); }
-                        switchChat(key);
-                    };
-                    friendsListContainer.appendChild(li);
-                }
-            }
-        }
-
-        function renderRequests() {
-            const list = document.getElementById('requestsList');
-            const badge = document.getElementById('requestCountBadge');
-            list.innerHTML = '';
-            let count = 0;
-            for(let peerId in friendRequests) {
-                count++; let req = friendRequests[peerId]; let li = document.createElement('li'); li.className = 'list-item';
-                li.innerHTML = `<span>${req.name}</span><div class="request-actions"><button type="button" class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button><button type="button" class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button></div>`;
-                list.appendChild(li);
-            }
-            if(count > 0) { badge.style.display = 'inline-block'; badge.innerText = count; } 
-            else { badge.style.display = 'none'; list.innerHTML = `<li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>`; }
-        }
-
-        function renderMessages() {
-            const container = document.getElementById('messagesContainer');
-            container.innerHTML = '';
-            const currentChat = chats[activeChatKey];
-            if(!currentChat || !currentChat.messages) return;
-
-            currentChat.messages.forEach(msg => {
-                let msgDiv = document.createElement('div');
-                let isSent = msg.sender === myDisplayName;
-                msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-                
-                let innerContent = `<div class="msg-user">${escapeHtml(msg.sender)}</div>`;
-                if(msg.text) innerContent += `<div>${escapeHtml(msg.text)}</div>`;
-                if(msg.image) innerContent += `<img src="${msg.image}" class="chat-msg-img" alt="Shared Asset">`;
-                
-                msgDiv.innerHTML = innerContent;
-                container.appendChild(msgDiv);
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function appendSystemMsg(key, text) {
-            if(chats[key]) {
-                chats[key].messages.push({ sender: 'System Daemon', text: text, type: 'received' });
-                savePersistentStorage();
-                if(activeChatKey === key) renderMessages();
-            }
-        }
-
-        function copyMyId() { navigator.clipboard.writeText(myId); alert(`Your secure ID (${myId}) is copied!`); }
-        function checkEnter(e) { if(e.key === 'Enter') sendMessage(); }
-        function escapeHtml(text) { return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ''; }
+        // Start booting immediately
+        initSetup();
     </script>
 </body>
 </html>
