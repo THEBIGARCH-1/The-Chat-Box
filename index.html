@@ -1145,7 +1145,7 @@
         let ambientOsc = null;
         let ambientGain = null;
 
-        // Auto-login check on page load
+        // Auto-login check on page load & fetch saved channels if any
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('cybernet_name');
             const savedUsername = localStorage.getItem('cybernet_username');
@@ -1446,7 +1446,6 @@
             myUsername = uName;
             userChannel = "user_channel_" + myUsername.replace(/[^a-z0-9]/g, '');
 
-            // Save credentials to localStorage
             localStorage.setItem('cybernet_name', myName);
             localStorage.setItem('cybernet_username', myUsername);
             localStorage.setItem('cybernet_pass', pass);
@@ -1549,7 +1548,6 @@
                     }
                 } else {
                     if (!roomMessages[channel]) roomMessages[channel] = [];
-                    // Avoid duplicating messages if already pushed locally on send
                     if (!roomMessages[channel].some(m => m.id === msg.id)) {
                         roomMessages[channel].push(msg);
                     }
@@ -1846,7 +1844,7 @@
             }, (status) => {
                 if (!status.error) {
                     playSciFiSound('send');
-                    // INSTANT LOCAL DISPLAY FIX: Push message and render immediately
+                    // INSTANT LOCAL RENDER FIX: Appends sent message locally and updates chat DOM
                     if (!roomMessages[activeRoomCode]) roomMessages[activeRoomCode] = [];
                     if (!roomMessages[activeRoomCode].some(m => m.id === msgObj.id)) {
                         roomMessages[activeRoomCode].push(msgObj);
