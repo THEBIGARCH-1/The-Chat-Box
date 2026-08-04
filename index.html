@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Terminal Chat - Canvas P2P</title>
+    <title>Cyber Terminal Chat - Fixed Canvas P2P</title>
     <style>
         * {
             box-sizing: border-box;
@@ -79,7 +79,7 @@
 
         /* Sidebar Styling */
         .sidebar {
-            width: 300px;
+            width: 320px;
             border-right: 2px solid #1a103c;
             display: flex;
             flex-direction: column;
@@ -137,17 +137,28 @@
             box-shadow: 0 0 10px #7b68ee;
         }
 
-        /* Linked Contacts Section */
-        .contacts-section {
-            flex-grow: 1;
-            margin-top: 20px;
+        /* Sections */
+        .section-box {
+            margin-top: 15px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
-        .contacts-title {
-            font-size: 12px;
+        .section-title {
+            font-size: 11px;
             color: #aaa;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-count {
+            background: #ff3366;
+            color: #fff;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
         }
 
         .link-input-group {
@@ -171,41 +182,56 @@
             box-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
         }
 
-        .contact-list {
+        .item-list {
             list-style: none;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
-        .contact-item {
+        .list-item {
             padding: 8px;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             border-left: 2px solid transparent;
             transition: 0.2s;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #aaa;
+            color: #ccc;
+            background: #05050f;
+            margin-bottom: 4px;
+            border-radius: 2px;
         }
 
-        .contact-item:hover, .contact-item.active {
+        .list-item:hover, .list-item.active {
             background: #0f0a24;
             border-left-color: #00f0ff;
             color: #fff;
         }
 
-        /* Cyber Settings */
+        .request-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .req-btn {
+            background: transparent;
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        .req-btn.reject {
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        /* Settings Panel */
         .settings-panel {
             border-top: 1px solid #1a103c;
             padding-top: 15px;
             font-size: 11px;
-        }
-
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
         }
 
         /* Main Chat Area */
@@ -337,7 +363,7 @@
             box-shadow: 0 0 10px #00f0ff;
         }
 
-        /* Drawing Canvas Panel */
+        /* Drawing Canvas Modal */
         #drawingModal {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -409,26 +435,33 @@
                     <div class="status-badge">⚡ Jacked In</div>
                 </div>
 
-                <button class="action-btn" onclick="openCreateOrJoinModal()">// Create / Join Lobby</button>
+                <button class="action-btn" onclick="openCreateLobbyPrompt()">// Create Lobby Room</button>
 
-                <div class="contacts-section">
-                    <div class="contacts-title">Linked Contacts & Lobbies</div>
-                    <div class="link-input-group" style="margin-bottom: 10px;">
-                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
-                        <button class="action-btn" style="margin-top:0; width: 35%; padding: 8px;" onclick="connectToPeer()">Link</button>
+                <div class="section-box">
+                    <div class="section-title">
+                        <span>Inbox / Requests</span>
+                        <span class="badge-count" id="requestCountBadge" style="display:none;">0</span>
                     </div>
-                    <ul class="contact-list" id="contactList">
+                    <ul class="item-list" id="requestsList">
+                        <li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>
+                    </ul>
+                </div>
+
+                <div class="section-box" style="max-height: 150px;">
+                    <div class="section-title">Send Friend Request</div>
+                    <div class="link-input-group" style="margin-bottom: 5px;">
+                        <input type="text" id="peerIdInput" class="cyber-input" placeholder="@PEER_ID">
+                        <button class="action-btn" style="margin-top:0; width: 40%; padding: 6px;" onclick="sendFriendRequest()">Add</button>
+                    </div>
+                    <div class="section-title" style="margin-top:10px;">Friends & Lobbies</div>
+                    <ul class="item-list" id="contactList">
                         </ul>
                 </div>
             </div>
 
             <div class="settings-panel">
                 <div class="terminal-label">Cyber Settings</div>
-                <div class="settings-row">
-                    <span>Theme Palette</span>
-                    <span style="color:#00f0ff">Cyber Blue</span>
-                </div>
-                <button class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:10px;" onclick="switchAccountPrompt()">// Switch Account</button>
+                <button class="action-btn" style="background:#1a103c; border-color:#7b68ee; color:#fff; margin-top:5px;" onclick="switchAccountPrompt()">// Switch Account</button>
             </div>
         </div>
 
@@ -445,7 +478,7 @@
             <div class="messages-container" id="messagesContainer">
                 <div class="message received">
                     <div class="msg-user">System Matrix</div>
-                    Fully synchronized terminal online. All your chats, custom lobbies, friends, and accounts are automatically preserved locally!
+                    Fully synchronized P2P terminal online. Send friend requests via peer ID, approve incoming handshakes in real-time, and share sketches!
                 </div>
             </div>
 
@@ -467,17 +500,19 @@
         let chats = {
             'lobby': { name: '#lobby', messages: [], unread: 0 }
         };
+        let friendRequests = {}; 
+        let friendsList = {};    
         let activeChatKey = 'lobby';
         let activeConnections = {};
 
-        // Canvas Drawing Setup
+        // Canvas Drawing Setup with Pointer Events (Fixes touch/mouse rendering bug)
         const canvas = document.getElementById('drawCanvas');
         const ctx = canvas.getContext('2d');
         let painting = false;
 
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', endPosition);
-        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('pointerdown', startPosition);
+        canvas.addEventListener('pointerup', endPosition);
+        canvas.addEventListener('pointermove', draw);
 
         function startPosition(e) {
             painting = true;
@@ -512,7 +547,7 @@
         function sendDrawingToChat() {
             const dataUrl = canvas.toDataURL();
             closeDrawingModal();
-            sendPayload({ type: 'image', data: dataUrl });
+            sendPayload({ type: 'image', image: dataUrl });
         }
 
         // On Load Check Persistent Account
@@ -555,6 +590,7 @@
                 
                 renderTabs();
                 renderContacts();
+                renderRequests();
                 switchChat(activeChatKey);
             });
 
@@ -570,6 +606,7 @@
                     
                     renderTabs();
                     renderContacts();
+                    renderRequests();
                     switchChat(activeChatKey);
                 });
             });
@@ -580,21 +617,30 @@
         }
 
         function loadPersistentStorage() {
-            const savedChats = localStorage.getItem('cyber_chats_' + myUsername);
-            if(savedChats) {
+            const savedData = localStorage.getItem('cyber_data_' + myUsername);
+            if(savedData) {
                 try {
-                    chats = JSON.parse(savedChats);
+                    const parsed = JSON.parse(savedData);
+                    chats = parsed.chats || { 'lobby': { name: '#lobby', messages: [], unread: 0 } };
+                    friendRequests = parsed.friendRequests || {};
+                    friendsList = parsed.friendsList || {};
                 } catch(e) {
                     console.error(e);
                 }
             } else {
                 chats = { 'lobby': { name: '#lobby', messages: [{ sender: 'System Matrix', text: 'Secure terminal online.', type: 'received' }], unread: 0 } };
+                friendRequests = {};
+                friendsList = {};
             }
         }
 
         function savePersistentStorage() {
             if(!myUsername) return;
-            localStorage.setItem('cyber_chats_' + myUsername, JSON.stringify(chats));
+            localStorage.setItem('cyber_data_' + myUsername, JSON.stringify({
+                chats: chats,
+                friendRequests: friendRequests,
+                friendsList: friendsList
+            }));
         }
 
         function switchAccountPrompt() {
@@ -604,44 +650,38 @@
             }
         }
 
-        function openCreateOrJoinModal() {
-            const choice = prompt("Enter Peer ID to link friend, or new lobby name:", "#my_lobby");
-            if(!choice) return;
+        function openCreateLobbyPrompt() {
+            const lobbyName = prompt("Enter new custom room/lobby name:", "#squad_room");
+            if(!lobbyName) return;
             
-            if(choice.length > 3 || choice.includes('_')) {
-                document.getElementById('peerIdInput').value = choice.replace('@','');
-                connectToPeer();
-            } else {
-                createOrJoinLobby(choice);
-            }
-        }
-
-        function createOrJoinLobby(lobbyName) {
             let key = lobbyName.toLowerCase().replace(/\s+/g, '_');
             if(!key.startsWith('#')) key = '#' + key;
 
             if(!chats[key]) {
-                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Lobby ${key} created successfully.` }], unread: 0 };
+                chats[key] = { name: key, messages: [{ sender: 'System Daemon', text: `Room ${key} initialized.` }], unread: 0 };
                 savePersistentStorage();
                 renderTabs();
             }
             switchChat(key);
         }
 
-        function connectToPeer() {
-            const peerIdInput = document.getElementById('peerIdInput').value.trim().replace('@','');
-            if(!peerIdInput || peerIdInput === myId) {
-                alert("Enter a valid unique peer ID.");
+        function sendFriendRequest() {
+            const targetId = document.getElementById('peerIdInput').value.trim().replace('@','');
+            if(!targetId || targetId === myId) {
+                alert("Enter a valid unique peer target ID.");
                 return;
             }
 
-            if(activeConnections[peerIdInput]) {
-                switchChat(peerIdInput);
-                return;
-            }
-
-            const connection = peer.connect(peerIdInput);
-            setupConnection(connection, peerIdInput);
+            const conn = peer.connect(targetId);
+            activeConnections[targetId] = conn;
+            conn.on('open', () => {
+                conn.send({ type: 'friend_request', sender: myDisplayName, senderId: myId });
+                alert(`Friend request sent successfully to @${targetId}! Awaiting their real-time acceptance.`);
+                document.getElementById('peerIdInput').value = '';
+            });
+            conn.on('error', () => {
+                alert("Could not reach peer node. Verify their ID code.");
+            });
         }
 
         function setupConnection(connection, targetId) {
@@ -658,11 +698,10 @@
                 savePersistentStorage();
                 renderTabs();
                 renderContacts();
-                if(activeChatKey === 'lobby') switchChat(targetId);
             });
 
             connection.on('data', (data) => {
-                receiveData(targetId, data.sender || targetId, data);
+                handleIncomingData(targetId, connection, data);
             });
 
             connection.on('close', () => {
@@ -676,27 +715,69 @@
             const remoteId = connection.peer;
             activeConnections[remoteId] = connection;
 
-            if(!chats[remoteId]) {
-                chats[remoteId] = {
-                    name: '@' + remoteId,
-                    messages: [{ sender: 'System Daemon', text: `Incoming connection accepted from @${remoteId}` }],
-                    unread: 0
-                };
-            }
-
             connection.on('data', (data) => {
-                receiveData(remoteId, data.sender || remoteId, data);
+                handleIncomingData(remoteId, connection, data);
             });
 
             connection.on('close', () => {
-                appendSystemMsg(remoteId, `Link dropped with @${remoteId}`);
                 delete activeConnections[remoteId];
                 renderContacts();
             });
+        }
 
+        function handleIncomingData(remoteId, connection, data) {
+            if(data.type === 'friend_request') {
+                friendRequests[remoteId] = { name: data.sender || remoteId, id: remoteId };
+                savePersistentStorage();
+                renderRequests();
+                alert(`New friend request received from ${data.sender} (@${remoteId})! Check your Inbox.`);
+            } 
+            else if(data.type === 'friend_accept') {
+                friendsList[remoteId] = { name: data.sender || remoteId };
+                if(!chats[remoteId]) {
+                    chats[remoteId] = { name: '@' + remoteId, messages: [{ sender: 'System Daemon', text: `Friend handshake accepted with @${remoteId}` }], unread: 0 };
+                }
+                savePersistentStorage();
+                renderContacts();
+                renderTabs();
+                alert(`${data.sender} accepted your friend request! You can now chat directly.`);
+            }
+            else {
+                receiveData(remoteId, data.sender || remoteId, data);
+            }
+        }
+
+        function acceptRequest(peerId) {
+            const req = friendRequests[peerId];
+            if(!req) return;
+
+            friendsList[peerId] = { name: req.name };
+            delete friendRequests[peerId];
+
+            if(!chats[peerId]) {
+                chats[peerId] = { name: '@' + peerId, messages: [{ sender: 'System Daemon', text: `Friend connection established with @${peerId}` }], unread: 0 };
+            }
             savePersistentStorage();
-            renderTabs();
+            renderRequests();
             renderContacts();
+            renderTabs();
+
+            let conn = activeConnections[peerId];
+            if(!conn || !conn.open) {
+                conn = peer.connect(peerId);
+                activeConnections[peerId] = conn;
+            }
+            conn.on('open', () => {
+                conn.send({ type: 'friend_accept', sender: myDisplayName });
+            });
+
+            switchChat(peerId);
+        }
+
+        function rejectRequest(peerId) {
+            delete friendRequests[peerId];
+            savePersistentStorage();
+            renderRequests();
         }
 
         function receiveData(chatKey, sender, data) {
@@ -731,9 +812,17 @@
             currentChat.messages.push({ sender: myDisplayName, text: payload.text || '', image: payload.image || null, type: 'sent' });
             savePersistentStorage();
 
-            if(activeConnections[activeChatKey] && activeConnections[activeChatKey].open) {
-                activeConnections[activeChatKey].send(payload);
+            if(!activeChatKey.startsWith('#')) {
+                let conn = activeConnections[activeChatKey];
+                if(!conn || !conn.open) {
+                    conn = peer.connect(activeChatKey);
+                    activeConnections[activeChatKey] = conn;
+                }
+                conn.on('open', () => {
+                    conn.send(payload);
+                });
             }
+
             renderMessages();
         }
 
@@ -773,16 +862,46 @@
                 let isOnline = activeConnections[key] && activeConnections[key].open;
                 
                 let li = document.createElement('li');
-                li.className = `contact-item ${activeChatKey === key ? 'active' : ''}`;
-                li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline ? '#00f0ff' : '#7b68ee'}">${isOnline ? 'ONLINE' : 'SAVED'}</span>`;
+                li.className = `list-item ${activeChatKey === key ? 'active' : ''}`;
+                li.innerHTML = `<span>${chat.name}</span> <span style="font-size:10px; color:${isOnline || key.startsWith('#') ? '#00f0ff' : '#7b68ee'}">${key.startsWith('#') ? 'ROOM' : (isOnline ? 'ONLINE' : 'SAVED')}</span>`;
                 li.onclick = () => {
-                    if(!isOnline && key.length > 3 && !key.startsWith('#')) {
+                    if(!isOnline && !key.startsWith('#')) {
                         const conn = peer.connect(key);
                         setupConnection(conn, key);
                     }
                     switchChat(key);
                 };
                 list.appendChild(li);
+            }
+        }
+
+        function renderRequests() {
+            const list = document.getElementById('requestsList');
+            const badge = document.getElementById('requestCountBadge');
+            list.innerHTML = '';
+
+            let count = 0;
+            for(let peerId in friendRequests) {
+                count++;
+                let req = friendRequests[peerId];
+                let li = document.createElement('li');
+                li.className = 'list-item';
+                li.innerHTML = `
+                    <span>${req.name}</span>
+                    <div class="request-actions">
+                        <button class="req-btn" onclick="acceptRequest('${peerId}')">Accept</button>
+                        <button class="req-btn reject" onclick="rejectRequest('${peerId}')">X</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            }
+
+            if(count > 0) {
+                badge.style.display = 'inline-block';
+                badge.innerText = count;
+            } else {
+                badge.style.display = 'none';
+                list.innerHTML = `<li style="color: #666; font-size: 11px; padding: 5px;">No pending requests</li>`;
             }
         }
 
